@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 3: ALU Simulator Usage Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #333; line-height: 1.8; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; margin-bottom: 10px; }
+        h2 { color: #f093fb; margin-top: 25px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f5576c; }
+        h3 { color: #f5576c; margin-top: 20px; margin-bottom: 10px; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .step { background: #ffe6f0; padding: 20px; margin: 15px 0; border-left: 4px solid #f5576c; border-radius: 4px; }
+        .step-number { display: inline-block; background: #f5576c; color: white; width: 35px; height: 35px; border-radius: 50%; text-align: center; line-height: 35px; margin-right: 10px; font-weight: bold; }
+        .control-description { background: #fff5e6; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .panel-description { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f5576c; color: white; }
+        tr:hover { background: #f5f5f5; }
+        ul, ol { margin-left: 20px; margin-top: 10px; }
+        li { margin: 8px 0; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .tip { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .warning { background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .example { background: #ffe6f0; padding: 15px; border-radius: 4px; margin: 15px 0; font-family: monospace; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📖 Project 3: ALU Simulator Usage Guide</h1>
+            <p>Step-by-step instructions for analyzing ALU operations in audio signal processing</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - IT & CS</p>
+        </header>
+
+        <div class="section">
+            <h2>🚀 Quick Start (5 Steps)</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h3>Open the Simulator</h3>
+                <p>Launch <code>Project3_ALU_Simulator.html</code> in your web browser. You'll see:</p>
+                <ul>
+                    <li>Control panel with test case dropdown</li>
+                    <li>ALU Pipeline Status (3 ALU units: Fast, Multiplier, Divider)</li>
+                    <li>Instruction Queue showing upcoming operations</li>
+                    <li>Execution trace log with detailed cycle information</li>
+                    <li>Performance metrics including IPC, ALU Utilization, Power Efficiency</li>
+                    <li>Operation Mix Analysis table</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <h3>Select a Test Case</h3>
+                <p>Choose from 4 audio DSP instruction mixes:</p>
+                <div class="control-description">
+                    <strong>Test 1: Fast Operations Only</strong><br>
+                    100% ADD/SUB/AND/OR/XOR/SHL/SHR (1-cycle operations)<br>
+                    → Best case: high throughput, no stalls<br>
+                    <br>
+                    <strong>Test 2: Multiplier Bottleneck</strong><br>
+                    70% fast ops + 30% MUL (4-cycle operations)<br>
+                    → Moderate case: some stalls waiting for multiplier<br>
+                    <br>
+                    <strong>Test 3: Division Heavy (Worst Case)</strong><br>
+                    50% fast + 40% MUL + 10% DIV (20-cycle operations)<br>
+                    → Worst case: severe pipeline stalls<br>
+                    <br>
+                    <strong>Test 4: Realistic Audio Processing</strong><br>
+                    60% ADD/SUB + 25% MUL + 10% DIV + 5% bitwise<br>
+                    → Real DSP algorithm mix
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <h3>Load the Simulator</h3>
+                <p>Click <strong>"Load Simulator"</strong>. This initializes:</p>
+                <ul>
+                    <li>3 ALU units (Fast, Multiplier, Divider) all idle</li>
+                    <li>100-instruction sequence based on test case</li>
+                    <li>All metrics reset to zero</li>
+                    <li>Execution trace log cleared</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <h3>Execute Instructions</h3>
+                <p>Two execution modes:</p>
+                <ul>
+                    <li><strong>Step Forward ⏭️</strong> - Execute one instruction at a time (detailed analysis)</li>
+                    <li><strong>Auto Run ▶️</strong> - Execute all instructions automatically (300ms per step)</li>
+                </ul>
+                <div class="tip">
+                    <strong>Pro Tip:</strong> Use Step Forward to observe how long-latency operations (MUL, DIV) create stalls and block other instructions.
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span>
+                <h3>Analyze Performance</h3>
+                <p>Review key metrics:</p>
+                <ul>
+                    <li><strong>Total Cycles:</strong> How many CPU cycles to execute all instructions</li>
+                    <li><strong>IPC (Instructions Per Cycle):</strong> Throughput (higher = better)</li>
+                    <li><strong>Stall Cycles:</strong> Wasted cycles waiting for ALU results</li>
+                    <li><strong>ALU Utilization:</strong> % of cycles where ALU is doing useful work</li>
+                    <li><strong>Power Efficiency:</strong> Operations per unit power (important for audio devices)</li>
+                    <li><strong>Real-Time Feasible:</strong> Can process in &lt; 333 cycles @ 48kHz?</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Understanding the Display Panels</h2>
+
+            <h3>ALU Pipeline Status Table</h3>
+            <div class="panel-description">
+                <strong>Shows 3 separate ALU units:</strong>
+                <ul>
+                    <li><strong>Fast ALU:</strong> Handles ADD, SUB, AND, OR, XOR, SHL, SHR (1-cycle latency)</li>
+                    <li><strong>Multiplier Unit:</strong> Handles MUL (4-cycle latency)</li>
+                    <li><strong>Divider Unit:</strong> Handles DIV (20-cycle latency)</li>
+                </ul>
+                <strong>Status Colors:</strong> Green = Idle, Red = Busy<br>
+                <strong>Why 3 units?</strong> Real CPUs have separate functional units to enable parallel execution
+                <div style="margin-top: 10px;">
+                    <strong>Example:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        Fast ALU: Idle  —<br>
+                        Multiplier: Busy (MUL, 3 cycles left)<br>
+                        Divider: Idle  —
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                        The multiplier is busy with a MUL operation, but the Fast ALU is free to execute ADD/SUB operations in parallel!
+                    </div>
+                </div>
+            </div>
+
+            <h3>Instruction Queue</h3>
+            <div class="panel-description">
+                <strong>Shows:</strong> Next 8 instructions waiting to be executed<br>
+                <strong>Color coding:</strong> First instruction (red) is currently executing<br>
+                <strong>Why it matters:</strong> Helps visualize instruction dependencies and bottlenecks
+                <div style="margin-top: 10px;">
+                    <strong>Example:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        [MUL] ← Currently executing (4-cycle latency)<br>
+                        [ADD]<br>
+                        [SUB]<br>
+                        [MUL] ← May stall waiting for previous MUL
+                    </div>
+                </div>
+            </div>
+
+            <h3>Execution Trace Log</h3>
+            <div class="panel-description">
+                <strong>Shows:</strong> Cycle-by-cycle execution details<br>
+                <strong>Key events logged:</strong>
+                <ul>
+                    <li>Operation execution: which ALU unit, latency</li>
+                    <li>Stalls: when instruction must wait for ALU</li>
+                    <li>Completions: when operation finishes</li>
+                </ul>
+                <div style="margin-top: 10px;">
+                    <strong>Example Log Entries:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        [C3] Execute MUL on multiplier ALU (latency: 4 cycles)<br>
+                        [C4] Execute ADD on fast ALU (latency: 1 cycle) ← Parallel execution!<br>
+                        [C4] Complete: ADD from fast ALU<br>
+                        [C5] STALL: MUL waiting for multiplier ALU (queue: 1)<br>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Performance Metrics</h3>
+            <div class="panel-description">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>What It Means</th>
+                        <th>Target/Good Value</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Cycles</strong></td>
+                        <td>Clock cycles to process all 100 instructions</td>
+                        <td>&lt; 170</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Instructions Executed</strong></td>
+                        <td>Total operations completed</td>
+                        <td>100</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stall Cycles</strong></td>
+                        <td>Wasted cycles waiting for long-latency ops</td>
+                        <td>&lt; 40</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IPC (Instr/Cycle)</strong></td>
+                        <td>Throughput—higher is better</td>
+                        <td>&gt; 0.8</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ALU Utilization</strong></td>
+                        <td>% of cycles ALU is working</td>
+                        <td>&gt; 80%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Critical Path</strong></td>
+                        <td>Longest instruction dependency chain</td>
+                        <td>&lt; 100</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Power Efficiency</strong></td>
+                        <td>Operations per unit power</td>
+                        <td>&gt; 2.0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Real-Time Feasible</strong></td>
+                        <td>Can process in &lt; 333 cycles @ 48kHz?</td>
+                        <td>✓ Yes</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Operation Mix Analysis</h3>
+            <div class="panel-description">
+                <strong>Shows:</strong> Breakdown of which operations were executed and their costs<br>
+                <strong>Columns:</strong> Operation type, Count, Average latency, Total time consumed, % of total execution time<br>
+                <strong>Why it matters:</strong> Identifies which operations are bottlenecks
+                <div style="margin-top: 10px;">
+                    <strong>Example (Test 3: Division Heavy):</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        ADD: 50 ops × 1 cycle = 50 cycles (25% of time)<br>
+                        MUL: 40 ops × 4 cycles = 160 cycles (60% of time) ← Bottleneck!<br>
+                        DIV: 10 ops × 20 cycles = 200 cycles (90% of time) ← Major bottleneck!<br>
+                    </div>
+                    <div style="margin-top: 10px; color: #666; font-size: 0.9em;">
+                        Even though DIV is only 10% of instructions, it consumes 90% of execution time!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Key Observations to Record</h2>
+
+            <h3>For Each Test Case, Answer:</h3>
+            <ol>
+                <li><strong>Which operation caused the most stalls?</strong> (MUL or DIV?)</li>
+                <li><strong>What is the theoretical minimum cycles?</strong> (If operations could overlap perfectly)</li>
+                <li><strong>What is the IPC?</strong> (Actual instructions executed per cycle)</li>
+                <li><strong>Is the processor real-time capable?</strong> (&lt; 333 cycles @ 48kHz)</li>
+                <li><strong>How much is performance lost to stalls?</strong> (Stall cycles / Total cycles %)</li>
+                <li><strong>Could instruction reordering help?</strong> (Move ADD/SUB before stalled MUL/DIV)</li>
+            </ol>
+
+            <div class="example">
+                <strong>Example Data Collection (Test 3):</strong><br><br>
+                Total Cycles: 285<br>
+                Instructions: 100<br>
+                Stall Cycles: 145<br>
+                IPC: 0.35<br>
+                ALU Utilization: 49%<br>
+                Bottleneck: DIV (20-cycle latency)<br>
+                Stall Loss: 51% of time wasted waiting<br>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚡ How ALU Pipelining Works</h2>
+
+            <h3>Sequential Execution (Without Parallelism):</h3>
+            <div class="example">
+                Cycle 1: MUL (4 cycles)<br>
+                Cycle 5: ADD (1 cycle)<br>
+                Cycle 6: SUB (1 cycle)<br>
+                Total: 6 cycles for 3 instructions
+            </div>
+
+            <h3>Parallel Execution (With Multiple ALUs):</h3>
+            <div class="example">
+                Cycle 1: MUL on Multiplier (4 cycles)<br>
+                Cycle 1: ADD on Fast ALU (same cycle!)<br>
+                Cycle 2: SUB on Fast ALU (same cycle!)<br>
+                Total: 4 cycles for 3 instructions ← 33% faster!
+            </div>
+
+            <div class="tip">
+                <strong>Key Insight:</strong> When you have separate ALU units (Fast, Multiplier, Divider), independent instructions can execute in parallel. The simulator shows this by allowing ADD/SUB to execute while MUL/DIV is working.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Data Collection Template</h2>
+            <div class="example" style="padding: 15px; background: white; border: 1px solid #ddd;">
+                <strong>Test Case:</strong> _______________<br>
+                <strong>Total Cycles:</strong> _______________<br>
+                <strong>Instructions Executed:</strong> _______________<br>
+                <strong>Stall Cycles:</strong> _______________<br>
+                <strong>IPC (Instructions/Cycle):</strong> _______________<br>
+                <strong>ALU Utilization:</strong> _______________<br>
+                <strong>Critical Path Latency:</strong> _______________<br>
+                <strong>Power Efficiency (ops/mW):</strong> _______________<br>
+                <strong>Real-Time Feasible:</strong> _______________<br>
+                <strong>Main Bottleneck Operation:</strong> _______________<br>
+                <strong>Stall Loss (%):</strong> _______________<br>
+                <strong>Optimization Opportunities:</strong> _______________
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎓 Learning Goals Checklist</h2>
+            <ul style="margin-left: 30px;">
+                <li>☐ Understand latency vs. throughput for different ALU operations</li>
+                <li>☐ Identify how long-latency operations (MUL, DIV) cause pipeline stalls</li>
+                <li>☐ Calculate actual IPC based on instruction mix and latencies</li>
+                <li>☐ Recognize how separate functional units enable parallel execution</li>
+                <li>☐ Analyze real-world instruction mixes from DSP algorithms</li>
+                <li>☐ Compare performance across different audio processing test cases</li>
+                <li>☐ Propose optimizations (instruction reordering, algorithm changes)</li>
+                <li>☐ Evaluate real-time feasibility for live audio processing</li>
+                <li>☐ Understand power-performance tradeoffs (DIV expensive in power)</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

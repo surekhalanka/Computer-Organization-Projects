@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 3: ALU Operations Analysis - Audio Signal Processing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #f093fb; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 10px; }
+        .scenario-box { background: #fff5e6; padding: 20px; border-left: 4px solid #f5576c; margin: 15px 0; }
+        .alu-operations { background: #ffe6f0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e6f7ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #e6ffe6; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f5576c; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔊 Project 3: ALU Operations Analysis</h1>
+            <p class="subtitle">Scenario: Audio Signal Processing</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze the Arithmetic Logic Unit (ALU) operations required for real-time audio signal processing. You'll examine how different ALU operations (ADD, SUB, MUL, DIV, AND, OR, XOR, SHL, SHR) impact processor performance and power consumption when processing audio streams.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>SoundWave Audio Engine: Real-Time Signal Processing</h3>
+                <p><strong>Background:</strong> SoundWave operates a real-time audio processing service for live streaming and video conferencing. The platform processes 10,000+ simultaneous audio streams daily, each requiring digital signal processing (DSP) operations. The CPU must perform 1000 ALU operations per 16-sample audio block at 48kHz sample rate.</p>
+                
+                <h3 style="margin-top: 20px;">Key Audio Processing Stages:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Input Normalization:</strong> Divide audio samples by max amplitude (DIV operation)</li>
+                    <li><strong>Pre-emphasis Filter:</strong> Subtract previous sample from current (SUB operation)</li>
+                    <li><strong>Gain Adjustment:</strong> Multiply samples by gain coefficient (MUL operation)</li>
+                    <li><strong>Bit Shifting:</strong> Shift for fixed-point arithmetic (SHL/SHR operations)</li>
+                    <li><strong>Noise Gate:</strong> Bitwise AND to zero out low-amplitude samples</li>
+                    <li><strong>Mixing:</strong> Add multiple audio streams together (ADD operation)</li>
+                    <li><strong>Frequency Analysis:</strong> XOR for parity and feature extraction</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ ALU Operations & Latencies</h2>
+            <div class="alu-operations">
+                <h3>8 Core ALU Operations:</h3>
+                <table>
+                    <tr>
+                        <th>Operation</th>
+                        <th>Symbol</th>
+                        <th>Latency (cycles)</th>
+                        <th>Throughput (ops/cycle)</th>
+                        <th>Audio Use Case</th>
+                    </tr>
+                    <tr>
+                        <td>Addition</td>
+                        <td>ADD</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Mix multiple audio streams</td>
+                    </tr>
+                    <tr>
+                        <td>Subtraction</td>
+                        <td>SUB</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Audio filtering (differentiator)</td>
+                    </tr>
+                    <tr>
+                        <td>Multiplication</td>
+                        <td>MUL</td>
+                        <td>4</td>
+                        <td>0.25</td>
+                        <td>Apply gain, convolution</td>
+                    </tr>
+                    <tr>
+                        <td>Division</td>
+                        <td>DIV</td>
+                        <td>20</td>
+                        <td>0.05</td>
+                        <td>Normalize amplitude</td>
+                    </tr>
+                    <tr>
+                        <td>Bitwise AND</td>
+                        <td>AND</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Noise gate (mask)</td>
+                    </tr>
+                    <tr>
+                        <td>Bitwise OR</td>
+                        <td>OR</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Channel mixing flags</td>
+                    </tr>
+                    <tr>
+                        <td>Bitwise XOR</td>
+                        <td>XOR</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Parity checks, feature extraction</td>
+                    </tr>
+                    <tr>
+                        <td>Shift Left/Right</td>
+                        <td>SHL/SHR</td>
+                        <td>1</td>
+                        <td>1.0</td>
+                        <td>Fixed-point scaling</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Critical Performance Factors:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Latency-Critical Operations:</strong> MUL (4 cycles), DIV (20 cycles) - bottlenecks in pipelines</li>
+                    <li><strong>Data Dependencies:</strong> Result of one operation used as input to next</li>
+                    <li><strong>Instruction Mix:</strong> Real audio has ~60% ADD/SUB, 25% MUL, 10% DIV, 5% bitwise</li>
+                    <li><strong>Power Consumption:</strong> DIV = 5× power vs ADD; optimization critical for mobile</li>
+                    <li><strong>Real-Time Constraints:</strong> Must process 16 samples in &lt; 333μs @ 48kHz</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Test Cases</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Fast Operations (Best Case)</h3>
+                <p><strong>Instruction Mix:</strong> 100% ADD/SUB/AND/OR/XOR/SHL/SHR (1-cycle latency each)</p>
+                <p><strong>Expected Outcome:</strong> High throughput, no stalls, low power consumption</p>
+                <p><strong>Key Metric:</strong> Total Cycles ≈ 50-60 for 100 operations</p>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Multiplier Bottleneck</h3>
+                <p><strong>Instruction Mix:</strong> 70% fast ops + 30% MUL (4-cycle latency)</p>
+                <p><strong>Expected Outcome:</strong> Pipelined MUL operations, some stalls waiting for results</p>
+                <p><strong>Key Metric:</strong> Total Cycles ≈ 120-140</p>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Division Heavy (Worst Case)</h3>
+                <p><strong>Instruction Mix:</strong> 50% fast ops + 40% MUL + 10% DIV (20-cycle latency)</p>
+                <p><strong>Expected Outcome:</strong> Severe pipeline stalls, serialized execution, high latency</p>
+                <p><strong>Key Metric:</strong> Total Cycles ≈ 200-300</p>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Realistic Audio Processing</h3>
+                <p><strong>Instruction Mix:</strong> 60% ADD/SUB (1 cycle) + 25% MUL (4 cycles) + 10% DIV (20 cycles) + 5% bitwise (1 cycle)</p>
+                <p><strong>Expected Outcome:</strong> Balanced mix reflecting real DSP algorithms</p>
+                <p><strong>Key Metric:</strong> Total Cycles ≈ 150-170</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance Metrics & Targets</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Total Cycles per Block</td>
+                        <td>CPU cycles to process one 16-sample audio block</td>
+                        <td>&lt; 170</td>
+                    </tr>
+                    <tr>
+                        <td>Instructions Per Cycle (IPC)</td>
+                        <td>Average # of instructions executed per cycle (throughput)</td>
+                        <td>&gt; 0.8</td>
+                    </tr>
+                    <tr>
+                        <td>ALU Utilization</td>
+                        <td>% of cycles where ALU is performing useful work</td>
+                        <td>&gt; 80%</td>
+                    </tr>
+                    <tr>
+                        <td>Stall Cycles</td>
+                        <td>Cycles wasted waiting for long-latency operations (MUL, DIV)</td>
+                        <td>&lt; 40</td>
+                    </tr>
+                    <tr>
+                        <td>Critical Path Latency</td>
+                        <td>Longest dependency chain (bottleneck operation)</td>
+                        <td>&lt; 100 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Power Efficiency (ops/mW)</td>
+                        <td>Operations per unit power (important for audio devices)</td>
+                        <td>&gt; 2.0</td>
+                    </tr>
+                    <tr>
+                        <td>Real-Time Feasibility</td>
+                        <td>Can process 16 samples in &lt; 333μs @ 1GHz?</td>
+                        <td>&lt; 333 cycles</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand latency vs. throughput tradeoffs for ALU operations</li>
+                <li>Identify performance bottlenecks from long-latency operations (MUL, DIV)</li>
+                <li>Analyze instruction dependencies and critical path latency</li>
+                <li>Optimize instruction scheduling to maximize IPC</li>
+                <li>Trade off accuracy for speed in fixed-point audio processing</li>
+                <li>Evaluate power vs. performance in DSP algorithms</li>
+                <li>Apply real-world audio processing constraints (real-time, sample rate)</li>
+                <li>Compare ALU operation costs across different processor architectures</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
