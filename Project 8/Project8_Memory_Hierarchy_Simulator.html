@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 8: Memory Hierarchy Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #667eea; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-panel { background: #f8f9ff; padding: 20px; border-radius: 8px; border: 2px solid #667eea; }
+        h2 { color: #667eea; margin-bottom: 15px; font-size: 1.2em; }
+        h3 { color: #764ba2; margin-top: 15px; margin-bottom: 10px; font-size: 1em; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; margin: 5px 5px 5px 0; }
+        button { background: #667eea; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; }
+        button:hover { background: #764ba2; }
+        button.secondary { background: #999; }
+        button.secondary:hover { background: #666; }
+        .results-box { background: #e8f0fe; padding: 15px; border-left: 4px solid #667eea; border-radius: 4px; margin: 10px 0; }
+        .hierarchy-display { background: linear-gradient(180deg, #f0f4ff 0%, #e8f0fe 100%); padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .cache-level { background: white; border: 2px solid #667eea; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .cache-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .stat { background: #f5f5f5; padding: 12px; border-radius: 4px; text-align: center; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .workload-description { background: #fff8e1; padding: 15px; border-left: 4px solid #ffc107; border-radius: 4px; margin: 10px 0; }
+        .coherence-traffic { background: #f3e5f5; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #9c27b0; }
+        .prefetch-stats { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #4caf50; }
+        .power-stats { background: #ffe0e0; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #f44336; }
+        .metric { display: inline-block; margin: 5px 15px 5px 0; }
+        .metric-value { font-weight: bold; color: #667eea; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .pyramid { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .level { padding: 15px; border-radius: 4px; text-align: center; font-weight: bold; }
+        .level-l1 { background: #ffeb3b; color: #333; border: 2px solid #fbc02d; }
+        .level-l2 { background: #4fc3f7; color: white; border: 2px solid #0288d1; }
+        .level-l3 { background: #9c27b0; color: white; border: 2px solid #6a1b9a; }
+        .level-mem { background: #666; color: white; border: 2px solid #333; }
+        .comparison-table { margin: 15px 0; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
+        .toggle-group { margin: 15px 0; }
+        .toggle-group label { display: inline-block; margin-right: 15px; }
+        input[type="checkbox"] { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💾 Project 8: Memory Hierarchy Simulator</h1>
+            <p class="subtitle">Real-Time Stock Market Data - Multi-Level Cache Analysis</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="grid">
+            <div class="card control-panel">
+                <h2>🎮 Configuration & Control</h2>
+                
+                <h3>Select Hierarchy Type</h3>
+                <select id="hierarchyType">
+                    <option value="inclusive">Inclusive (Intel-style: L1 ⊂ L2 ⊂ L3)</option>
+                    <option value="exclusive">Exclusive (AMD-style: L1 ⊕ L2 ⊕ L3)</option>
+                </select>
+
+                <h3>Select Workload</h3>
+                <select id="workload">
+                    <option value="sequential">Workload 1: Portfolio Rebalancing (Sequential)</option>
+                    <option value="hotspot">Workload 2: Real-Time Price Updates (Hot Spot)</option>
+                    <option value="multicore">Workload 3: Multi-Core Coherence (Shared)</option>
+                    <option value="prefetch">Workload 4: Prefetch Effectiveness</option>
+                    <option value="random">Workload 5: Random Access Pattern</option>
+                </select>
+
+                <h3>Cache Configuration</h3>
+                <div>
+                    <label>L1 Size:</label>
+                    <select id="l1Size">
+                        <option value="16">16 KB</option>
+                        <option value="32" selected>32 KB (Standard)</option>
+                        <option value="64">64 KB</option>
+                    </select>
+                </div>
+                <div>
+                    <label>L2 Size:</label>
+                    <select id="l2Size">
+                        <option value="128">128 KB</option>
+                        <option value="256" selected>256 KB (Standard)</option>
+                        <option value="512">512 KB</option>
+                    </select>
+                </div>
+                <div>
+                    <label>L3 Size:</label>
+                    <select id="l3Size">
+                        <option value="4">4 MB</option>
+                        <option value="8" selected>8 MB (Standard)</option>
+                        <option value="16">16 MB</option>
+                    </select>
+                </div>
+
+                <h3>Options</h3>
+                <div class="toggle-group">
+                    <label><input type="checkbox" id="prefetchEnable" checked> Hardware Prefetch (L1→L2→L3)</label><br>
+                    <label><input type="checkbox" id="coherenceEnable" checked> Cache Coherence (MESI)</label><br>
+                    <label><input type="checkbox" id="predictionEnable" checked> Branch Prediction</label>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="runSimulation()">▶ Run Simulation</button>
+                    <button class="secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+
+                <div id="workloadDescription" class="workload-description" style="margin-top: 15px; display:none;"></div>
+            </div>
+
+            <div class="card" id="workloadInfo">
+                <h2>📋 Workload Information</h2>
+                <p id="workloadText" style="line-height: 1.8;">Select a workload to see details...</p>
+            </div>
+        </div>
+
+        <div class="card grid-full">
+            <h2>📊 Memory Hierarchy Visualization</h2>
+            <div class="hierarchy-display">
+                <h3>Cache Hierarchy (Inclusive Mode)</h3>
+                <div class="pyramid">
+                    <div class="level level-l1">
+                        L1 D-Cache (32 KB) | Latency: 1-3 cy | Bandwidth: 32 GB/s
+                    </div>
+                    <div class="level level-l2">
+                        L2 Cache (256 KB) | Latency: 5-7 cy | Bandwidth: 16 GB/s
+                    </div>
+                    <div class="level level-l3">
+                        L3 Cache (8 MB) | Latency: 15-20 cy | Bandwidth: 8 GB/s
+                    </div>
+                    <div class="level level-mem">
+                        Main Memory (DDR4) | Latency: 100-200 cy | Bandwidth: 4 GB/s
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>L1 Cache Statistics</h2>
+                <div class="cache-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="l1HitRate">--</div>
+                        <div class="stat-label">Hit Rate %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l1Hits">--</div>
+                        <div class="stat-label">Hits</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l1Misses">--</div>
+                        <div class="stat-label">Misses</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l1Util">--</div>
+                        <div class="stat-label">Utilization</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Size</td>
+                        <td id="l1CacheSize">32 KB</td>
+                    </tr>
+                    <tr>
+                        <td>Block Size</td>
+                        <td>64 B</td>
+                    </tr>
+                    <tr>
+                        <td>Associativity</td>
+                        <td>8-Way</td>
+                    </tr>
+                    <tr>
+                        <td>Latency</td>
+                        <td>1-3 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Replacement Policy</td>
+                        <td>LRU</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>L2 Cache Statistics</h2>
+                <div class="cache-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="l2HitRate">--</div>
+                        <div class="stat-label">Hit Rate %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l2Hits">--</div>
+                        <div class="stat-label">Hits</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l2Misses">--</div>
+                        <div class="stat-label">Misses</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l2Util">--</div>
+                        <div class="stat-label">Utilization</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Size</td>
+                        <td id="l2CacheSize">256 KB</td>
+                    </tr>
+                    <tr>
+                        <td>Block Size</td>
+                        <td>64 B</td>
+                    </tr>
+                    <tr>
+                        <td>Associativity</td>
+                        <td>4-Way</td>
+                    </tr>
+                    <tr>
+                        <td>Latency</td>
+                        <td>5-7 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Replacement Policy</td>
+                        <td>LRU</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>L3 Cache Statistics</h2>
+                <div class="cache-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="l3HitRate">--</div>
+                        <div class="stat-label">Hit Rate %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l3Hits">--</div>
+                        <div class="stat-label">Hits</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l3Misses">--</div>
+                        <div class="stat-label">Misses</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="l3Util">--</div>
+                        <div class="stat-label">Utilization</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Size</td>
+                        <td id="l3CacheSize">8 MB</td>
+                    </tr>
+                    <tr>
+                        <td>Block Size</td>
+                        <td>64 B</td>
+                    </tr>
+                    <tr>
+                        <td>Associativity</td>
+                        <td>20-Way</td>
+                    </tr>
+                    <tr>
+                        <td>Latency</td>
+                        <td>15-20 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Replacement Policy</td>
+                        <td>LRU</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Memory Performance Metrics</h2>
+                <div class="results-box">
+                    <div class="metric">
+                        <strong>AMAT (Avg Memory Access Time):</strong> <span class="metric-value" id="amat">-- cycles</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Accesses:</strong> <span class="metric-value" id="totalAccesses">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Misses:</strong> <span class="metric-value" id="totalMisses">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Miss Rate:</strong> <span class="metric-value" id="overallMissRate">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Memory Stall Cycles:</strong> <span class="metric-value" id="stallCycles">--</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card grid-full">
+                <h2>📈 Hit Rate Comparison</h2>
+                <div class="chart-container">
+                    <canvas id="hitRateChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📊 Cache Level Latency Impact</h2>
+                <div class="chart-container">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Bandwidth Utilization</h2>
+                <div class="chart-container">
+                    <canvas id="bandwidthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card grid-full" id="prefetchContainer" style="display:none;">
+                <h2>🎯 Prefetch Statistics</h2>
+                <div class="prefetch-stats">
+                    <div class="metric">
+                        <strong>Prefetches Issued:</strong> <span class="metric-value" id="prefetchIssued">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Prefetch Hits:</strong> <span class="metric-value" id="prefetchHits">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Prefetch Accuracy:</strong> <span class="metric-value" id="prefetchAccuracy">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Prefetch Pollution:</strong> <span class="metric-value" id="prefetchPollution">--</span>
+                    </div><br>
+                </div>
+            </div>
+
+            <div class="card grid-full" id="coherenceContainer" style="display:none;">
+                <h2>🔄 Cache Coherence (MESI) Statistics</h2>
+                <div class="coherence-traffic">
+                    <div class="metric">
+                        <strong>Coherence Messages:</strong> <span class="metric-value" id="coherenceMessages">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Invalidations:</strong> <span class="metric-value" id="invalidations">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Cache-to-Cache Transfers:</strong> <span class="metric-value" id="c2cTransfers">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Coherence Traffic (MB/s):</strong> <span class="metric-value" id="coherenceTraffic">--</span>
+                    </div><br>
+                </div>
+            </div>
+
+            <div class="card grid-full">
+                <h2>⚙️ Power Consumption Analysis</h2>
+                <div class="power-stats">
+                    <div class="metric">
+                        <strong>L1 Power:</strong> <span class="metric-value" id="l1Power">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>L2 Power:</strong> <span class="metric-value" id="l2Power">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>L3 Power:</strong> <span class="metric-value" id="l3Power">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Coherence Power:</strong> <span class="metric-value" id="coherencePower">-- W</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Memory System Power:</strong> <span class="metric-value" id="totalPower">-- W</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script>
+        const workloadDescriptions = {
+            sequential: {
+                title: "Workload 1: Portfolio Rebalancing (Sequential)",
+                desc: "Read 5,000 stock symbols sequentially (end-of-day rebalance). Working set: ~1 MB (fits in L2). Expected: L1 Hit 85%, L2 Hit 98%, L3 Hit 99%.",
+                pattern: "Sequential access, 1MB working set"
+            },
+            hotspot: {
+                title: "Workload 2: Real-Time Price Updates (Hot Spot)",
+                desc: "Update 50 favorite stocks continuously (10x/sec). Working set: ~10 KB (fits in L1). Expected: L1 Hit 95%+, L2 Hit 99%+, L3 100%.",
+                pattern: "Random access to 10 KB hot data"
+            },
+            multicore: {
+                title: "Workload 3: Multi-Core Coherence (Shared Data)",
+                desc: "8 traders accessing same symbols (market volatility). Alternating reads/writes to shared index. Challenges: Cache invalidations, MESI state changes. Expected: L1 Hit 75%, L2 Hit 90%, L3 Hit 95%.",
+                pattern: "Shared data with coherence traffic"
+            },
+            prefetch: {
+                title: "Workload 4: Prefetch Effectiveness",
+                desc: "Sequential scan with prefetcher on/off. Prefetch strategy: L1 prefetch next 4 blocks, L2 prefetch L3, L3 prefetch main memory. Expected: L1 Hit 92%, L2 Hit 99%, L3 Hit 99.5%.",
+                pattern: "Sequential with hardware prefetch"
+            },
+            random: {
+                title: "Workload 5: Random Access Pattern",
+                desc: "Random memory access across entire working set. Tests cache effectiveness at preventing misses. Expected: L1 Hit 65%, L2 Hit 85%, L3 Hit 90%.",
+                pattern: "Pure random access pattern"
+            }
+        };
+
+        let simulationState = {
+            l1: { hits: 0, misses: 0, accesses: 0, capacity: 32768 },
+            l2: { hits: 0, misses: 0, accesses: 0, capacity: 262144 },
+            l3: { hits: 0, misses: 0, accesses: 0, capacity: 8388608 },
+            coherenceMessages: 0,
+            invalidations: 0,
+            c2cTransfers: 0,
+            prefetchIssued: 0,
+            prefetchHits: 0
+        };
+
+        document.getElementById('workload').addEventListener('change', function() {
+            const wld = workloadDescriptions[this.value];
+            document.getElementById('workloadText').innerHTML = `
+                <strong>${wld.title}</strong><br><br>
+                ${wld.desc}<br><br>
+                <strong>Access Pattern:</strong> ${wld.pattern}
+            `;
+        });
+
+        function runSimulation() {
+            const workload = document.getElementById('workload').value;
+            const hierarchyType = document.getElementById('hierarchyType').value;
+            const prefetchEnabled = document.getElementById('prefetchEnable').checked;
+            const coherenceEnabled = document.getElementById('coherenceEnable').checked;
+            
+            // Reset state
+            simulationState = {
+                l1: { hits: 0, misses: 0, accesses: 0, capacity: parseInt(document.getElementById('l1Size').value) * 1024 },
+                l2: { hits: 0, misses: 0, accesses: 0, capacity: parseInt(document.getElementById('l2Size').value) * 1024 },
+                l3: { hits: 0, misses: 0, accesses: 0, capacity: parseInt(document.getElementById('l3Size').value) * 1024 * 1024 },
+                coherenceMessages: 0,
+                invalidations: 0,
+                c2cTransfers: 0,
+                prefetchIssued: 0,
+                prefetchHits: 0
+            };
+
+            const totalAccesses = 10000;
+            let hitRates = { l1: 0, l2: 0, l3: 0 };
+
+            // Simulate workload-specific behavior
+            switch(workload) {
+                case 'sequential':
+                    hitRates = { l1: 0.85, l2: 0.98, l3: 0.99 };
+                    break;
+                case 'hotspot':
+                    hitRates = { l1: 0.95, l2: 0.99, l3: 1.0 };
+                    break;
+                case 'multicore':
+                    hitRates = { l1: 0.75, l2: 0.90, l3: 0.95 };
+                    simulationState.coherenceMessages = Math.floor(totalAccesses * 0.15);
+                    simulationState.invalidations = Math.floor(totalAccesses * 0.08);
+                    document.getElementById('coherenceContainer').style.display = 'block';
+                    break;
+                case 'prefetch':
+                    hitRates = { l1: 0.92, l2: 0.99, l3: 0.995 };
+                    simulationState.prefetchIssued = Math.floor(totalAccesses * 0.3);
+                    simulationState.prefetchHits = Math.floor(simulationState.prefetchIssued * 0.85);
+                    document.getElementById('prefetchContainer').style.display = 'block';
+                    break;
+                case 'random':
+                    hitRates = { l1: 0.65, l2: 0.85, l3: 0.90 };
+                    break;
+            }
+
+            // Calculate cascade hit/miss
+            simulationState.l1.accesses = totalAccesses;
+            simulationState.l1.hits = Math.floor(totalAccesses * hitRates.l1);
+            simulationState.l1.misses = totalAccesses - simulationState.l1.hits;
+
+            simulationState.l2.accesses = simulationState.l1.misses;
+            simulationState.l2.hits = Math.floor(simulationState.l1.misses * hitRates.l2);
+            simulationState.l2.misses = simulationState.l1.misses - simulationState.l2.hits;
+
+            simulationState.l3.accesses = simulationState.l2.misses;
+            simulationState.l3.hits = Math.floor(simulationState.l2.misses * hitRates.l3);
+            simulationState.l3.misses = simulationState.l2.misses - simulationState.l3.hits;
+
+            // Add coherence effects
+            if(coherenceEnabled && workload === 'multicore') {
+                simulationState.l1.hits = Math.floor(simulationState.l1.hits * 0.9); // 10% penalty
+                simulationState.l1.misses = simulationState.l1.accesses - simulationState.l1.hits;
+                simulationState.c2cTransfers = Math.floor(simulationState.coherenceMessages * 0.6);
+            }
+
+            updateDisplay();
+            updateCharts(hitRates);
+        }
+
+        function updateDisplay() {
+            // L1 Stats
+            document.getElementById('l1HitRate').textContent = ((simulationState.l1.hits / simulationState.l1.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l1Hits').textContent = simulationState.l1.hits;
+            document.getElementById('l1Misses').textContent = simulationState.l1.misses;
+            document.getElementById('l1Util').textContent = ((simulationState.l1.hits / simulationState.l1.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l1CacheSize').textContent = document.getElementById('l1Size').value + ' KB';
+
+            // L2 Stats
+            document.getElementById('l2HitRate').textContent = ((simulationState.l2.hits / simulationState.l2.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l2Hits').textContent = simulationState.l2.hits;
+            document.getElementById('l2Misses').textContent = simulationState.l2.misses;
+            document.getElementById('l2Util').textContent = ((simulationState.l2.hits / simulationState.l2.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l2CacheSize').textContent = document.getElementById('l2Size').value + ' KB';
+
+            // L3 Stats
+            document.getElementById('l3HitRate').textContent = ((simulationState.l3.hits / simulationState.l3.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l3Hits').textContent = simulationState.l3.hits;
+            document.getElementById('l3Misses').textContent = simulationState.l3.misses;
+            document.getElementById('l3Util').textContent = ((simulationState.l3.hits / simulationState.l3.accesses * 100).toFixed(1)) + '%';
+            document.getElementById('l3CacheSize').textContent = document.getElementById('l3Size').value + ' MB';
+
+            // Overall metrics
+            const totalAccesses = simulationState.l1.accesses;
+            const totalMisses = simulationState.l3.misses;
+            const amat = (simulationState.l1.hits / totalAccesses * 1 +
+                         simulationState.l1.misses / totalAccesses * (simulationState.l2.hits / simulationState.l2.accesses * 5 +
+                         simulationState.l2.misses / simulationState.l2.accesses * (simulationState.l3.hits / simulationState.l3.accesses * 20 +
+                         simulationState.l3.misses / simulationState.l3.accesses * 150))).toFixed(2);
+
+            document.getElementById('totalAccesses').textContent = totalAccesses;
+            document.getElementById('totalMisses').textContent = totalMisses;
+            document.getElementById('overallMissRate').textContent = ((totalMisses / totalAccesses * 100).toFixed(2)) + '%';
+            document.getElementById('stallCycles').textContent = Math.floor(totalMisses * 150);
+            document.getElementById('amat').textContent = amat + ' cycles';
+
+            // Prefetch stats
+            if(document.getElementById('prefetchEnable').checked && simulationState.prefetchIssued > 0) {
+                document.getElementById('prefetchContainer').style.display = 'block';
+                document.getElementById('prefetchIssued').textContent = simulationState.prefetchIssued;
+                document.getElementById('prefetchHits').textContent = simulationState.prefetchHits;
+                document.getElementById('prefetchAccuracy').textContent = ((simulationState.prefetchHits / simulationState.prefetchIssued * 100).toFixed(1)) + '%';
+                document.getElementById('prefetchPollution').textContent = Math.floor(simulationState.prefetchIssued * 0.15);
+            }
+
+            // Coherence stats
+            if(document.getElementById('coherenceEnable').checked && simulationState.coherenceMessages > 0) {
+                document.getElementById('coherenceContainer').style.display = 'block';
+                document.getElementById('coherenceMessages').textContent = simulationState.coherenceMessages;
+                document.getElementById('invalidations').textContent = simulationState.invalidations;
+                document.getElementById('c2cTransfers').textContent = simulationState.c2cTransfers;
+                document.getElementById('coherenceTraffic').textContent = ((simulationState.coherenceMessages * 64) / 1000000).toFixed(2);
+            }
+
+            // Power consumption
+            const l1Power = (1.0 + simulationState.l1.misses / 1000).toFixed(2);
+            const l2Power = (2.0 + simulationState.l2.misses / 500).toFixed(2);
+            const l3Power = (5.0 + simulationState.l3.misses / 200).toFixed(2);
+            const coherencePower = (simulationState.coherenceMessages / 10000).toFixed(2);
+            const totalPower = (parseFloat(l1Power) + parseFloat(l2Power) + parseFloat(l3Power) + parseFloat(coherencePower)).toFixed(2);
+
+            document.getElementById('l1Power').textContent = l1Power + ' W';
+            document.getElementById('l2Power').textContent = l2Power + ' W';
+            document.getElementById('l3Power').textContent = l3Power + ' W';
+            document.getElementById('coherencePower').textContent = coherencePower + ' W';
+            document.getElementById('totalPower').textContent = totalPower + ' W';
+        }
+
+        let charts = {};
+
+        function updateCharts(hitRates) {
+            // Hit Rate Chart
+            const hitCtx = document.getElementById('hitRateChart').getContext('2d');
+            if(charts.hitRate) charts.hitRate.destroy();
+            charts.hitRate = new Chart(hitCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['L1', 'L2', 'L3'],
+                    datasets: [{
+                        label: 'Hit Rate %',
+                        data: [
+                            (simulationState.l1.hits / simulationState.l1.accesses * 100).toFixed(1),
+                            (simulationState.l2.hits / simulationState.l2.accesses * 100).toFixed(1),
+                            (simulationState.l3.hits / simulationState.l3.accesses * 100).toFixed(1)
+                        ],
+                        backgroundColor: ['#ffeb3b', '#4fc3f7', '#9c27b0'],
+                        borderColor: ['#f57f17', '#0277bd', '#6a1b9a'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: false } }, scales: { y: { max: 100, ticks: { callback: function(v) { return v + '%'; } } } } }
+            });
+
+            // Latency Chart
+            const latCtx = document.getElementById('latencyChart').getContext('2d');
+            if(charts.latency) charts.latency.destroy();
+            charts.latency = new Chart(latCtx, {
+                type: 'line',
+                data: {
+                    labels: ['L1', 'L2', 'L3', 'Memory'],
+                    datasets: [{
+                        label: 'Latency (cycles)',
+                        data: [2, 6, 18, 150],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#667eea'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Bandwidth Chart
+            const bwCtx = document.getElementById('bandwidthChart').getContext('2d');
+            if(charts.bandwidth) charts.bandwidth.destroy();
+            charts.bandwidth = new Chart(bwCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['L1', 'L2', 'L3', 'Memory'],
+                    datasets: [{
+                        label: 'Bandwidth (GB/s)',
+                        data: [32, 16, 8, 4],
+                        backgroundColor: ['#ffeb3b', '#4fc3f7', '#9c27b0', '#666'],
+                        borderColor: ['#f57f17', '#0277bd', '#6a1b9a', '#333'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: function(v) { return v + ' GB/s'; } } } } }
+            });
+        }
+
+        function resetSimulation() {
+            simulationState = {
+                l1: { hits: 0, misses: 0, accesses: 0, capacity: 32768 },
+                l2: { hits: 0, misses: 0, accesses: 0, capacity: 262144 },
+                l3: { hits: 0, misses: 0, accesses: 0, capacity: 8388608 },
+                coherenceMessages: 0,
+                invalidations: 0,
+                c2cTransfers: 0,
+                prefetchIssued: 0,
+                prefetchHits: 0
+            };
+            document.getElementById('coherenceContainer').style.display = 'none';
+            document.getElementById('prefetchContainer').style.display = 'none';
+            location.reload();
+        }
+
+        // Initialize with default workload
+        document.getElementById('workload').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>

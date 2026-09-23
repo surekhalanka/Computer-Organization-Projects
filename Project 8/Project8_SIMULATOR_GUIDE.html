@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 8: Memory Hierarchy Simulator - User Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #667eea; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #764ba2; padding-bottom: 10px; }
+        h3 { color: #764ba2; margin-top: 20px; margin-bottom: 10px; }
+        .guide-box { background: #f0f4ff; padding: 15px; border-left: 4px solid #667eea; border-radius: 4px; margin: 15px 0; }
+        .tip-box { background: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 15px 0; }
+        .warning-box { background: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; border-radius: 4px; margin: 15px 0; }
+        .formula-box { background: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; border-radius: 4px; margin: 15px 0; font-family: 'Courier New', monospace; }
+        .example-box { background: #e0f7ff; padding: 15px; border-left: 4px solid #00bcd4; border-radius: 4px; margin: 15px 0; }
+        .step-box { background: #fce4ec; padding: 15px; border-left: 4px solid #e91e63; border-radius: 4px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .diagram { background: #f9f9f9; padding: 20px; border: 2px solid #667eea; border-radius: 8px; margin: 15px 0; text-align: center; font-family: monospace; }
+        ul, ol { margin-left: 20px; }
+        li { margin: 10px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .lab-section { background: #fff9c4; padding: 20px; border: 2px dashed #fbc02d; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 8: Memory Hierarchy Simulator - User Guide</h1>
+            <p class="subtitle">Complete Instructions for Learning Memory Hierarchy, Cache Coherence, and Optimization</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="section">
+            <h2>🎯 Quick Start (5 Minutes)</h2>
+            <div class="step-box">
+                <h3>Step 1: Open the Simulator</h3>
+                <p>Open <code>Project8_Memory_Hierarchy_Simulator.html</code> in your web browser (Chrome, Firefox, Edge, Safari).</p>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 2: Select a Workload</h3>
+                <p>In the left panel, select from the dropdown:</p>
+                <ul>
+                    <li><strong>Workload 1:</strong> Portfolio Rebalancing (Sequential) → Sequential access pattern, 1 MB working set</li>
+                    <li><strong>Workload 2:</strong> Real-Time Price Updates (Hot Spot) → Random access to 10 KB hot data</li>
+                    <li><strong>Workload 3:</strong> Multi-Core Coherence (Shared) → Shared data with cache coherence</li>
+                    <li><strong>Workload 4:</strong> Prefetch Effectiveness → Sequential with hardware prefetch</li>
+                    <li><strong>Workload 5:</strong> Random Access → Pure random memory access</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 3: Configure Cache Sizes</h3>
+                <p>Adjust L1, L2, and L3 cache sizes. Observe how size affects hit rates. Standard configuration:</p>
+                <ul>
+                    <li>L1: 32 KB (16, 32, or 64 KB options)</li>
+                    <li>L2: 256 KB (128, 256, or 512 KB options)</li>
+                    <li>L3: 8 MB (4, 8, or 16 MB options)</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 4: Enable/Disable Features</h3>
+                <p>Use checkboxes to control:</p>
+                <ul>
+                    <li><strong>Hardware Prefetch:</strong> Automatically loads next blocks before they're needed</li>
+                    <li><strong>Cache Coherence (MESI):</strong> Maintains data consistency on multi-core systems</li>
+                    <li><strong>Branch Prediction:</strong> Reduces instruction fetch misses</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 5: Run the Simulation</h3>
+                <p>Click the <strong>▶ Run Simulation</strong> button. The simulator will run 10,000 memory accesses and display:</p>
+                <ul>
+                    <li>Hit rates for each cache level (L1, L2, L3)</li>
+                    <li>Average Memory Access Time (AMAT) in cycles</li>
+                    <li>Power consumption breakdown</li>
+                    <li>Coherence traffic (if enabled)</li>
+                    <li>Prefetch effectiveness (if enabled)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📖 Core Concepts</h2>
+
+            <h3>1. Memory Hierarchy Levels</h3>
+            <div class="guide-box">
+                <h4>L1 Cache (Level 1)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 32 KB typical (split 16 KB I-cache + 16 KB D-cache per core)</li>
+                    <li><strong>Latency:</strong> 1-3 cycles (fastest)</li>
+                    <li><strong>Bandwidth:</strong> 32 GB/s</li>
+                    <li><strong>Type:</strong> Private to each core</li>
+                    <li><strong>Hit Rate Target:</strong> 85-95%</li>
+                    <li><strong>Power:</strong> ~1 W</li>
+                    <p style="margin-top: 10px;"><strong>Purpose:</strong> Store most-frequently accessed data (hot data). If not hit here, CPU must wait (stalls).</p>
+                </ul>
+
+                <h4 style="margin-top: 20px;">L2 Cache (Level 2)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 256 KB typical (per core, private)</li>
+                    <li><strong>Latency:</strong> 5-7 cycles</li>
+                    <li><strong>Bandwidth:</strong> 16 GB/s</li>
+                    <li><strong>Type:</strong> Private to each core</li>
+                    <li><strong>Hit Rate Target:</strong> 95-98%</li>
+                    <li><strong>Power:</strong> ~2 W</li>
+                    <p style="margin-top: 10px;"><strong>Purpose:</strong> Catch L1 misses (prevent stalls). Working set often fits here.</p>
+                </ul>
+
+                <h4 style="margin-top: 20px;">L3 Cache (Level 3)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 8 MB typical (shared across all cores)</li>
+                    <li><strong>Latency:</strong> 15-20 cycles</li>
+                    <li><strong>Bandwidth:</strong> 8 GB/s</li>
+                    <li><strong>Type:</strong> Shared among all cores</li>
+                    <li><strong>Hit Rate Target:</strong> 95-99%</li>
+                    <li><strong>Power:</strong> ~5 W</li>
+                    <p style="margin-top: 10px;"><strong>Purpose:</strong> Large shared pool (allows all cores to benefit). Miss here → main memory (200+ cycles).</p>
+                </ul>
+
+                <h4 style="margin-top: 20px;">Main Memory (DDR4)</h4>
+                <ul>
+                    <li><strong>Size:</strong> 16+ GB</li>
+                    <li><strong>Latency:</strong> 100-200 cycles (slowest)</li>
+                    <li><strong>Bandwidth:</strong> 4 GB/s</li>
+                    <li><strong>Type:</strong> Shared system memory</li>
+                    <li><strong>Power:</strong> ~10 W</li>
+                    <p style="margin-top: 10px;"><strong>Purpose:</strong> Unlimited storage. Every cache miss here adds ~150 cycles stall.</p>
+                </ul>
+            </div>
+
+            <h3>2. Cache Hit/Miss Metrics</h3>
+            <div class="formula-box">
+                <h4>Hit Rate Formula</h4>
+                <pre>Hit Rate % = (Hits / Total Accesses) × 100
+
+Example: If L1 has 8500 hits out of 10000 accesses
+L1 Hit Rate = (8500 / 10000) × 100 = 85%</pre>
+            </div>
+
+            <div class="formula-box">
+                <h4>Miss Rate Formula</h4>
+                <pre>Miss Rate % = (Misses / Total Accesses) × 100
+                = 100% - Hit Rate %
+
+Example: L1 Miss Rate = 100% - 85% = 15%</pre>
+            </div>
+
+            <h3>3. Average Memory Access Time (AMAT)</h3>
+            <div class="formula-box">
+                <h4>AMAT Calculation</h4>
+                <pre>AMAT = (L1_HitRate × L1_Latency) 
+       + (L1_MissRate × L2_Latency) × (L2_HitRate + L2_MissRate × L3_Factor)
+
+Simplified 3-level:
+AMAT = H₁×T₁ + M₁×(H₂×T₂ + M₂×(H₃×T₃ + M₃×T_mem))
+
+Where:
+  H₁ = L1 Hit Rate,  T₁ = L1 Latency (1-3 cycles)
+  M₁ = L1 Miss Rate, H₂ = L2 Hit Rate among L1 misses
+  T₂ = L2 Latency (5-7 cycles), etc.</pre>
+            </div>
+
+            <div class="example-box">
+                <h4>AMAT Example Calculation</h4>
+                <pre>Given:
+  L1: 85% hit rate, 2-cycle latency
+  L2: 95% hit rate, 6-cycle latency
+  L3: 98% hit rate, 18-cycle latency
+  Memory: 150-cycle latency
+
+AMAT = 0.85×2 + 0.15×(0.95×6 + 0.05×(0.98×18 + 0.02×150))
+     = 1.7 + 0.15×(5.7 + 0.05×(17.64 + 3.0))
+     = 1.7 + 0.15×(5.7 + 1.032)
+     = 1.7 + 0.15×6.732
+     = 1.7 + 1.01
+     = 2.71 cycles per access
+
+Interpretation: Avg access takes 2.71 cycles (excellent—most hit L1!)</pre>
+            </div>
+
+            <h3>4. Inclusive vs Exclusive Hierarchy</h3>
+            <div class="guide-box">
+                <h4>Inclusive Hierarchy (Intel)</h4>
+                <div class="diagram">
+L1 Cache: [Apple, Google, Microsoft, Tesla, Amazon, Meta, Nvidia, Visa]
+   ↓ (contained in)
+L2 Cache: [Apple, Google, Microsoft, Tesla, Amazon, Meta, Nvidia, Visa, ... 32 more]
+   ↓ (contained in)
+L3 Cache: [All L2 data + 128 more stock symbols]
+                </div>
+                <p><strong>Rule:</strong> If data is in L1, it's also in L2 and L3 (subset relationship).</p>
+                <p><strong>Advantage:</strong> Simpler coherence (invalidate just one level), easier tag management.</p>
+                <p><strong>Disadvantage:</strong> Wasteful capacity (duplication across levels).</p>
+            </div>
+
+            <div class="guide-box">
+                <h4>Exclusive Hierarchy (AMD)</h4>
+                <div class="diagram">
+L1 Cache: [Apple, Google, Microsoft, Tesla, Amazon, Meta, Nvidia, Visa]
+        ⊕ (exclusive)
+L2 Cache: [Tesla, Amazon, Meta, Nvidia, Visa, ... 48 more (NOT in L1)]
+        ⊕ (exclusive)
+L3 Cache: [All symbols NOT in L1 or L2]
+                </div>
+                <p><strong>Rule:</strong> Data is in ONLY ONE level at a time (exclusive OR).</p>
+                <p><strong>Advantage:</strong> Better capacity utilization (no duplication).</p>
+                <p><strong>Disadvantage:</strong> More complex coherence, larger tags needed.</p>
+            </div>
+
+            <h3>5. Prefetching Strategies</h3>
+            <div class="guide-box">
+                <h4>Hardware Prefetch (Automatic)</h4>
+                <ul>
+                    <li><strong>How:</strong> CPU detects sequential access pattern and prefetches next blocks automatically</li>
+                    <li><strong>L1 Prefetch:</strong> Fetch next 4 cache blocks (~256 bytes) into L1</li>
+                    <li><strong>L2 Prefetch:</strong> Fetch next block from L3 into L2</li>
+                    <li><strong>L3 Prefetch:</strong> Fetch next block from memory into L3</li>
+                    <li><strong>Example:</strong> CPU reads stock at 0x1000 → prefetches 0x1040, 0x1080, 0x10C0, 0x1100</li>
+                    <li><strong>Accuracy Goal:</strong> > 80% (minimize pollution)</li>
+                </ul>
+
+                <h4 style="margin-top: 15px;">Software Prefetch (Compiler)</h4>
+                <ul>
+                    <li><strong>How:</strong> Compiler inserts prefetch instructions into code</li>
+                    <li><strong>Example:</strong> <code>PREFETCH [array[i+8]]</code> loads ahead before use</li>
+                    <li><strong>Benefit:</strong> Hides latency for predictable patterns</li>
+                </ul>
+
+                <h4 style="margin-top: 15px;">Prefetch Metrics</h4>
+                <ul>
+                    <li><strong>Prefetch Accuracy:</strong> (Used Prefetches / Total Prefetches) × 100 | Target: > 80%</li>
+                    <li><strong>Prefetch Pollution:</strong> Unnecessary prefetches that evict useful data | Target: &lt; 20%</li>
+                </ul>
+            </div>
+
+            <h3>6. Cache Coherence (MESI Protocol)</h3>
+            <div class="guide-box">
+                <h4>The Problem (Multi-Core)</h4>
+                <p>With 8 cores, each with private L1/L2, how do we keep Apple stock price consistent?</p>
+                <div class="diagram">
+Core 0: Apple = $150.00 (in L1)
+Core 1: Apple = $149.99 (in L1)  ← Stale! (old value)
+Core 2: Apple = $150.50 (in L1)  ← Wrong!
+                </div>
+                <p><strong>Solution:</strong> MESI coherence protocol ensures all cores see latest value.</p>
+            </div>
+
+            <div class="guide-box">
+                <h4>MESI States</h4>
+                <table>
+                    <tr>
+                        <th>State</th>
+                        <th>Meaning</th>
+                        <th>Valid?</th>
+                        <th>Shared?</th>
+                        <th>Dirty?</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Modified (M)</strong></td>
+                        <td>Core has written data (dirty, only this core has it)</td>
+                        <td>✓</td>
+                        <td>No</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exclusive (E)</strong></td>
+                        <td>Core has clean copy, no other core has it</td>
+                        <td>✓</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shared (S)</strong></td>
+                        <td>Multiple cores have clean copy (read-only)</td>
+                        <td>✓</td>
+                        <td>Yes</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Invalid (I)</strong></td>
+                        <td>Data is stale (another core modified it)</td>
+                        <td>✗</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                </table>
+
+                <h4 style="margin-top: 15px;">State Transitions Example</h4>
+                <div class="diagram">
+Core 0 reads Apple:   M(M)=S, others=S    (all cores can read)
+Core 1 reads Apple:   → now all in Shared state
+Core 0 buys Apple:    M(M)=M, others=I   (Core 0 exclusive, others invalid)
+Core 1 reads Apple:   → requests from Core 0 or memory
+                      → gets latest $150.25 value
+                </div>
+
+                <h4 style="margin-top: 15px;">Coherence Traffic</h4>
+                <ul>
+                    <li><strong>Invalidation Messages:</strong> "Discard your copy of Apple" → sent by writer</li>
+                    <li><strong>Update Messages:</strong> "Apple is now $150.25" → sent to all cores</li>
+                    <li><strong>Cache-to-Cache Transfers:</strong> Core 0 sends modified block to Core 1 (faster than memory)</li>
+                    <li><strong>Target:</strong> &lt; 1 GB/s coherence traffic (avoid saturation)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Lab Experiments (Hands-On)</h2>
+
+            <div class="lab-section">
+                <h3>Experiment 1: Effect of Cache Size on Hit Rate</h3>
+                <p><strong>Objective:</strong> Understand capacity misses vs working set size.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 1: Portfolio Rebalancing (Sequential)</strong></li>
+                    <li>Set L1=16 KB, L2=128 KB, L3=4 MB → Run</li>
+                    <li>Record: L1 Hit Rate, L2 Hit Rate, AMAT</li>
+                    <li>Increase to L1=32 KB, L2=256 KB, L3=8 MB → Run</li>
+                    <li>Increase to L1=64 KB, L2=512 KB, L3=16 MB → Run</li>
+                    <li>Plot: Cache Size (x-axis) vs Hit Rate (y-axis)</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Hit rate increases, then plateaus (knee point). Beyond knee, marginal benefit.</p>
+                <p><strong>Analysis:</strong> At what cache size does L2 hit rate reach 95%? At what size does L3 reach 99%?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 2: Workload Impact on Cache Hierarchy</h3>
+                <p><strong>Objective:</strong> Compare access patterns (sequential vs random).</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Use default cache config (L1=32K, L2=256K, L3=8M)</li>
+                    <li>Run <strong>Workload 1: Sequential</strong> → Record all hit rates</li>
+                    <li>Run <strong>Workload 2: Hot Spot</strong> → Record all hit rates</li>
+                    <li>Run <strong>Workload 5: Random</strong> → Record all hit rates</li>
+                    <li>Create table: Workload × (L1 Hit %, L2 Hit %, L3 Hit %)</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Sequential > Hot Spot > Random (in terms of L1 hit rates)</p>
+                <p><strong>Analysis:</strong> Why does hot spot have 95% L1 hit but random only 65%?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 3: Hardware Prefetch Effectiveness</h3>
+                <p><strong>Objective:</strong> Measure prefetch accuracy and pollution.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 4: Prefetch Effectiveness</strong></li>
+                    <li>Disable "Hardware Prefetch" → Run → Record AMAT (no prefetch)</li>
+                    <li>Enable "Hardware Prefetch" → Run → Record AMAT (with prefetch)</li>
+                    <li>Calculate: AMAT improvement = (AMAT_no - AMAT_yes) / AMAT_no × 100%</li>
+                    <li>Check Prefetch Accuracy % (should be > 80%)</li>
+                </ol>
+                <p><strong>Expected Result:</strong> AMAT improves 15-25% with prefetch. Accuracy > 80%.</p>
+                <p><strong>Analysis:</strong> Why is accuracy not 100%? When are prefetches wasted?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 4: Cache Coherence Overhead</h3>
+                <p><strong>Objective:</strong> Quantify multi-core coherence impact.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 3: Multi-Core Coherence (Shared)</strong></li>
+                    <li>Disable "Cache Coherence (MESI)" → Run → Record L1/L2 hit rates</li>
+                    <li>Enable "Cache Coherence (MESI)" → Run → Record L1/L2 hit rates</li>
+                    <li>Calculate: Coherence penalty = ((HitRate_no - HitRate_yes) / HitRate_no) × 100%</li>
+                    <li>Check: Coherence Messages, Invalidations, C2C Transfers</li>
+                </ol>
+                <p><strong>Expected Result:</strong> L1 hit rate drops 10-20% due to invalidations. ~15% of accesses cause coherence traffic.</p>
+                <p><strong>Analysis:</strong> At what rate do coherence messages saturate the bus (&gt; 1 GB/s)?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 5: Inclusive vs Exclusive Hierarchy</h3>
+                <p><strong>Objective:</strong> Compare memory efficiency and hit rates.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Hierarchy Type: Inclusive</strong>, Workload 2 (Hot Spot)</li>
+                    <li>Run → Record all hit rates, AMAT, power</li>
+                    <li>Switch to <strong>Exclusive</strong>, same workload</li>
+                    <li>Run → Record all hit rates, AMAT, power</li>
+                    <li>Create comparison table</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Exclusive typically has higher L2/L3 hit rates (better capacity), but more coherence overhead.</p>
+                <p><strong>Analysis:</strong> Total cache capacity effectively increases in exclusive—by how much?</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Understanding the Simulator Output</h2>
+
+            <h3>Hit Rate Display</h3>
+            <div class="guide-box">
+                <p><strong>L1 Hit Rate: 85%</strong> → 85 out of 100 accesses found in L1</p>
+                <p><strong>L2 Hit Rate: 98%</strong> → 98 out of 100 L1 misses found in L2</p>
+                <p><strong>L3 Hit Rate: 99%</strong> → 99 out of 100 L2 misses found in L3</p>
+                <p style="margin-top: 10px;"><strong>Combined:</strong> Only 0.15% (1 in 667) accesses go to main memory = fast system!</p>
+            </div>
+
+            <h3>AMAT Interpretation</h3>
+            <div class="guide-box">
+                <p><strong>AMAT = 2.71 cycles:</strong> Average access takes 2.71 CPU cycles</p>
+                <ul>
+                    <li><strong>0.1-2 cycles:</strong> Excellent (hits mostly in L1)</li>
+                    <li><strong>2-5 cycles:</strong> Very good (some L2 misses)</li>
+                    <li><strong>5-10 cycles:</strong> Good (L3 misses starting to hurt)</li>
+                    <li><strong>&gt;10 cycles:</strong> Poor (too many main memory accesses)</li>
+                </ul>
+                <p style="margin-top: 10px;">For trading system: need &lt; 3,000 cycles total = &lt; 3 µs latency. AMAT &lt; 2.71 cycles = 0.9 µs (well within budget!)</p>
+            </div>
+
+            <h3>Power Consumption Breakdown</h3>
+            <div class="guide-box">
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Baseline Power</th>
+                        <th>Miss Penalty Power</th>
+                        <th>Notes</th>
+                    </tr>
+                    <tr>
+                        <td>L1 Cache</td>
+                        <td>1.0 W</td>
+                        <td>+0.001 W per miss</td>
+                        <td>Fast, low power</td>
+                    </tr>
+                    <tr>
+                        <td>L2 Cache</td>
+                        <td>2.0 W</td>
+                        <td>+0.002 W per miss</td>
+                        <td>Moderate power</td>
+                    </tr>
+                    <tr>
+                        <td>L3 Cache</td>
+                        <td>5.0 W</td>
+                        <td>+0.005 W per miss</td>
+                        <td>Shared, larger power</td>
+                    </tr>
+                    <tr>
+                        <td>Coherence</td>
+                        <td>0 W</td>
+                        <td>~0.0001 W per message</td>
+                        <td>Buses, serializers</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 10px;"><strong>Total &lt; 20W:</strong> TradeFlow system power budget met! (typical CPU ~65W + 15W memory.)</p>
+            </div>
+
+            <h3>Coherence Metrics</h3>
+            <div class="guide-box">
+                <p><strong>Coherence Messages:</strong> Total invalidations + updates. Target &lt; 1,500 (10% of accesses).</p>
+                <p><strong>Invalidations:</strong> "Discard your copy" messages. Causes L1/L2 misses on next access.</p>
+                <p><strong>C2C Transfers:</strong> Cache-to-cache transfers (faster than memory). Every message = 64 bytes @ 15 GB/s = 4 ns.</p>
+                <p><strong>Coherence Traffic:</strong> Total bytes transferred. At &gt; 1 GB/s, bus becomes bottleneck!</p>
+            </div>
+
+            <h3>Prefetch Metrics</h3>
+            <div class="guide-box">
+                <p><strong>Prefetch Accuracy:</strong> (Useful Prefetches / Total Prefetches) × 100%. Target &gt; 80%.</p>
+                <ul>
+                    <li><strong>High accuracy (85-95%):</strong> Prefetcher is helping. Few wasted prefetches.</li>
+                    <li><strong>Low accuracy (&lt;60%):</strong> Too many prefetch misses. Consider disabling (prefetch pollution).</li>
+                </ul>
+                <p><strong>Prefetch Pollution:</strong> % of prefetches that evict useful data. Keep &lt; 20%.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Tips & Troubleshooting</h2>
+
+            <div class="tip-box">
+                <h3>Achieving 95%+ L1 Hit Rate</h3>
+                <ul>
+                    <li>Reduce working set size (code optimization, algorithm change)</li>
+                    <li>Increase L1 size (32 KB to 64 KB)</li>
+                    <li>Align data structures to cache lines (64-byte boundaries)</li>
+                    <li>Prefetch hot data on startup</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Reducing AMAT Below 3 Cycles</h3>
+                <ul>
+                    <li>Keep L1 misses &lt; 15% (target 85%+ hit rate)</li>
+                    <li>Ensure L2 is large enough (2× working set minimum)</li>
+                    <li>Enable hardware prefetch (10-20% AMAT improvement)</li>
+                    <li>Optimize memory access patterns (sequential > random)</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Minimizing Coherence Overhead</h3>
+                <ul>
+                    <li>Partition data by thread (avoid false sharing)</li>
+                    <li>Use locks/atomics sparingly (each write invalidates copies)</li>
+                    <li>Use read-only replicas (Shared state in MESI)</li>
+                    <li>Reduce core count sharing data (8 cores more coherence than 4)</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h3>Common Mistakes</h3>
+                <ul>
+                    <li><strong>Ignoring L2/L3 misses:</strong> L2 miss = 5-7 cycle penalty! Not to be overlooked.</li>
+                    <li><strong>Over-prefetching:</strong> Too many prefetches cause pollution, waste bus bandwidth.</li>
+                    <li><strong>Assuming Inclusive = better:</strong> Inclusive wastes capacity; exclusive more efficient (but complex).</li>
+                    <li><strong>Forgetting about coherence:</strong> Multi-core systems lose 10-20% performance to coherence traffic!</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Real-World Optimization Example (TradeFlow)</h3>
+                <p><strong>Problem:</strong> Average latency 4 ms (too slow). Trading system target: 1 ms.</p>
+                <p><strong>Solution Steps:</strong></p>
+                <ol>
+                    <li>Measure current AMAT (found: 8 cycles, 2.67 µs per access, OK).</li>
+                    <li>Check L2 hit rate (found: 90%, should be 95%+).</li>
+                    <li>Increase L2 from 256 KB to 512 KB → L2 hit rate jumps to 96%.</li>
+                    <li>AMAT improves to 5.2 cycles.</li>
+                    <li>Enable hardware prefetch → AMAT drops to 4.8 cycles.</li>
+                    <li>New end-to-end latency: ~1.5 ms (hit 1 ms target!) ✓</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Assignment Questions</h2>
+            <p>Use the simulator to answer these questions:</p>
+            <ol>
+                <li><strong>AMAT Calculation:</strong> Run Workload 1. Calculate AMAT manually using hit rates. Compare to simulator value.</li>
+                <li><strong>Capacity vs Conflict Misses:</strong> In Workload 3, identify cache level causing most misses. Is it capacity or conflict miss?</li>
+                <li><strong>Prefetch Accuracy:</strong> Run Workload 4. What's prefetch accuracy? At what accuracy threshold should we disable prefetch?</li>
+                <li><strong>Coherence Impact:</strong> Run Workload 3. Disable coherence, re-run. How much does coherence cost (in AMAT)?</li>
+                <li><strong>Working Set Fit:</strong> Test L2 sizes 128 KB, 256 KB, 512 KB on Workload 1. At what size does L2 hit rate exceed 95%?</li>
+                <li><strong>Power-Performance Tradeoff:</strong> Compare power consumption at different cache sizes. Find optimal size (max perf per watt).</li>
+                <li><strong>Multi-Core Scaling:</strong> (Advanced) How does adding cores affect coherence traffic? Estimate 4-core, 8-core, 16-core scenarios.</li>
+            </ol>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
