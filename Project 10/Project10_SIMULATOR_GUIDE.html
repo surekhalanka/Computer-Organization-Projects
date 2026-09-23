@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 10: Multiplexers & Data Selection - User Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #4caf50; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #4caf50; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #66bb6a; padding-bottom: 10px; }
+        h3 { color: #2e7d32; margin-top: 20px; margin-bottom: 10px; }
+        .guide-box { background: #f1f8e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 15px 0; }
+        .tip-box { background: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 15px 0; }
+        .warning-box { background: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; border-radius: 4px; margin: 15px 0; }
+        .formula-box { background: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; border-radius: 4px; margin: 15px 0; font-family: 'Courier New', monospace; }
+        .example-box { background: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 15px 0; }
+        .step-box { background: #c8e6c9; padding: 15px; border-left: 4px solid #2e7d32; border-radius: 4px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4caf50; color: white; }
+        tr:hover { background: #f5f5f5; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .diagram { background: #f9f9f9; padding: 20px; border: 2px solid #4caf50; border-radius: 8px; margin: 15px 0; text-align: center; font-family: monospace; }
+        ul, ol { margin-left: 20px; }
+        li { margin: 10px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .lab-section { background: #e8f5e9; padding: 20px; border: 2px dashed #4caf50; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 10: Multiplexers & Data Selection - User Guide</h1>
+            <p class="subtitle">Complete Instructions for Network Switch Routing & Data Path Selection</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="section">
+            <h2>🎯 Quick Start (5 Minutes)</h2>
+            <div class="step-box">
+                <h3>Step 1: Open the Simulator</h3>
+                <p>Open <code>Project10_Multiplexer_Data_Selection_Simulator.html</code> in your web browser.</p>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 2: Configure Switch Fabric</h3>
+                <p>Set the network switch dimensions:</p>
+                <ul>
+                    <li><strong>Input Ports:</strong> 8, 16, 32 (standard), or 64 ports</li>
+                    <li><strong>Output Ports:</strong> Same as input (non-blocking crossbar) or reduced</li>
+                    <li><strong>Fabric Type:</strong> Flat crossbar (single-stage) or multi-stage (pipelined)</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 3: Select Routing Algorithm</h3>
+                <p>Choose from 6 routing workloads:</p>
+                <ul>
+                    <li><strong>Workload 1:</strong> Uniform Random → Balanced load, no hot spots</li>
+                    <li><strong>Workload 2:</strong> Fixed Routing with Hot Spot → 80/20 traffic, creates congestion</li>
+                    <li><strong>Workload 3:</strong> Load-Balanced Routing → Adaptive spreading, better throughput</li>
+                    <li><strong>Workload 4:</strong> Hash-Based Routing → Consistent per-flow, uniform distribution</li>
+                    <li><strong>Workload 5:</strong> Multicast/Broadcast → 10% packets replicated to all ports</li>
+                    <li><strong>Workload 6:</strong> Hierarchical Routing → 3-stage fabric, higher latency</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 4: Enable Options</h3>
+                <p>Configure simulation behavior:</p>
+                <ul>
+                    <li><strong>Queue Contention Model:</strong> Simulate output queue delays (FIFO)</li>
+                    <li><strong>Fair Queue Scheduling:</strong> Prevent any port from starvation</li>
+                    <li><strong>Variable Traffic Load:</strong> Add randomness to traffic patterns</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 5: Run & Analyze</h3>
+                <p>Click <strong>▶ Run Simulation</strong>. The simulator analyzes 300,000 packets and reports:</p>
+                <ul>
+                    <li>Mux utilization (%) and active mux count</li>
+                    <li>Output load balance (max/min/avg per port)</li>
+                    <li>Throughput (Gbps) and packet loss rate (%)</li>
+                    <li>Switch latency (microseconds)</li>
+                    <li>Fairness (Jain index)</li>
+                    <li>Power consumption (watts)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📖 Core Concepts</h2>
+
+            <h3>1. Multiplexer Fundamentals</h3>
+            <div class="guide-box">
+                <h4>What is a Multiplexer?</h4>
+                <p><strong>Definition:</strong> Combinational logic that selects one of N inputs based on ⌈log₂(N)⌉ select signal bits.</p>
+                <div class="diagram">
+2:1 Multiplexer (Simplest):
+  Inputs: A, B
+  Select: S (1 bit: 0 or 1)
+  Output: Y = (S == 0) ? A : B
+
+  S | Output
+  0 | A
+  1 | B
+
+4:1 Multiplexer:
+  Inputs: I0, I1, I2, I3
+  Select: S[1:0] (2 bits, 4 options)
+  Output: Y = I[S]
+
+  S1 S0 | Output
+  0  0  | I0
+  0  1  | I1
+  1  0  | I2
+  1  1  | I3
+
+32:1 Multiplexer (Network Switch):
+  Inputs: 32 input ports (each 64 bits wide)
+  Select: S[4:0] (5 bits, 32 options)
+  Output: Selected input port data
+                </div>
+
+                <h4 style="margin-top: 15px;">Multiplexer Characteristics</h4>
+                <table>
+                    <tr>
+                        <th>N:1 Mux</th>
+                        <th>Select Bits</th>
+                        <th>Implementation</th>
+                        <th>Latency</th>
+                        <th>Area (transistors)</th>
+                    </tr>
+                    <tr>
+                        <td>2:1</td>
+                        <td>1</td>
+                        <td>Single AND-OR</td>
+                        <td>2 gate delays</td>
+                        <td>~6</td>
+                    </tr>
+                    <tr>
+                        <td>4:1</td>
+                        <td>2</td>
+                        <td>2-level logic</td>
+                        <td>3-4 gate delays</td>
+                        <td>~24</td>
+                    </tr>
+                    <tr>
+                        <td>8:1</td>
+                        <td>3</td>
+                        <td>3-level tree</td>
+                        <td>5-6 gate delays</td>
+                        <td>~60</td>
+                    </tr>
+                    <tr>
+                        <td>32:1</td>
+                        <td>5</td>
+                        <td>5-level tree</td>
+                        <td>10-15 gate delays</td>
+                        <td>~300</td>
+                    </tr>
+                </table>
+
+                <h4 style="margin-top: 15px;">Mux Implementation Strategies</h4>
+                <p><strong>Tree Structure:</strong> Cascaded stages of smaller muxes (area-efficient)</p>
+                <div class="diagram">
+32:1 Mux as tree of 2:1 muxes:
+  Input[0:1] → 2:1 Mux → L1_0
+  Input[2:3] → 2:1 Mux → L1_1
+  ...
+  L1[0:1] → 2:1 Mux → L2_0
+  L1[2:3] → 2:1 Mux → L2_1
+  ...
+  (Continue until single output)
+  
+  Latency: log₂(32) = 5 stages × ~2ns = 10 ns
+  Area: 31 × 2:1 muxes (vs 1024 for flat implementation)
+                </div>
+
+                <p><strong>Flat Structure:</strong> Single-stage 32-input AND-OR network (faster, larger area)</p>
+                <div class="diagram">
+32:1 Mux as flat AND-OR:
+  For each input i (0-31):
+    AND gate: Input[i] AND Decoder[i]
+  All AND outputs feed into large OR gate
+  
+  Latency: 3 gate delays (fast!)
+  Area: 32 decoders + 32 AND + 1 OR = expensive
+                </div>
+            </div>
+
+            <h3>2. Crossbar Switching Fabric</h3>
+            <div class="guide-box">
+                <h4>What is a Crossbar?</h4>
+                <p><strong>Definition:</strong> N×M grid of multiplexers allowing any input to connect to any output simultaneously (non-blocking)</p>
+                <div class="diagram">
+32×32 Crossbar:
+  
+  Input Ports (0-31)
+  │ │ │ ...│
+  └─┼─┼─────┘
+    │ │ 
+  ┌─┴─┴────────────────────┐
+  │   32 × 32 Mux Array   │
+  │  (1,024 total muxes)   │
+  │  Each (i,j) can route  │
+  │  input i to output j   │
+  └─┬─┬────────────────────┘
+    │ │
+  Output Ports (0-31)
+  │ │ │ ...│
+
+Key Property: Any input can reach any output in same cycle (non-blocking)
+              No contention between different input-output paths
+              Maximum throughput = 32 inputs × 12.5 Gbps = 400 Gbps
+                </div>
+
+                <h4 style="margin-top: 15px;">Crossbar Variants</h4>
+                <p><strong>Single-Stage (Flat) Crossbar:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>All connections in parallel (combinational logic)</li>
+                    <li>Latency: Single mux delay (~10 ns)</li>
+                    <li>Area: O(N²) muxes (expensive for large N)</li>
+                    <li>Power: High dynamic (many muxes active)</li>
+                    <li>Best for: Small switches (8-32 ports)</li>
+                </ul>
+
+                <p><strong>Multi-Stage (Hierarchical) Crossbar (Clos, Benes):</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Decompose N×N into 3+ stages of smaller crossbars</li>
+                    <li>Latency: ~3× higher (3 stages)</li>
+                    <li>Area: O(N log N) muxes (more efficient)</li>
+                    <li>Power: Lower than flat (fewer muxes per stage)</li>
+                    <li>Blocking: Low but non-zero (multi-stage blocking)</li>
+                    <li>Best for: Large switches (64+ ports)</li>
+                </ul>
+            </div>
+
+            <h3>3. Routing Algorithms & Load Balancing</h3>
+            <div class="guide-box">
+                <h4>Algorithm 1: Fixed Routing (Destination-Based)</h4>
+                <p><strong>Decision Process:</strong> Packet destination address → lookup table → output port</p>
+                <div class="diagram">
+Packet header: [Dest MAC: 00:11:22:33:44:55]
+                ↓
+Lookup table:  00:11:22:* → Output port 5
+                ↓
+Mux select:    Port 5 (all packets to this destination use port 5)
+                </div>
+                <p><strong>Pros:</strong> Simple, predictable, fast lookup</p>
+                <p><strong>Cons:</strong> No load balancing, creates hot spots</p>
+                <p><strong>Latency:</strong> Lookup (10-20 ns) + Mux delay (10 ns) = ~25-30 ns per packet</p>
+                <p><strong>Use case:</strong> Small LANs, deterministic networks (some HPC clusters)</p>
+
+                <h4 style="margin-top: 15px;">Algorithm 2: Load-Balanced Routing (Adaptive)</h4>
+                <p><strong>Decision Process:</strong> Find least-loaded path among valid routes to destination</p>
+                <div class="diagram">
+Packet destination: 192.168.1.0/24 (reachable via ports 5, 6, 7)
+                ↓
+Queue measurement:
+  Port 5 queue: 500 bytes (heavy)
+  Port 6 queue: 100 bytes (light)  ← SELECT
+  Port 7 queue: 300 bytes (medium)
+                ↓
+Mux select: Port 6 (least congested)
+                </div>
+                <p><strong>Pros:</strong> Balances load, reduces tail latency, prevents hot spots</p>
+                <p><strong>Cons:</strong> More complex (need multiple routing entries), higher lookup latency</p>
+                <p><strong>Latency:</strong> Routing + queue monitoring (20-30 ns) + Mux delay = ~35-40 ns</p>
+                <p><strong>Use case:</strong> Data centers, cloud networks (DC fabric)</p>
+
+                <h4 style="margin-top: 15px;">Algorithm 3: Hash-Based Routing (Flow-Consistent)</h4>
+                <p><strong>Decision Process:</strong> Hash packet 5-tuple (src IP, dest IP, src port, dest port, protocol) mod N</p>
+                <div class="diagram">
+Packet 5-tuple: 10.0.0.1:12345 → 192.168.1.100:80 (TCP)
+                ↓
+Hash function: Hash(5-tuple) = 0x1A3F (some value)
+                ↓
+Modulo:        0x1A3F mod 32 = 7
+                ↓
+Mux select: Port 7 (same port for all packets in this flow)
+                </div>
+                <p><strong>Pros:</strong> Fast (just hash), preserves packet order within flow, uniform if hash good</p>
+                <p><strong>Cons:</strong> Uneven distribution with poor hash, can't adapt to congestion</p>
+                <p><strong>Latency:</strong> Hash (5-10 ns) + Mux delay (10 ns) = ~15-20 ns (fastest!)</p>
+                <p><strong>Use case:</strong> High-speed switches requiring packet ordering (lossless networks)</p>
+
+                <h4 style="margin-top: 15px;">Algorithm 4: Multicast (Fan-Out)</h4>
+                <p><strong>Decision Process:</strong> Route packet to multiple output ports simultaneously</p>
+                <div class="diagram">
+Multicast packet: [Dest group: 224.0.0.5 (all hosts)]
+                ↓
+Membership table: Group 224.0.0.5 → Ports {0, 2, 5, 7, 15, 18, ...}
+                ↓
+Mux select: Enable multiple output ports, replicate packet
+                </div>
+                <p><strong>Pros:</strong> Enables group communication, broadcast/multicast</p>
+                <p><strong>Cons:</strong> High contention, replication overhead</p>
+                <p><strong>Latency:</strong> Membership lookup (15-20 ns) + Replication logic (5 ns) = ~25 ns</p>
+                <p><strong>Use case:</strong> Video distribution, cluster synchronization</p>
+            </div>
+
+            <h3>4. Load Balance Metrics</h3>
+            <div class="guide-box">
+                <h4>Max-to-Average Ratio</h4>
+                <p><strong>Metric:</strong> How much more loaded is the hottest port compared to average?</p>
+                <div class="formula-box">
+Balance Ratio = Max Load / Avg Load
+
+Perfect balance (uniform):      Ratio = 1.0
+Good load distribution:         Ratio &lt; 1.2
+Moderate imbalance:             Ratio 1.2 - 2.0
+Severe hot spot:                Ratio &gt; 2.0
+
+Example: 32 ports, total 400 Gbps
+  Avg per port: 400 / 32 = 12.5 Gbps
+  Max load: 40 Gbps (4× average)
+  Ratio: 40 / 12.5 = 3.2 (severe imbalance!)
+                </div>
+
+                <h4 style="margin-top: 15px;">Jain Fairness Index</h4>
+                <p><strong>Metric:</strong> 0 to 1 scale measuring fairness of bandwidth allocation</p>
+                <div class="formula-box">
+Jain Index = (Σ L_i)² / (N × Σ L_i²)
+
+Where: L_i = load on port i, N = number of ports
+
+Perfect fairness:    Jain = 1.0 (all ports equal load)
+Good fairness:       Jain > 0.95
+Moderate fairness:   Jain 0.8-0.95
+Poor fairness:       Jain &lt; 0.8
+
+Example: 4 ports with loads [12.5, 12.5, 12.5, 12.5] Gbps
+  Sum: 50, Sum²: 2500
+  Jain = 2500 / (4 × 2500) = 1.0 (perfect)
+
+Example: 4 ports with loads [40, 0, 0, 0] Gbps
+  Sum: 40, Sum²: 1600
+  Jain = 1600 / (4 × 1600) = 0.25 (terrible)
+                </div>
+
+                <h4 style="margin-top: 15px;">Output Queue Utilization</h4>
+                <p><strong>Metric:</strong> How full are output queues?</p>
+                <div class="formula-box">
+Queue depth % = (Bytes queued / Max queue size) × 100
+
+Healthy:    &lt; 50% full (room for bursts)
+Concerning: 50-80% (traffic arriving faster than leaving)
+Critical:   &gt; 80% (will drop packets soon)
+Overflow:   100%+ (actively dropping packets)
+                </div>
+            </div>
+
+            <h3>5. Latency Components</h3>
+            <div class="guide-box">
+                <h4>Total Switch Latency = Routing Lookup + Mux Selection + Queue Wait</h4>
+                <div class="formula-box">
+Total Latency = T_lookup + T_mux + T_queue
+
+T_lookup (Routing Lookup): 10-20 ns (CAM/TCAM table, depends on algorithm)
+  Fixed routing:      ~10-15 ns (simple hash)
+  Adaptive routing:   ~15-25 ns (complex decision)
+  Hash-based:         ~5-10 ns (fast hash)
+
+T_mux (Multiplexer Selection): 5-15 ns (depends on mux depth)
+  Flat 32:1 mux:      ~10 ns (single stage)
+  Hierarchical:       ~15-20 ns (3 stages × 5-7 ns)
+
+T_queue (Output Queue Wait): 0-1000s ns (depends on congestion)
+  No congestion:      ~0 ns (packet passes through)
+  Light congestion:   ~100-500 ns (typical)
+  Heavy congestion:   ~1-10 microseconds (queue buildup)
+  Overflow:           Packet dropped (∞ latency)
+
+Example calculations:
+  Fixed routing, flat mux, no congestion:
+    Latency = 12 ns + 10 ns + 0 ns = 22 ns = 0.022 μs ✓
+    
+  Adaptive routing, multi-stage mux, moderate congestion:
+    Latency = 20 ns + 18 ns + 500 ns = 538 ns = 0.538 μs ✓
+    
+  Hierarchical routing with hot spot congestion:
+    Latency = 15 ns + 20 ns + 5000 ns = 5.035 μs
+    (5 microseconds queue wait dominates!)
+                </div>
+            </div>
+
+            <h3>6. Mux Power Consumption</h3>
+            <div class="guide-box">
+                <h4>Dynamic Power (Switching Activity)</h4>
+                <p><strong>Formula:</strong> P_dyn = α × C × V² × f</p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>α:</strong> Activity factor (% of muxes switching)</li>
+                    <li><strong>C:</strong> Capacitance (~1 pF per 2:1 mux)</li>
+                    <li><strong>V:</strong> Voltage (0.8-1.0V modern)</li>
+                    <li><strong>f:</strong> Clock frequency (not always needed for combinational mux)</li>
+                </ul>
+                <div class="formula-box">
+Example: 32×32 crossbar (1,024 muxes)
+  Per mux switching: ~0.1 pJ (femtojoules)
+  At 100% activity (all muxes active): 1,024 × 0.1 pJ = 102.4 pJ per cycle
+  @ 3 GHz (333 ps/cycle): 102.4 pJ × 3 GHz = 0.31 W
+                </div>
+
+                <h4 style="margin-top: 15px;">Leakage Power (Static)</h4>
+                <p><strong>Formula:</strong> P_leak = I_leak × V</p>
+                <p>Leakage current increases exponentially with temperature. Typical ~10% of dynamic power.</p>
+                <div class="formula-box">
+Example: 32×32 crossbar (1,024 muxes × 0.2 μA leakage)
+  I_leak = 1,024 × 0.2 μA = 204.8 μA
+  @ 0.9V: P_leak = 204.8 μA × 0.9V = 0.18 W
+  
+  Total power (dynamic + static):
+    0.31 W + 0.18 W = 0.49 W ≈ 0.5 W per crossbar
+    (Replicable for routing logic, buffer management, etc.)
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Lab Experiments (Hands-On)</h2>
+
+            <div class="lab-section">
+                <h3>Experiment 1: Hot Spot Impact on Throughput</h3>
+                <p><strong>Objective:</strong> Quantify performance loss from unbalanced traffic.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 2: Fixed Routing (Hot Spot)</strong> (80/20 split)</li>
+                    <li>Record throughput, packet loss, latency</li>
+                    <li>Compare with <strong>Workload 1: Uniform Random</strong></li>
+                    <li>Calculate: Performance ratio = Uniform Throughput / Hot-Spot Throughput</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Hot spot case drops 75% of packets, only ~50 Gbps effective (8× worse!)</p>
+                <p><strong>Analysis:</strong> Why can't the 320 Gbps going to port 0 fit through 12.5 Gbps port capacity?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 2: Load-Balanced Routing Effectiveness</h3>
+                <p><strong>Objective:</strong> Measure how much adaptive routing improves throughput.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Use same 80/20 traffic split (Workload 2 baseline)</li>
+                    <li>Switch to <strong>Workload 3: Load-Balanced Routing</strong></li>
+                    <li>Record throughput, packet loss, latency</li>
+                    <li>Calculate improvement: (Balanced - Fixed) / Fixed × 100%</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Throughput improves from 50 Gbps to 160 Gbps (+220%)</p>
+                <p><strong>Analysis:</strong> Why is this still not 400 Gbps? Where's the remaining loss?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 3: Hash-Based Routing Uniformity</h3>
+                <p><strong>Objective:</strong> Test hash routing distribution quality.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 4: Hash-Based Routing</strong></li>
+                    <li>Record load balance ratio and Jain fairness index</li>
+                    <li>Compare with <strong>Workload 1: Uniform Random</strong></li>
+                    <li>Analyze: How uniform is the hash distribution?</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Hash-based nearly as balanced as uniform (Jain index ~0.98)</p>
+                <p><strong>Analysis:</strong> What factors could degrade hash quality in real switches?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 4: Multicast Overhead</h3>
+                <p><strong>Objective:</strong> Measure impact of broadcast traffic on unicast.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 5: Multicast (Broadcast)</strong> (10% broadcast)</li>
+                    <li>Record throughput, latency, packet loss</li>
+                    <li>Compare with <strong>Workload 1: Uniform Random</strong> (100% unicast)</li>
+                    <li>Calculate overhead: (Loss_multicast - Loss_uniform) / Loss_uniform × 100%</li>
+                </ol>
+                <p><strong>Expected Result:</strong> 10% broadcast reduces throughput by ~20 Gbps (5% loss)</p>
+                <p><strong>Analysis:</strong> Why does 10% traffic cause more than 10% impact?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 5: Single-Stage vs Multi-Stage Fabric</h3>
+                <p><strong>Objective:</strong> Trade off latency vs area with different fabric topologies.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select any workload (e.g., Workload 1: Uniform)</li>
+                    <li>Set <strong>Fabric Type: Flat Crossbar</strong> → Run → Record latency, power</li>
+                    <li>Change to <strong>Fabric Type: Multi-Stage (3-Stage)</strong> → Run</li>
+                    <li>Compare:
+                        <ul style="margin-left: 20px;">
+                            <li>Latency ratio (multi-stage / flat)</li>
+                            <li>Power ratio</li>
+                            <li>Throughput difference</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p><strong>Expected Result:</strong> Multi-stage ~1.5× higher latency (18 ns vs 12 ns), ~30% less power</p>
+                <p><strong>Analysis:</strong> At what switch size would multi-stage be preferred?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 6: Fabric Scalability (8 to 64 Ports)</h3>
+                <p><strong>Objective:</strong> Understand how performance scales with port count.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Use uniform workload</li>
+                    <li>Test configurations:
+                        <ul style="margin-left: 20px;">
+                            <li>8×8 crossbar (64 muxes)</li>
+                            <li>16×16 crossbar (256 muxes)</li>
+                            <li>32×32 crossbar (1,024 muxes)</li>
+                            <li>64×64 crossbar (4,096 muxes)</li>
+                        </ul>
+                    </li>
+                    <li>Plot: Ports (x-axis) vs Mux Depth / Latency / Power (y-axis)</li>
+                </ol>
+                <p><strong>Expected Result:</strong></p>
+                <table style="margin-top: 10px;">
+                    <tr><th>Ports</th><th>Mux Depth</th><th>Latency</th><th>Power</th></tr>
+                    <tr><td>8</td><td>3</td><td>6 ns</td><td>2 W</td></tr>
+                    <tr><td>16</td><td>4</td><td>8 ns</td><td>8 W</td></tr>
+                    <tr><td>32</td><td>5</td><td>10 ns</td><td>30 W</td></tr>
+                    <tr><td>64</td><td>6</td><td>12 ns</td><td>110 W</td></tr>
+                </table>
+                <p><strong>Analysis:</strong> Why does power grow faster than linearly?</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Tips & Troubleshooting</h2>
+
+            <div class="tip-box">
+                <h3>Identifying Hot Spots</h3>
+                <ul>
+                    <li>Check <strong>Max Load</strong> in output load table</li>
+                    <li>High load ratio (Max/Avg > 2.0) indicates hot spots</li>
+                    <li>Look for port numbers with Gbps &gt;&gt; average</li>
+                    <li>Correlate with packet loss (hot ports = packet drops)</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Optimizing Load Distribution</h3>
+                <ul>
+                    <li>Use adaptive or hash-based routing (avoid fixed routing)</li>
+                    <li>Increase number of valid paths to popular destinations</li>
+                    <li>Consider multi-path routing (ECMP: Equal-Cost Multi-Path)</li>
+                    <li>Monitor queue depths and rebalance if needed</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h3>Common Mistakes</h3>
+                <ul>
+                    <li><strong>Underestimating mux depth:</strong> 32:1 mux = 5-level tree, not single gate!</li>
+                    <li><strong>Ignoring multicast overhead:</strong> 10% multicast traffic ≠ 10% throughput reduction</li>
+                    <li><strong>Assuming single-stage always best:</strong> For 64+ ports, multi-stage more efficient</li>
+                    <li><strong>Forgetting queue delays:</strong> Mux selection is fast (~10 ns), but queue wait can be microseconds</li>
+                    <li><strong>Poor hash design:</strong> Bad hash function leads to hot spots despite hash-based routing</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Real-World Optimization (NetFlow Corp)</h3>
+                <p><strong>Problem:</strong> 400 Gbps switch achieving only 50 Gbps throughput (hot spot)</p>
+                <p><strong>Root Cause:</strong> Fixed routing sends 80% of traffic to single port</p>
+                <p><strong>Solution Steps:</strong></p>
+                <ol>
+                    <li>Implement load-balanced routing → Throughput jumps to 160 Gbps</li>
+                    <li>Add more parallel paths to hot destination → Throughput → 320 Gbps</li>
+                    <li>Enable ECMP (4 equal-cost paths) → Throughput → 400 Gbps ✓</li>
+                    <li>Monitor for other hot spots and repeat</li>
+                </ol>
+                <p><strong>Result:</strong> Non-blocking fabric achieving full line rate throughput</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Assignment Questions</h2>
+            <p>Use the simulator to answer:</p>
+            <ol>
+                <li><strong>Mux Count:</strong> How many 2:1 multiplexers are needed to build a 32:1 mux using a tree structure? How many in a flat implementation?</li>
+                <li><strong>Hot Spot Analysis:</strong> Run Workload 2 (hot spot). How much traffic does port 0 receive? Why does it cause 75% packet loss?</li>
+                <li><strong>Load Balance:</strong> Compare Jain fairness indices for Workloads 1 (uniform) vs 2 (hot spot). Which is closer to perfect (1.0)?</li>
+                <li><strong>Latency Comparison:</strong> Measure latency for flat vs multi-stage fabric on Workload 1. Why is multi-stage slower?</li>
+                <li><strong>Scalability:</strong> Test a 64×64 crossbar. How much more power than 32×32? (Quadratic relationship?)</li>
+                <li><strong>Multicast Efficiency:</strong> In Workload 5, calculate replication overhead as (Fan-out - 1) / Fan-out. What's the bandwidth cost?</li>
+                <li><strong>Queue Saturation:</strong> Run Workload 2 (hot spot). Estimate queue depth at port 0. How long would a packet wait in queue?</li>
+            </ol>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 10: Multiplexers & Data Selection Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #4caf50; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-panel { background: #f1f8e9; padding: 20px; border-radius: 8px; border: 2px solid #4caf50; }
+        h2 { color: #4caf50; margin-bottom: 15px; font-size: 1.2em; }
+        h3 { color: #2e7d32; margin-top: 15px; margin-bottom: 10px; font-size: 1em; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; margin: 5px 5px 5px 0; }
+        button { background: #4caf50; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; }
+        button:hover { background: #2e7d32; }
+        button.secondary { background: #999; }
+        button.secondary:hover { background: #666; }
+        .results-box { background: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 10px 0; }
+        .stat { background: #f5f5f5; padding: 12px; border-radius: 4px; text-align: center; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #4caf50; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .workload-description { background: #fff8e1; padding: 15px; border-left: 4px solid #ffc107; border-radius: 4px; margin: 10px 0; }
+        .routing-stats { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #4caf50; }
+        .load-balance-stats { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .mux-stats { background: #fff3e0; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #ff9800; }
+        .latency-stats { background: #f3e5f5; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #9c27b0; }
+        .power-stats { background: #ffe0e0; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #f44336; }
+        .metric { display: inline-block; margin: 5px 15px 5px 0; }
+        .metric-value { font-weight: bold; color: #4caf50; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4caf50; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .fabric-viz { background: #f9f9f9; padding: 15px; border: 2px solid #4caf50; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 0.9em; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
+        .toggle-group { margin: 15px 0; }
+        .toggle-group label { display: inline-block; margin-right: 15px; }
+        input[type="checkbox"] { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔀 Project 10: Multiplexers & Data Selection Simulator</h1>
+            <p class="subtitle">Network Switch Routing - Load Balance & Congestion Analysis</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="grid">
+            <div class="card control-panel">
+                <h2>🎮 Configuration & Control</h2>
+                
+                <h3>Switch Fabric Configuration</h3>
+                <div>
+                    <label>Input Ports:</label>
+                    <select id="inputPorts">
+                        <option value="8">8 Ports</option>
+                        <option value="16">16 Ports</option>
+                        <option value="32" selected>32 Ports (Standard)</option>
+                        <option value="64">64 Ports (High-End)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Output Ports:</label>
+                    <select id="outputPorts">
+                        <option value="8">8 Ports</option>
+                        <option value="16">16 Ports</option>
+                        <option value="32" selected>32 Ports (Non-Blocking)</option>
+                        <option value="64">64 Ports</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Fabric Type:</label>
+                    <select id="fabricType">
+                        <option value="flat">Flat Crossbar (Single-Stage)</option>
+                        <option value="multistage">Multi-Stage (3-Stage)</option>
+                    </select>
+                </div>
+
+                <h3>Routing Algorithm</h3>
+                <select id="routing">
+                    <option value="uniform">Workload 1: Uniform Random Routing</option>
+                    <option value="hotspot">Workload 2: Fixed Routing (Hot Spot)</option>
+                    <option value="balanced">Workload 3: Load-Balanced Routing</option>
+                    <option value="hash">Workload 4: Hash-Based Routing</option>
+                    <option value="multicast">Workload 5: Multicast (Broadcast)</option>
+                    <option value="hierarchical">Workload 6: Hierarchical Routing</option>
+                </select>
+
+                <h3>Options</h3>
+                <div class="toggle-group">
+                    <label><input type="checkbox" id="queueEnable" checked> Queue Contention Model</label><br>
+                    <label><input type="checkbox" id="fairnessEnable" checked> Fair Queue Scheduling</label><br>
+                    <label><input type="checkbox" id="trafficEnable"> Variable Traffic Load</label>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="runSimulation()">▶ Run Simulation</button>
+                    <button class="secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+
+                <div id="workloadDescription" class="workload-description" style="display:none;"></div>
+            </div>
+
+            <div class="card" id="workloadInfo">
+                <h2>📋 Workload Information</h2>
+                <p id="workloadText" style="line-height: 1.8;">Select a workload to see details...</p>
+            </div>
+        </div>
+
+        <div class="card grid-full">
+            <h2>⚙️ Switch Fabric Configuration</h2>
+            <div class="routing-stats">
+                <div class="metric">
+                    <strong>Fabric Type:</strong> <span class="metric-value" id="fabricTypeDisplay">Flat Crossbar</span>
+                </div>
+                <div class="metric">
+                    <strong>Input Ports:</strong> <span class="metric-value" id="inputPortsDisplay">32</span>
+                </div>
+                <div class="metric">
+                    <strong>Output Ports:</strong> <span class="metric-value" id="outputPortsDisplay">32</span>
+                </div>
+                <div class="metric">
+                    <strong>Total Muxes:</strong> <span class="metric-value" id="totalMuxes">1,024</span>
+                </div>
+                <div class="metric">
+                    <strong>Packet Rate:</strong> <span class="metric-value" id="packetRate">300K/sec</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📊 Mux Utilization & Activity</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="muxUtil">--</div>
+                        <div class="stat-label">Mux Util %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="activeOutputs">--</div>
+                        <div class="stat-label">Active Outputs</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="avgMuxDelay">-- ns</div>
+                        <div class="stat-label">Avg Mux Delay</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="controlLogicDelay">-- ns</div>
+                        <div class="stat-label">Routing Lookup</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Total Muxes</td>
+                        <td id="totalMuxesTable">1,024</td>
+                    </tr>
+                    <tr>
+                        <td>Active Muxes</td>
+                        <td id="activeMuxes">--</td>
+                    </tr>
+                    <tr>
+                        <td>Mux Utilization</td>
+                        <td id="muxUtilTable">--</td>
+                    </tr>
+                    <tr>
+                        <td>Mux Depth (stages)</td>
+                        <td id="muxDepth">10</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>⚖️ Load Balance Analysis</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="balanceRatio">--</div>
+                        <div class="stat-label">Balance Ratio</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="maxLoad">-- Gbps</div>
+                        <div class="stat-label">Max Output</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="minLoad">-- Gbps</div>
+                        <div class="stat-label">Min Output</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="avgLoad">-- Gbps</div>
+                        <div class="stat-label">Avg Output</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Max / Avg Ratio</td>
+                        <td id="loadRatio">--</td>
+                    </tr>
+                    <tr>
+                        <td>Jain Fairness Index</td>
+                        <td id="jainIndex">--</td>
+                    </tr>
+                    <tr>
+                        <td>Output Load Std Dev</td>
+                        <td id="loadStdDev">-- Gbps</td>
+                    </tr>
+                    <tr>
+                        <td>Hot Spot Port</td>
+                        <td id="hotSpotPort">--</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>🚀 Throughput & Congestion</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="throughput">-- Gbps</div>
+                        <div class="stat-label">Throughput</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="packetLoss">--</div>
+                        <div class="stat-label">Packet Loss %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="blockingProb">--</div>
+                        <div class="stat-label">Blocking %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="utilizationPct">--</div>
+                        <div class="stat-label">Utilization %</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Max Fabric Capacity</td>
+                        <td>400 Gbps</td>
+                    </tr>
+                    <tr>
+                        <td>Offered Traffic</td>
+                        <td id="offeredTraffic">-- Gbps</td>
+                    </tr>
+                    <tr>
+                        <td>Delivered Traffic</td>
+                        <td id="deliveredTraffic">-- Gbps</td>
+                    </tr>
+                    <tr>
+                        <td>Dropped Packets</td>
+                        <td id="droppedPackets">--</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>⏱️ Latency Analysis</h2>
+                <div class="latency-stats">
+                    <div class="metric">
+                        <strong>Mux Selection Delay:</strong> <span class="metric-value" id="muxSelectDelay">10 ns</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Routing Lookup Delay:</strong> <span class="metric-value" id="routingDelay">15 ns</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Queue Wait Time:</strong> <span class="metric-value" id="queueWait">-- ns</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Switch Latency:</strong> <span class="metric-value" id="totalLatency">-- μs</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📈 Output Port Load Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="loadDistChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔄 Routing Algorithm Comparison</h2>
+                <div class="chart-container">
+                    <canvas id="routingCompareChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>⚡ Power Consumption</h2>
+                <div class="power-stats">
+                    <div class="metric">
+                        <strong>Mux Array Dynamic Power:</strong> <span class="metric-value" id="muxDynamicPower">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Routing Logic Power:</strong> <span class="metric-value" id="routingPower">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Leakage Power:</strong> <span class="metric-value" id="leakagePower">-- W</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Fabric Power:</strong> <span class="metric-value" id="totalFabricPower">-- W</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Routing Decision Details</h2>
+                <div class="routing-stats">
+                    <div class="metric">
+                        <strong>Routing Decisions/sec:</strong> <span class="metric-value" id="routingDecisions">300K</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Cache Hit Rate (if cached):</strong> <span class="metric-value" id="cacheHitRate">85%</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Multicast Replication:</strong> <span class="metric-value" id="multicastReplication">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Flow Persistence (hash):</strong> <span class="metric-value" id="flowPersistence">100%</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script>
+        const workloadDescriptions = {
+            uniform: {
+                title: "Workload 1: Uniform Random Routing",
+                desc: "Each packet randomly selects output port (1/32 each). Balanced load across all 32 outputs. Mux utilization 100%. No hot spots. Switch latency ~2 μs. Throughput 400 Gbps.",
+                pattern: "Poisson arrivals, uniform distribution"
+            },
+            hotspot: {
+                title: "Workload 2: Fixed Routing (Hot Spot)",
+                desc: "80% traffic to single output (hot spot), 20% distributed. Causes oversubscription at hot port. Mux utilization 80% active muxes. Latency >10 μs (queue buildup). Packet loss ~75%.",
+                pattern: "Deterministic routing, unbalanced"
+            },
+            balanced: {
+                title: "Workload 3: Load-Balanced Routing (Adaptive)",
+                desc: "Same 80/20 split, but adaptively spread across 8 output ports. Mux utilization 25%. Better latency ~5 μs. Packet loss ~60% (improved over fixed). Throughput ~160 Gbps.",
+                pattern: "Dynamic load-aware routing"
+            },
+            hash: {
+                title: "Workload 4: Hash-Based Routing (Flow Consistent)",
+                desc: "1,000 flows, consistent 5-tuple hash to output port. Uniform distribution if hash good. Mux utilization 100%. Latency ~2 μs. No packet loss. Preserves packet order within flow.",
+                pattern: "Flow-based consistent hashing"
+            },
+            multicast: {
+                title: "Workload 5: Multicast (Broadcast)",
+                desc: "10% broadcast (replicate to all 32 outputs), 90% unicast. High contention at output muxes. Mux utilization ~115% (overload). Latency ~3 μs. Packet loss ~5%.",
+                pattern: "Multicast fan-out with unicast"
+            },
+            hierarchical: {
+                title: "Workload 6: Hierarchical Routing (Multi-Stage)",
+                desc: "3-stage mux tree (input stage → core → output stage). Extra latency (~18 ns vs 10 ns). Throughput ~380 Gbps. Blocking probability ~5%. More area/power than single-stage.",
+                pattern: "Multi-stage fabric decomposition"
+            }
+        };
+
+        let simulationState = {
+            inputPorts: 32,
+            outputPorts: 32,
+            fabricType: 'flat',
+            routing: 'uniform',
+            totalMuxes: 1024,
+            activeMuxes: 900,
+            throughput: 400,
+            packetLoss: 0,
+            blockingProb: 0,
+            outputLoads: [],
+            latency: 0,
+            power: 30
+        };
+
+        document.getElementById('routing').addEventListener('change', function() {
+            const wld = workloadDescriptions[this.value];
+            document.getElementById('workloadText').innerHTML = `
+                <strong>${wld.title}</strong><br><br>
+                ${wld.desc}<br><br>
+                <strong>Pattern:</strong> ${wld.pattern}
+            `;
+        });
+
+        function runSimulation() {
+            const inputPorts = parseInt(document.getElementById('inputPorts').value);
+            const outputPorts = parseInt(document.getElementById('outputPorts').value);
+            const fabricType = document.getElementById('fabricType').value;
+            const routing = document.getElementById('routing').value;
+            const queueEnabled = document.getElementById('queueEnable').checked;
+            const fairnessEnabled = document.getElementById('fairnessEnable').checked;
+
+            simulationState = {
+                inputPorts: inputPorts,
+                outputPorts: outputPorts,
+                fabricType: fabricType,
+                routing: routing,
+                totalMuxes: inputPorts * outputPorts,
+                activeMuxes: 0,
+                throughput: 400,
+                packetLoss: 0,
+                blockingProb: 0,
+                outputLoads: new Array(outputPorts).fill(0),
+                latency: 0,
+                power: 30
+            };
+
+            // Generate output loads based on routing algorithm
+            let baseLoad = 400 / outputPorts; // 12.5 Gbps per port for 32 outputs
+
+            switch(routing) {
+                case 'uniform':
+                    for(let i = 0; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = baseLoad + (Math.random() - 0.5) * 1;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 0.9);
+                    simulationState.throughput = 400;
+                    simulationState.packetLoss = 0;
+                    simulationState.blockingProb = 0;
+                    simulationState.latency = 2.1;
+                    break;
+                
+                case 'hotspot':
+                    simulationState.outputLoads[0] = 320; // Hot spot
+                    for(let i = 1; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = 2.5;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 0.8);
+                    simulationState.throughput = 50;
+                    simulationState.packetLoss = 75;
+                    simulationState.blockingProb = 70;
+                    simulationState.latency = 12.3;
+                    break;
+                
+                case 'balanced':
+                    for(let i = 0; i < 8; i++) {
+                        simulationState.outputLoads[i] = 40;
+                    }
+                    for(let i = 8; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = 5;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 0.25);
+                    simulationState.throughput = 160;
+                    simulationState.packetLoss = 60;
+                    simulationState.blockingProb = 45;
+                    simulationState.latency = 5.2;
+                    break;
+                
+                case 'hash':
+                    for(let i = 0; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = baseLoad + (Math.random() - 0.5) * 0.5;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 0.95);
+                    simulationState.throughput = 400;
+                    simulationState.packetLoss = 0;
+                    simulationState.blockingProb = 0;
+                    simulationState.latency = 2.2;
+                    break;
+                
+                case 'multicast':
+                    for(let i = 0; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = baseLoad + (Math.random() - 0.5) * 2;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 1.15);
+                    simulationState.throughput = 380;
+                    simulationState.packetLoss = 5;
+                    simulationState.blockingProb = 8;
+                    simulationState.latency = 3.1;
+                    break;
+                
+                case 'hierarchical':
+                    for(let i = 0; i < outputPorts; i++) {
+                        simulationState.outputLoads[i] = baseLoad + (Math.random() - 0.5) * 1.2;
+                    }
+                    simulationState.activeMuxes = Math.floor(inputPorts * outputPorts * 0.85);
+                    simulationState.throughput = 380;
+                    simulationState.packetLoss = 2;
+                    simulationState.blockingProb = 5;
+                    simulationState.latency = 4.5;
+                    break;
+            }
+
+            updateDisplay();
+            updateCharts();
+        }
+
+        function updateDisplay() {
+            const ip = simulationState.inputPorts;
+            const op = simulationState.outputPorts;
+
+            document.getElementById('inputPortsDisplay').textContent = ip;
+            document.getElementById('outputPortsDisplay').textContent = op;
+            document.getElementById('totalMuxes').textContent = (ip * op).toLocaleString();
+            document.getElementById('totalMuxesTable').textContent = (ip * op).toLocaleString();
+            document.getElementById('fabricTypeDisplay').textContent = simulationState.fabricType === 'flat' ? 'Flat Crossbar' : 'Multi-Stage';
+
+            // Mux utilization
+            const muxUtil = ((simulationState.activeMuxes / simulationState.totalMuxes) * 100).toFixed(1);
+            document.getElementById('muxUtil').textContent = muxUtil + '%';
+            document.getElementById('muxUtilTable').textContent = muxUtil + '%';
+            document.getElementById('activeMuxes').textContent = simulationState.activeMuxes;
+
+            // Mux delays
+            const muxDepth = Math.ceil(Math.log2(ip));
+            document.getElementById('muxDepth').textContent = muxDepth;
+            document.getElementById('avgMuxDelay').textContent = (muxDepth * 1.5).toFixed(0) + ' ns';
+            document.getElementById('controlLogicDelay').textContent = '15 ns';
+
+            // Load balance
+            const loads = simulationState.outputLoads;
+            const maxLoad = Math.max(...loads);
+            const minLoad = Math.min(...loads);
+            const avgLoad = loads.reduce((a,b) => a+b, 0) / loads.length;
+            const balanceRatio = (maxLoad / avgLoad).toFixed(2);
+
+            document.getElementById('maxLoad').textContent = maxLoad.toFixed(1) + ' Gbps';
+            document.getElementById('minLoad').textContent = minLoad.toFixed(1) + ' Gbps';
+            document.getElementById('avgLoad').textContent = avgLoad.toFixed(1) + ' Gbps';
+            document.getElementById('balanceRatio').textContent = balanceRatio;
+            document.getElementById('loadRatio').textContent = balanceRatio + ':1';
+
+            // Active outputs
+            const activeOutputs = loads.filter(l => l > 1).length;
+            document.getElementById('activeOutputs').textContent = activeOutputs;
+
+            // Jain fairness
+            const sumSq = loads.reduce((a,b) => a + b*b, 0);
+            const sumLinear = loads.reduce((a,b) => a + b, 0);
+            const jain = (sumLinear * sumLinear / (loads.length * sumSq)).toFixed(3);
+            document.getElementById('jainIndex').textContent = jain;
+
+            // Std dev
+            const variance = loads.reduce((a,b) => a + Math.pow(b - avgLoad, 2), 0) / loads.length;
+            const stdDev = Math.sqrt(variance).toFixed(1);
+            document.getElementById('loadStdDev').textContent = stdDev + ' Gbps';
+
+            // Hot spot
+            const hotSpot = loads.indexOf(maxLoad);
+            document.getElementById('hotSpotPort').textContent = hotSpot;
+
+            // Throughput & congestion
+            document.getElementById('throughput').textContent = simulationState.throughput.toFixed(0) + ' Gbps';
+            document.getElementById('packetLoss').textContent = simulationState.packetLoss.toFixed(1) + '%';
+            document.getElementById('blockingProb').textContent = simulationState.blockingProb.toFixed(1) + '%';
+            document.getElementById('utilizationPct').textContent = (simulationState.throughput / 4).toFixed(1) + '%';
+
+            document.getElementById('offeredTraffic').textContent = '400 Gbps';
+            document.getElementById('deliveredTraffic').textContent = simulationState.throughput.toFixed(0) + ' Gbps';
+            document.getElementById('droppedPackets').textContent = (simulationState.packetLoss * 3000 / 100).toFixed(0) + 'K';
+
+            // Latency
+            const queueWait = Math.max(0, (simulationState.packetLoss / 100) * 5000).toFixed(0);
+            document.getElementById('queueWait').textContent = queueWait + ' ns';
+            document.getElementById('muxSelectDelay').textContent = (muxDepth * 1.5).toFixed(1) + ' ns';
+            document.getElementById('routingDelay').textContent = '15 ns';
+            document.getElementById('totalLatency').textContent = simulationState.latency.toFixed(2) + ' μs';
+
+            // Power
+            const muxPower = (10 + muxUtil / 10).toFixed(1);
+            const routingPower = (5 + activeOutputs / 5).toFixed(1);
+            const leakagePower = (2 + (ip * op) / 500).toFixed(1);
+            const totalPower = (parseFloat(muxPower) + parseFloat(routingPower) + parseFloat(leakagePower)).toFixed(1);
+
+            document.getElementById('muxDynamicPower').textContent = muxPower + ' W';
+            document.getElementById('routingPower').textContent = routingPower + ' W';
+            document.getElementById('leakagePower').textContent = leakagePower + ' W';
+            document.getElementById('totalFabricPower').textContent = totalPower + ' W';
+        }
+
+        let charts = {};
+
+        function updateCharts() {
+            // Load distribution chart
+            const ldCtx = document.getElementById('loadDistChart').getContext('2d');
+            if(charts.loadDist) charts.loadDist.destroy();
+            
+            const ports = Array.from({length: simulationState.outputPorts}, (_, i) => 'Port ' + i);
+            const loads = simulationState.outputLoads.map(l => l.toFixed(1));
+            
+            charts.loadDist = new Chart(ldCtx, {
+                type: 'bar',
+                data: {
+                    labels: ports,
+                    datasets: [{
+                        label: 'Load (Gbps)',
+                        data: loads,
+                        backgroundColor: '#4caf50',
+                        borderColor: '#2e7d32',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'x',
+                    plugins: { legend: { display: true } },
+                    scales: { y: { min: 0, max: 350 } }
+                }
+            });
+
+            // Routing comparison
+            const rcCtx = document.getElementById('routingCompareChart').getContext('2d');
+            if(charts.routingCompare) charts.routingCompare.destroy();
+            
+            charts.routingCompare = new Chart(rcCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Throughput', 'Latency', 'Fairness', 'Power Eff', 'Simplicity'],
+                    datasets: [{
+                        label: simulationState.routing.toUpperCase(),
+                        data: [
+                            simulationState.throughput / 4,  // Throughput %
+                            (100 - simulationState.latency * 10), // Latency inverse
+                            parseFloat(document.getElementById('jainIndex').textContent) * 100, // Fairness
+                            100 - (parseFloat(document.getElementById('totalFabricPower').textContent) / 50 * 100), // Power
+                            simulationState.routing === 'uniform' ? 95 : (simulationState.routing === 'hash' ? 85 : 70)
+                        ],
+                        borderColor: '#4caf50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 100 } }
+                }
+            });
+        }
+
+        function resetSimulation() {
+            location.reload();
+        }
+
+        // Initialize
+        document.getElementById('routing').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>

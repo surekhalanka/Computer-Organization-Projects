@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 10: Multiplexers & Data Selection - Network Switch Routing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #4caf50; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #4caf50; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #66bb6a; padding-bottom: 10px; }
+        h3 { color: #2e7d32; margin-top: 15px; margin-bottom: 10px; }
+        .scenario-box { background: #e8f5e9; padding: 20px; border-left: 4px solid #4caf50; margin: 15px 0; }
+        .test-cases { background: #f1f8e9; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #fff9e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4caf50; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .mux-diagram { background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 15px 0; font-family: monospace; }
+        .architecture-level { background: #fff8f0; padding: 15px; border: 2px solid #66bb6a; border-radius: 4px; margin: 15px 0; }
+        .level { margin: 10px 0; padding: 10px; border-radius: 4px; border-left: 4px solid #4caf50; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔀 Project 10: Multiplexers & Data Selection</h1>
+            <p class="subtitle">Scenario: Network Switch Routing Architecture</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll design and optimize multiplexer networks in high-speed packet switches. You'll analyze how data selection logic routes packets from multiple input ports to output ports, measure latency and throughput, and optimize for minimal conflicts and maximum bandwidth utilization. The goal is to understand multiplexers as the backbone of switching fabric and their performance bottlenecks.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>NetFlow Corp: Data Center Network Switch Design</h3>
+                <p><strong>Background:</strong> NetFlow operates a tier-1 data center with 100+ racks, each with 40+ servers. A core 32-port network switch routes traffic between servers, storage, and external networks at 400 Gbps aggregate throughput. The switch uses a crossbar switching fabric with 32 input ports × 32 output ports, each port handling 12.5 Gbps (400 Gbps ÷ 32 ports). Multiplexer arrays select which packet from 32 input queues goes to which output port. With 48-byte headers + 1500-byte payloads (≈1.5 KB packets), the switch must process 300,000 packets/second and maintain &lt;1 microsecond latency (per-hop). Switching delay is dominated by mux selection time (~10 nanoseconds for 32:1 mux) and queue contention.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Requirements:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Input Ports:</strong> 32 ports, each 12.5 Gbps (400 Gbps total)</li>
+                    <li><strong>Output Ports:</strong> 32 ports (non-blocking crossbar—any input to any output)</li>
+                    <li><strong>Mux Array:</strong> 32 × 32 crossbar = 1,024 multiplexers (one per input-output pair)</li>
+                    <li><strong>Packet Rate:</strong> 300,000 packets/sec (aggregate, avg 1.5 KB)</li>
+                    <li><strong>Mux Selection Latency:</strong> &lt; 10 nanoseconds (combinational)</li>
+                    <li><strong>Switch Latency (per-hop):</strong> &lt; 1 microsecond (queue delay + mux delay)</li>
+                    <li><strong>Throughput:</strong> 400 Gbps (non-blocking, no packet loss under 100% offered load)</li>
+                    <li><strong>Fairness:</strong> No starvation (all ports get fair bandwidth)</li>
+                    <li><strong>Power Budget:</strong> Mux fabric &lt; 50W (data center constraint)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Multiplexer Architecture</h2>
+            <div class="architecture-level">
+                <h3>What is a Multiplexer?</h3>
+                <p><strong>Definition:</strong> Combinational logic that selects one of N inputs based on ⌈log₂(N)⌉ control signal bits.</p>
+                <div class="mux-diagram">
+2:1 Mux (Simplest):
+  Inputs: A, B
+  Select: S (0 or 1)
+  Output: Y = (S ? B : A)
+  
+  Truth table:
+  S | Y
+  0 | A
+  1 | B
+
+4:1 Mux:
+  Inputs: I0, I1, I2, I3
+  Select: S1, S0 (2 bits, selects one of 4)
+  Output: Y = (S? I[S1:S0])
+  
+  S1 S0 | Y
+  0  0  | I0
+  0  1  | I1
+  1  0  | I2
+  1  1  | I3
+
+32:1 Mux (Network Switch):
+  Inputs: 32 input ports
+  Select: S (5 bits: 2^5 = 32 options)
+  Output: Packet from selected input port
+                </div>
+
+                <h3 style="margin-top: 20px;">Mux Implementation (Datapath & Control)</h3>
+                <div class="architecture-level">
+                    <h4>Datapath (Data Selection)</h4>
+                    <p><strong>Function:</strong> Route packet bits from selected input to output</p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Width:</strong> 64 bits (8 bytes per cycle @ 12.5 Gbps)</li>
+                        <li><strong>Latency:</strong> 2-3 gate delays (~200 ps at 65nm tech)</li>
+                        <li><strong>Area:</strong> ~1,000 transistors (2:1 mux) × log₂(N) stages</li>
+                    </ul>
+
+                    <h4 style="margin-top: 15px;">Control Path (Mux Select Logic)</h4>
+                    <p><strong>Function:</strong> Decode routing decision, generate select signals</p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong>Input:</strong> Packet header (destination IP/MAC)</li>
+                        <li><strong>Lookup:</strong> Routing table (CAM or TCAM, 10-20 ns latency)</li>
+                        <li><strong>Output:</strong> Select signal S[4:0] (selects output port)</li>
+                        <li><strong>Latency:</strong> Routing table lookup (10-20 ns) + mux delay (1-2 ns) = 11-22 ns total</li>
+                    </ul>
+
+                    <h4 style="margin-top: 15px;">Crossbar Switching Fabric</h4>
+                    <div class="mux-diagram">
+Input Ports (0-31):
+  Port 0 ──┐
+  Port 1 ──┼─→ [Mux Array 32×32] ──→ Output Ports (0-31)
+  Port 2 ──┼─→ [Each (i,j) mux] ──→ Port j
+  ...       │   selects from input i
+  Port 31 ──┘
+
+Complete Crossbar:
+  - Mux(0,0): Select output 0 from input 0 if needed
+  - Mux(0,1): Select output 1 from input 0 if needed
+  - ...
+  - Mux(31,31): Select output 31 from input 31
+  
+  Total: 32 × 32 = 1,024 multiplexers
+  Each mux: 32:1 selection → 5 control bits
+  Total control: 32 × 5 = 160 control bits per cycle
+                    </div>
+                </div>
+            </div>
+
+            <h3>Data Selection Strategies</h3>
+            <div class="architecture-level">
+                <h4>Strategy 1: Fixed Routing</h4>
+                <p><strong>Decision:</strong> Route packet to output based on destination address (lookup table)</p>
+                <div class="mux-diagram">
+Input packet:  [Dest IP: 192.168.1.100]
+               ↓
+Lookup table:  192.168.1.* → Output port 5
+               ↓
+Mux select:    S = 5 (route to port 5)
+                </div>
+                <p><strong>Pros:</strong> Simple (no adaptation), predictable</p>
+                <p><strong>Cons:</strong> No load balancing; hot spots create congestion</p>
+                <p><strong>Mux Pressure:</strong> All packets to same destination → one output port saturates</p>
+
+                <h4 style="margin-top: 15px;">Strategy 2: Adaptive Load-Balanced Routing</h4>
+                <p><strong>Decision:</strong> Route packet to least-loaded output port (among valid paths)</p>
+                <div class="mux-diagram">
+Input packet:  [Dest: any path to 192.168.1.0/24]
+               ↓
+Valid outputs: Ports 5, 6, 7 (all reach destination)
+               ↓
+Load measurement: Port 5 queue = 500 bytes, Port 6 = 100 bytes, Port 7 = 300 bytes
+                  ↓ Min load
+Select: S = 6 (least congested output)
+                </div>
+                <p><strong>Pros:</strong> Balances load, reduces tail latency</p>
+                <p><strong>Cons:</strong> Complex lookup (need multiple routing table entries)</p>
+                <p><strong>Mux Pressure:</strong> Distributed—packets spread across multiple outputs</p>
+
+                <h4 style="margin-top: 15px;">Strategy 3: Hash-Based Routing (Consistent)</h4>
+                <p><strong>Decision:</strong> Hash packet 5-tuple (source IP, dest IP, source port, dest port, protocol) to output</p>
+                <div class="mux-diagram">
+Input packet:  [10.0.0.1:12345 → 192.168.1.100:80, TCP]
+               ↓
+Hash 5-tuple:  Hash(flow) mod 32 = 7
+               ↓
+Mux select:    S = 7 (deterministic for this flow)
+                </div>
+                <p><strong>Pros:</strong> Fast (just hash), preserves packet order within flow</p>
+                <p><strong>Cons:</strong> Uneven distribution if hash is poor</p>
+                <p><strong>Mux Pressure:</strong> Depends on hash quality; can cause hotspots</p>
+
+                <h4 style="margin-top: 15px;">Strategy 4: Multicast (Fan-Out)</h4>
+                <p><strong>Decision:</strong> Route packet to multiple output ports (e.g., broadcast)</p>
+                <div class="mux-diagram">
+Input packet:  [Broadcast to all 32 ports]
+               ↓
+Mux select:    Enable 32 outputs simultaneously
+               ↓
+Replicate:     Create 32 copies in fabric
+                </div>
+                <p><strong>Pros:</strong> Supports group communication</p>
+                <p><strong>Cons:</strong> High mux complexity (need fan-out logic)</p>
+                <p><strong>Mux Pressure:</strong> One input drives all 32 outputs (peak traffic)</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Data Selection & Routing Workloads</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Uniform Random Routing</h3>
+                <p><strong>Workload:</strong> Each incoming packet randomly selects one of 32 outputs</p>
+                <p><strong>Packet Distribution:</strong> Poisson arrival (λ = 300k packets/sec), uniform output selection</p>
+                <p><strong>Mux Load:</strong> Each output port receives 1/32 of traffic (balanced)</p>
+                <p><strong>Queue Contention:</strong> Minimal (output queues distribute evenly)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: 100% (all muxes active selecting from inputs)</li>
+                    <li>Output Load Balance: 1/32 per port (perfect)</li>
+                    <li>Switch Latency: ~2 microseconds (queue wait + mux delay)</li>
+                    <li>Packet Loss: ~0% (no congestion)</li>
+                    <li>Throughput: 400 Gbps (100% utilization)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Fixed Routing (Hot Spot)</h3>
+                <p><strong>Workload:</strong> 80% of traffic destined to single output port (port 0), 20% to others</p>
+                <p><strong>Packet Distribution:</strong> Deterministic routing by destination</p>
+                <p><strong>Mux Load:</strong> Port 0 muxes heavily loaded, port 1-31 muxes lightly loaded</p>
+                <p><strong>Queue Contention:</strong> Port 0 output queue saturates (320 Gbps vs 12.5 Gbps capacity)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: 80% port 0 muxes, 6% ports 1-31 (imbalanced)</li>
+                    <li>Output Load Balance: Port 0 = 320 Gbps (oversubscribed!), ports 1-31 = 2.5 Gbps avg</li>
+                    <li>Switch Latency: &gt; 10 microseconds (port 0 queue grows unbounded)</li>
+                    <li>Packet Loss: ~75% dropped at port 0 (exceeds 12.5 Gbps capacity)</li>
+                    <li>Effective Throughput: Only ~50 Gbps to port 0, rest drops</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Load-Balanced Routing (Adaptive)</h3>
+                <p><strong>Workload:</strong> Same traffic as Test 2 (80/20 split), but switch uses adaptive routing</p>
+                <p><strong>Routing Decision:</strong> Route 80% traffic to 8 different output ports (load balance)</p>
+                <p><strong>Mux Load:</strong> Distributed across 8 output ports, each carrying 40 Gbps</p>
+                <p><strong>Queue Contention:</strong> Spread across 8 ports (40 Gbps / 12.5 Gbps = 3.2× oversubscription per port)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: ~25% of all muxes (8 output ports active)</li>
+                    <li>Output Load Balance: 8 ports × 40 Gbps + 24 ports × 5 Gbps (better spread)</li>
+                    <li>Switch Latency: ~5 microseconds (still congested, but better than case 2)</li>
+                    <li>Packet Loss: ~60% (still oversubscribed, but improved)</li>
+                    <li>Effective Throughput: ~160 Gbps (40% improvement over fixed routing)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Hash-Based Routing (Flow Consistent)</h3>
+                <p><strong>Workload:</strong> 1,000 flows, each flow with consistent 5-tuple (deterministic routing)</p>
+                <p><strong>Packet Distribution:</strong> 100 packets per flow (0.1 MB per flow, total 100 MB)</p>
+                <p><strong>Flow-to-Port Mapping:</strong> Hash(5-tuple) mod 32 = output port (same for all packets in flow)</p>
+                <p><strong>Hash Distribution:</strong> Ideally uniform (each port gets ~31 flows)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: 100% (all flows active)</li>
+                    <li>Output Load Balance: ~31 flows per port (balanced if hash is good)</li>
+                    <li>Switch Latency: ~2 microseconds (uniform traffic)</li>
+                    <li>Packet Loss: ~0% (no hot spots)</li>
+                    <li>Throughput: 400 Gbps (100% utilization)</li>
+                    <li>Flow Order Preservation: 100% (packets from same flow never reordered)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 5: Multicast (Broadcast)</h3>
+                <p><strong>Workload:</strong> 10% of packets are broadcast (replicate to all 32 outputs), 90% unicast</p>
+                <p><strong>Fan-Out Factor:</strong> 10% × 32 ports = 3.2 effective destinations per packet</p>
+                <p><strong>Mux Load:</strong> Broadcast packets activate all 32 output muxes simultaneously</p>
+                <p><strong>Queue Contention:</strong> Broadcast packets compete with unicast for output bandwidth</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: ~115% (some outputs overloaded by broadcasts)</li>
+                    <li>Output Collision Rate: ~10% (broadcasts collision with unicast)</li>
+                    <li>Switch Latency: ~3 microseconds (added contention)</li>
+                    <li>Packet Loss: ~5% (broadcasts drop due to output queue overflow)</li>
+                    <li>Effective Throughput: ~380 Gbps (20 Gbps lost to collisions)</li>
+                    <li>Replication Overhead: 10% × 31 extra copies = 3.1% bandwidth overhead</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 6: Hierarchical Routing (Multi-Stage Switch)</h3>
+                <p><strong>Workload:</strong> Packets routed through 3-stage mux tree (32:32 fabric decomposed)</p>
+                <p><strong>Architecture:</strong> Stage 1 (input stage muxes) → Intermediate crossbar → Stage 3 (output stage muxes)</p>
+                <p><strong>Mux Count:</strong> 32 input muxes + 1,024 core crossbar + 32 output muxes = 1,088 total</p>
+                <p><strong>Latency Cascade:</strong> Delay = Stage1 + Core + Stage3 (additive)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Mux Utilization: Similar to single-stage (~100%)</li>
+                    <li>Switch Latency: 3× higher (~6 ns per stage × 3 = 18 ns vs 10 ns single-stage)</li>
+                    <li>Throughput: ~380 Gbps (congestion in multi-stage fabric)</li>
+                    <li>Blocking Probability: ~5% (some connections blocked if intermediate stages congested)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Design Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Mux Utilization (%)</td>
+                        <td>% of muxes making active selections</td>
+                        <td>(Active Packets / Total Packets) × 100</td>
+                        <td>&gt; 90%</td>
+                    </tr>
+                    <tr>
+                        <td>Output Port Utilization (%)</td>
+                        <td>% of output capacity used per port</td>
+                        <td>(Traffic per port / Port capacity) × 100</td>
+                        <td>~97% (high, but &lt; 100%)</td>
+                    </tr>
+                    <tr>
+                        <td>Load Balance Ratio</td>
+                        <td>Ratio of max to avg output load</td>
+                        <td>Max load per output / Avg load</td>
+                        <td>&lt; 1.2 (balanced)</td>
+                    </tr>
+                    <tr>
+                        <td>Switch Latency (μs)</td>
+                        <td>Time from input to output</td>
+                        <td>Routing lookup + Queue wait + Mux delay</td>
+                        <td>&lt; 1 μs</td>
+                    </tr>
+                    <tr>
+                        <td>Packet Loss (%)</td>
+                        <td>% of packets dropped (queue full)</td>
+                        <td>(Dropped / Offered) × 100</td>
+                        <td>&lt; 0.1% (near-lossless)</td>
+                    </tr>
+                    <tr>
+                        <td>Throughput (Gbps)</td>
+                        <td>Data rate delivered to outputs</td>
+                        <td>Sum of output port traffic</td>
+                        <td>≥ 400 Gbps (non-blocking)</td>
+                    </tr>
+                    <tr>
+                        <td>Mux Array Power (W)</td>
+                        <td>Power consumed by all muxes</td>
+                        <td>Dynamic + Leakage (1,024 muxes)</td>
+                        <td>&lt; 50 W</td>
+                    </tr>
+                    <tr>
+                        <td>Fabric Blocking Probability (%)</td>
+                        <td>% of connections blocked (multi-stage)</td>
+                        <td>(Blocked Requests / Requests) × 100</td>
+                        <td>&lt; 1% (very low)</td>
+                    </tr>
+                    <tr>
+                        <td>Fairness (Jain Index)</td>
+                        <td>Measure of equal bandwidth allocation</td>
+                        <td>(Sum L_i)² / (32 × Sum L_i²)</td>
+                        <td>&gt; 0.95 (fair)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand multiplexer basics (2:1, 4:1, 32:1) and implementation</li>
+                <li>Design crossbar switching fabric (32×32 mux array)</li>
+                <li>Analyze data path latency (mux tree vs flat crossbar)</li>
+                <li>Measure mux utilization and output load balance</li>
+                <li>Compare routing algorithms (fixed, adaptive, hash-based, multicast)</li>
+                <li>Identify hot spots and congestion points</li>
+                <li>Optimize for throughput, latency, and fairness</li>
+                <li>Estimate switching fabric power consumption</li>
+                <li>Trade off mux complexity vs performance</li>
+                <li>Apply to packet switching, memory arbitration, I/O multiplexing</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
