@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 5: Cache Architecture Comparison - Web Server Cache Optimization</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #fa709a; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #fee140; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #fa709a; padding-bottom: 10px; }
+        .scenario-box { background: #fef5e7; padding: 20px; border-left: 4px solid #fa709a; margin: 15px 0; }
+        .cache-comparison { background: #ffe7f0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e7f7ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #f0ffe7; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #fa709a; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .architecture-box { background: #f8f9ff; padding: 15px; border: 2px solid #fee140; border-radius: 4px; margin: 15px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💾 Project 5: Cache Architecture Comparison</h1>
+            <p class="subtitle">Scenario: Web Server Cache Optimization</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll compare different CPU cache architectures (Direct Mapped, Fully Associative, and Set-Associative) and evaluate their performance on web server workloads. You'll analyze cache hit rates, miss penalties, and power consumption across different cache designs to optimize for a production web server handling millions of requests.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>FastWeb Corp: Optimizing Web Server Performance</h3>
+                <p><strong>Background:</strong> FastWeb operates a global web server infrastructure serving 100 million page requests/day. Each request requires CPU cache lookups for frequently accessed data: user sessions, database indices, and content metadata. The choice of cache architecture impacts both performance (latency) and power consumption. FastWeb must select the optimal cache design for their next-generation server CPU.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Constraints:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Page Load Time:</strong> Target &lt; 200ms (cache hit critical)</li>
+                    <li><strong>Cache Latency:</strong> Hit latency &lt; 5 cycles, Miss penalty &lt; 100 cycles</li>
+                    <li><strong>Die Size:</strong> Cache area &lt; 50mm² (cost constraint)</li>
+                    <li><strong>Power Budget:</strong> &lt; 10W for L1 cache @ 3GHz</li>
+                    <li><strong>Hit Rate Target:</strong> &gt; 90% for typical web workloads</li>
+                    <li><strong>Working Set:</strong> 1000+ unique pages (16KB each) = 16MB+ data</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Cache Architecture Designs</h2>
+            <div class="cache-comparison">
+                <h3>Design 1: Direct-Mapped Cache</h3>
+                <div class="architecture-box">
+                    <strong>Structure:</strong> 1 cache line per memory address (block placement)<br>
+                    <strong>Formula:</strong> Cache Index = (Memory Address) MOD (Cache Size)<br>
+                    <strong>Hit Time:</strong> 1 cycle (fastest)<br>
+                    <strong>Area:</strong> Smallest (simple hardware)<br>
+                    <strong>Pros:</strong> Fast access, low power, minimal area<br>
+                    <strong>Cons:</strong> High miss rate due to conflict misses<br>
+                    <strong>Example (8-entry cache):</strong><br>
+                    • Address 0x000 → Cache slot 0<br>
+                    • Address 0x008 → Cache slot 0 (conflict! evicts address 0x000)<br>
+                    • Address 0x100 → Cache slot 0 (thrashing!)<br>
+                    <strong>Typical Hit Rate:</strong> 75-85% (web workloads)
+                </div>
+
+                <h3 style="margin-top: 20px;">Design 2: Fully Associative Cache</h3>
+                <div class="architecture-box">
+                    <strong>Structure:</strong> Any cache line can hold any memory address<br>
+                    <strong>Replacement:</strong> LRU (Least Recently Used) policy<br>
+                    <strong>Hit Time:</strong> 2-3 cycles (parallel tag comparison)<br>
+                    <strong>Area:</strong> Largest (complex hardware: tag comparators)<br>
+                    <strong>Pros:</strong> Lowest miss rate, no conflict misses<br>
+                    <strong>Cons:</strong> Expensive, high power, large die area<br>
+                    <strong>Example (8-entry cache):</strong><br>
+                    • Address 0x000 → Any free slot (perfect flexibility)<br>
+                    • Address 0x008 → Any free slot (no conflicts)<br>
+                    • Address 0x100 → Any free slot (still no conflicts)<br>
+                    <strong>Typical Hit Rate:</strong> 92-97% (best for web workloads)
+                </div>
+
+                <h3 style="margin-top: 20px;">Design 3: Set-Associative Cache (Recommended)</h3>
+                <div class="architecture-box">
+                    <strong>Structure:</strong> S ways × N sets = Cache Size<br>
+                    <strong>Formula:</strong> Set Index = (Memory Address) MOD (Num Sets)<br>
+                    <strong>Associativity:</strong> 2-way, 4-way, 8-way common<br>
+                    <strong>Hit Time:</strong> 1-2 cycles (parallel comparison within set)<br>
+                    <strong>Area:</strong> Moderate (S tag comparators per set)<br>
+                    <strong>Pros:</strong> Good balance of speed, area, hit rate<br>
+                    <strong>Cons:</strong> Some conflict misses possible<br>
+                    <strong>Example (8-entry, 2-way set-associative):</strong><br>
+                    • 4 sets × 2 ways<br>
+                    • Address 0x000 → Set 0, Way 0 or Way 1 (can hold either)<br>
+                    • Address 0x008 → Set 0, Way 0 or Way 1 (shares set, not conflict)<br>
+                    • Address 0x004 → Set 2, Way 0 or Way 1 (different set)<br>
+                    <strong>Typical Hit Rate:</strong> 88-93% (good balance)
+                </div>
+
+                <h3 style="margin-top: 20px;">Cache Configuration Comparison:</h3>
+                <table>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Direct-Mapped</th>
+                        <th>2-Way Set-Assoc</th>
+                        <th>4-Way Set-Assoc</th>
+                        <th>Fully-Assoc</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Size</td>
+                        <td>32KB</td>
+                        <td>32KB</td>
+                        <td>32KB</td>
+                        <td>32KB</td>
+                    </tr>
+                    <tr>
+                        <td>Hit Time</td>
+                        <td>1 cycle</td>
+                        <td>1 cycle</td>
+                        <td>1 cycle</td>
+                        <td>2-3 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Typical Hit Rate</td>
+                        <td>78%</td>
+                        <td>90%</td>
+                        <td>92%</td>
+                        <td>95%</td>
+                    </tr>
+                    <tr>
+                        <td>Tag Comparators</td>
+                        <td>1</td>
+                        <td>2</td>
+                        <td>4</td>
+                        <td>1024 (all entries!)</td>
+                    </tr>
+                    <tr>
+                        <td>Area (mm²)</td>
+                        <td>12</td>
+                        <td>14</td>
+                        <td>16</td>
+                        <td>45</td>
+                    </tr>
+                    <tr>
+                        <td>Power @ 3GHz</td>
+                        <td>2W</td>
+                        <td>2.5W</td>
+                        <td>3.2W</td>
+                        <td>8W</td>
+                    </tr>
+                    <tr>
+                        <td>Miss Penalty</td>
+                        <td>~100 cycles</td>
+                        <td>~100 cycles</td>
+                        <td>~100 cycles</td>
+                        <td>~100 cycles</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Web Server Workload Test Cases</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Uniform Random Access (Baseline)</h3>
+                <p><strong>Workload:</strong> 1000 random memory addresses accessed uniformly</p>
+                <p><strong>Expected Hit Rate:</strong> Direct 78%, 2-way 88%, 4-way 92%, Full 95%</p>
+                <p><strong>Key Insight:</strong> Tests cache management without locality</p>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Temporal Locality (Hot Pages)</h3>
+                <p><strong>Workload:</strong> 80% of references to 20% of pages (frequent access to popular pages)</p>
+                <p><strong>Expected Hit Rate:</strong> Direct 82%, 2-way 92%, 4-way 94%, Full 96%</p>
+                <p><strong>Key Insight:</strong> Real web workload—popular content accessed repeatedly</p>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Spatial Locality (Sequential)</h3>
+                <p><strong>Workload:</strong> Sequential access to memory blocks (typical for database scans)</p>
+                <p><strong>Expected Hit Rate:</strong> Direct 95%, 2-way 96%, 4-way 97%, Full 98%</p>
+                <p><strong>Key Insight:</strong> Prefetch friendly—cache line reuse optimal</p>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Worst Case (Conflict Misses)</h3>
+                <p><strong>Workload:</strong> Addresses that map to same cache lines (0, 32KB, 64KB, ...)</p>
+                <p><strong>Expected Hit Rate:</strong> Direct 12%, 2-way 85%, 4-way 91%, Full 95%</p>
+                <p><strong>Key Insight:</strong> Direct-mapped thrashes; associativity solves it</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Optimization Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Hit Rate (%)</td>
+                        <td>% of memory accesses satisfied by cache</td>
+                        <td>Hits / Total Accesses</td>
+                        <td>&gt; 90%</td>
+                    </tr>
+                    <tr>
+                        <td>Average Access Time (AAT)</td>
+                        <td>Expected time per memory access</td>
+                        <td>Hit Time + Miss Rate × Miss Penalty</td>
+                        <td>&lt; 10 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Cache Miss Penalty</td>
+                        <td>Cycles to fetch from main memory</td>
+                        <td>~100 cycles (32KB fetch)</td>
+                        <td>&lt; 150</td>
+                    </tr>
+                    <tr>
+                        <td>Bytes per Cycle (BPC)</td>
+                        <td>Throughput of memory system</td>
+                        <td>Working Set / AAT</td>
+                        <td>&gt; 0.5</td>
+                    </tr>
+                    <tr>
+                        <td>Energy Per Access (nJ)</td>
+                        <td>Power dissipation per access</td>
+                        <td>Power × AAT</td>
+                        <td>&lt; 50nJ</td>
+                    </tr>
+                    <tr>
+                        <td>Die Area Efficiency</td>
+                        <td>Performance per mm²</td>
+                        <td>Hit Rate / Area</td>
+                        <td>&gt; 5.0</td>
+                    </tr>
+                    <tr>
+                        <td>Page Load Time Impact</td>
+                        <td>Cache contribution to response time</td>
+                        <td>AAT × Web Workload Accesses</td>
+                        <td>&lt; 50ms</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand direct-mapped, set-associative, and fully-associative cache designs</li>
+                <li>Analyze cache hit rate across different architectures and workloads</li>
+                <li>Calculate average access time (AAT) with miss penalty</li>
+                <li>Evaluate tradeoffs: speed vs. area vs. power vs. hit rate</li>
+                <li>Recognize conflict misses and capacity misses</li>
+                <li>Apply cache concepts to real web server workloads</li>
+                <li>Optimize cache parameters (size, associativity, line size) for performance</li>
+                <li>Understand cache coherence and replacement policies (LRU)</li>
+                <li>Estimate energy consumption of different cache designs</li>
+                <li>Make architectural decisions balancing performance and cost</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 5: Simulator Guide - Cache Architecture Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #fa709a; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #fee140; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #fa709a; padding-bottom: 10px; }
+        h3 { color: #fa709a; margin-top: 15px; margin-bottom: 10px; }
+        .quick-start { background: #fef5e7; padding: 20px; border-left: 4px solid #fee140; margin: 15px 0; }
+        .step { background: #f0ffe7; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #2ecc71; }
+        .step-number { background: #fa709a; color: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+        .code-block { background: #f5f5f5; border: 1px solid #ddd; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; margin: 10px 0; overflow-x: auto; }
+        .concept { background: #e7f7ff; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #3498db; }
+        .warning { background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #ffc107; }
+        .example { background: #f0f0f0; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .metric-table th { background: #fa709a; color: white; padding: 12px; text-align: left; }
+        .metric-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .metric-table tr:hover { background: #f5f5f5; }
+        ul { margin-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 8px; }
+        .checkpoint { background: #d4edda; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #28a745; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 5: Simulator Guide</h1>
+            <p class="subtitle">Cache Architecture Comparison – How to Use the Simulator</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>⚡ Quick Start (5 Steps)</h2>
+            <div class="quick-start">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <strong>Open the Simulator</strong><br>
+                    Launch Project5_Cache_Architecture_Simulator.html in your web browser (Chrome, Firefox, Safari, Edge)
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <strong>Select Configuration</strong><br>
+                    Set Cache Size (32 KB), Cache Line Size (64 bytes), Workload Type (Temporal Locality), and Number of Accesses (1000)
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <strong>Run Simulation</strong><br>
+                    Click the "▶ Run Simulation" button to execute the cache simulation across all 4 architectures
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <strong>Analyze Results</strong><br>
+                    Compare Hit Rates, Average Access Times (AAT), and Total Cycles across Direct-Mapped, 2-Way, 4-Way, and Fully-Associative caches
+                </div>
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <strong>Interpret Findings</strong><br>
+                    Use the Access Trace table and comparison summary to understand why certain architectures perform better for your workload
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Using the Simulator</h2>
+
+            <h3>Configuration Options</h3>
+            <table class="metric-table">
+                <tr>
+                    <th>Parameter</th>
+                    <th>Options</th>
+                    <th>Impact</th>
+                    <th>Recommendation</th>
+                </tr>
+                <tr>
+                    <td><strong>Cache Size (KB)</strong></td>
+                    <td>8, 16, 32, 64</td>
+                    <td>Larger = higher hit rate but more area/power</td>
+                    <td>Start with 32 KB (industry standard)</td>
+                </tr>
+                <tr>
+                    <td><strong>Cache Line Size (bytes)</strong></td>
+                    <td>32, 64, 128</td>
+                    <td>Larger = better spatial locality but higher miss penalty</td>
+                    <td>64 bytes (typical for web workloads)</td>
+                </tr>
+                <tr>
+                    <td><strong>Workload Type</strong></td>
+                    <td>Uniform, Temporal, Spatial, Worst</td>
+                    <td>Affects memory access patterns</td>
+                    <td>Test all 4 to compare architectures</td>
+                </tr>
+                <tr>
+                    <td><strong>Number of Accesses</strong></td>
+                    <td>100, 500, 1000, 5000</td>
+                    <td>More accesses = more reliable statistics</td>
+                    <td>Use 1000+ for accurate results</td>
+                </tr>
+            </table>
+
+            <h3>Understanding the Output</h3>
+
+            <div class="concept">
+                <h4>📊 Hit Rate (%)</h4>
+                <p><strong>Definition:</strong> Percentage of memory accesses satisfied by the cache (no main memory access required)</p>
+                <p><strong>Formula:</strong> (Cache Hits / Total Accesses) × 100%</p>
+                <p><strong>Example:</strong> 900 hits out of 1000 accesses = 90% hit rate</p>
+                <p><strong>Why it matters:</strong> Higher hit rate = fewer expensive main memory accesses = faster performance</p>
+                <p><strong>Target:</strong> &gt; 90% for web workloads</p>
+            </div>
+
+            <div class="concept">
+                <h4>⏱️ Average Access Time (AAT)</h4>
+                <p><strong>Definition:</strong> Expected time per memory access, including cache hits and misses</p>
+                <p><strong>Formula:</strong> AAT = Hit Time + (Miss Rate × Miss Penalty)</p>
+                <p><strong>Example calculation (90% hit rate, direct-mapped):</strong></p>
+                <div class="code-block">
+AAT = 1 cycle + (0.10 × 100 cycles)
+AAT = 1 + 10 = 11 cycles per access
+                </div>
+                <p><strong>Why it matters:</strong> Lower AAT = faster memory system = better overall CPU performance</p>
+                <p><strong>Target:</strong> &lt; 10 cycles for good performance</p>
+            </div>
+
+            <div class="concept">
+                <h4>📈 Total Cycles</h4>
+                <p><strong>Definition:</strong> Total CPU cycles consumed by all memory accesses in the simulation</p>
+                <p><strong>Formula:</strong> Total = (Hits × Hit Time) + (Misses × Miss Penalty)</p>
+                <p><strong>Example (900 hits, 100 misses):</strong></p>
+                <div class="code-block">
+Total = (900 × 1) + (100 × 100)
+Total = 900 + 10,000 = 10,900 cycles
+                </div>
+                <p><strong>Why it matters:</strong> Lower total cycles = faster program execution</p>
+            </div>
+
+            <h3>Interpreting Architecture Differences</h3>
+
+            <div class="example">
+                <h4>📌 Example Run: Temporal Locality Workload (80% hot pages)</h4>
+                <p><strong>Configuration:</strong> 32 KB cache, 64-byte lines, 1000 accesses</p>
+                
+                <table class="metric-table">
+                    <tr>
+                        <th>Architecture</th>
+                        <th>Hit Rate</th>
+                        <th>AAT</th>
+                        <th>Total Cycles</th>
+                        <th>Why?</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Direct-Mapped</strong></td>
+                        <td>80%</td>
+                        <td>21 cy</td>
+                        <td>21,000 cy</td>
+                        <td>Conflict misses: hot pages map to same line</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2-Way Set-Assoc</strong></td>
+                        <td>90%</td>
+                        <td>11 cy</td>
+                        <td>11,000 cy</td>
+                        <td>2 choices reduce conflicts</td>
+                    </tr>
+                    <tr>
+                        <td><strong>4-Way Set-Assoc</strong></td>
+                        <td>93%</td>
+                        <td>8 cy</td>
+                        <td>8,000 cy</td>
+                        <td>4 choices further improve hit rate</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fully-Associative</strong></td>
+                        <td>95%</td>
+                        <td>7 cy</td>
+                        <td>7,500 cy</td>
+                        <td>No conflicts, but slower hit time (2 cy vs 1 cy)</td>
+                    </tr>
+                </table>
+
+                <p style="margin-top: 15px;"><strong>Key Insight:</strong> 4-way achieves 93% hit rate (near optimal) with much lower area/power than fully-associative → best for web servers!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Key Concepts Explained</h2>
+
+            <h3>Cache Misses: Capacity vs. Conflict</h3>
+            <div class="concept">
+                <h4>Capacity Misses</h4>
+                <p>Occur when the working set exceeds cache size. Cannot be fixed by changing associativity.</p>
+                <p><strong>Example:</strong> Accessing 10 MB of data with a 8 MB cache → 20% capacity misses guaranteed</p>
+            </div>
+
+            <div class="concept">
+                <h4>Conflict Misses</h4>
+                <p>Occur when multiple addresses map to same cache location. Increased associativity reduces these.</p>
+                <p><strong>Example (direct-mapped):</strong> Addresses 0x0000 and 0x8000 both map to same line → thrashing</p>
+                <p><strong>Solution:</strong> 2-way or 4-way associativity allows both to coexist</p>
+            </div>
+
+            <h3>Least Recently Used (LRU) Replacement</h3>
+            <div class="concept">
+                <p><strong>Policy:</strong> When cache is full, evict the entry not used for longest time</p>
+                <p><strong>Implementation:</strong> Maintain access timestamp or linked list per cache line</p>
+                <p><strong>Why effective:</strong> Recent accesses often indicate temporal locality (likely to access again soon)</p>
+                <p><strong>Alternative:</strong> FIFO (First In, First Out), Random, Optimal (not implementable)</p>
+            </div>
+
+            <h3>Measuring Energy Efficiency</h3>
+            <div class="concept">
+                <h4>Energy Per Access (nJ/access)</h4>
+                <p><strong>Formula:</strong> Energy = Power × AAT</p>
+                <p><strong>Example:</strong></p>
+                <div class="code-block">
+4-way cache: 3.2W × 8 cycles / 3GHz = 8.5 nJ per access
+Fully-assoc: 8.0W × 7 cycles / 3GHz = 18.7 nJ per access
+
+Verdict: 4-way is 2.2× more energy efficient!
+                </div>
+                <p><strong>Impact:</strong> Web servers running 24/7 → small power savings compound</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Lab Experiments</h2>
+
+            <h3>Experiment 1: Effect of Cache Size</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Measure how cache size affects hit rate</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Fix: 4-way set-associative, 64-byte line, Temporal workload, 1000 accesses</li>
+                    <li>Vary: Cache size from 8 KB to 64 KB</li>
+                    <li>Record: Hit rate, AAT for each size</li>
+                </ul>
+                <p><strong>Expected Result:</strong> Hit rate increases, then plateaus (capacity limit reached)</p>
+                <p><strong>Practical Implication:</strong> Diminishing returns beyond 32 KB for typical web workloads</p>
+            </div>
+
+            <h3>Experiment 2: Workload Sensitivity</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Compare how different architectures respond to workload changes</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Fix: 32 KB cache, 64-byte line, 1000 accesses</li>
+                    <li>Vary: Workload type (Uniform, Temporal, Spatial, Worst)</li>
+                    <li>Record: Hit rate for Direct-Mapped vs 4-Way vs Fully-Associative</li>
+                </ul>
+                <p><strong>Expected Result:</strong> Fully-associative most robust; direct-mapped fails on worst case</p>
+            </div>
+
+            <h3>Experiment 3: Associativity Trade-offs</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Find optimal associativity balancing performance and cost</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Compute: Performance/Area ratio for each architecture</li>
+                    <li>Formula: (Hit Rate / Total Area in mm²)</li>
+                    <li>Compare: Direct (1.0x area), 2-way (1.2x), 4-way (1.3x), FA (3.5x)</li>
+                </ul>
+                <p><strong>Expected Result:</strong> 4-way offers best performance/area ratio (5.8x vs 5.0x for FA)</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Data Collection Template</h2>
+            <div class="code-block">
+Experiment: Cache Architecture Comparison
+
+Configuration:
+- Cache Size: _____ KB
+- Line Size: _____ bytes
+- Workload: _____________
+- Number of Accesses: _____
+
+Results:
+┌─────────────────────┬──────────┬──────────┬─────────────┐
+│ Architecture        │ Hit Rate │   AAT    │ Total Cyc   │
+├─────────────────────┼──────────┼──────────┼─────────────┤
+│ Direct-Mapped       │   ____%  │  ___ cy  │  _______ cy │
+│ 2-Way Set-Assoc     │   ____%  │  ___ cy  │  _______ cy │
+│ 4-Way Set-Assoc     │   ____%  │  ___ cy  │  _______ cy │
+│ Fully-Associative   │   ____%  │  ___ cy  │  _______ cy │
+└─────────────────────┴──────────┴──────────┴─────────────┘
+
+Observations:
+1. Which architecture achieved highest hit rate? ____________
+2. What caused the performance difference? _________________
+3. Would you recommend FA over 4-way? Why? ________________
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Common Issues & Troubleshooting</h2>
+
+            <div class="warning">
+                <h3>❌ "All architectures show same hit rate"</h3>
+                <p><strong>Cause:</strong> Workload has good spatial locality (sequential access) → no conflicts possible</p>
+                <p><strong>Solution:</strong> Try "Worst Case" or "Uniform Random" workload to see differences</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Direct-mapped shows very low hit rate"</h3>
+                <p><strong>Cause:</strong> Working with addresses that conflict → "Worst Case" workload trigger</p>
+                <p><strong>Solution:</strong> This is expected! Direct-mapped is vulnerable to conflict misses. Try "Temporal" workload.</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Fully-associative slower than 4-way despite higher hit rate"</h3>
+                <p><strong>Cause:</strong> FA hit time = 2-3 cycles vs 1 cycle for others</p>
+                <p><strong>Lesson:</strong> AAT = Hit Time + Miss Penalty. Longer hit time can outweigh higher hit rate!</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Metrics seem incorrect"</h3>
+                <p><strong>Check:</strong> Verify configuration settings before running</p>
+                <p><strong>Solution:</strong> Click "Reset" button and reconfigure from defaults</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Verification Checklist</h2>
+            <div class="checkpoint">
+                <p>✓ Simulator loads without errors in your browser</p>
+                <p>✓ Configuration controls (dropdowns, buttons) respond to input</p>
+                <p>✓ "Run Simulation" button produces results in all 4 cards</p>
+                <p>✓ Hit rate values range 0-100%</p>
+                <p>✓ AAT is reasonable (typically 5-20 cycles)</p>
+                <p>✓ Comparison table updates with latest results</p>
+                <p>✓ Access trace shows first 50 memory accesses</p>
+                <p>✓ Results change when you modify workload or cache size</p>
+                <p>✓ "Reset" button clears all values</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Extended Reading</h2>
+            <ul>
+                <li><strong>Cache Performance Metrics:</strong> AAT = H + M(MP), where H=hit time, M=miss rate, MP=miss penalty</li>
+                <li><strong>Amdahl's Law:</strong> Overall speedup limited by cache-bound portion of workload</li>
+                <li><strong>Working Set Theory:</strong> Subset of memory pages actively used; cache size should match working set</li>
+                <li><strong>Prefetching:</strong> Hardware or software can hide miss latency by fetching before miss occurs</li>
+                <li><strong>Cache Coherence:</strong> Multi-core systems need protocols (MESI) to maintain consistency</li>
+                <li><strong>Inclusive vs. Exclusive:</strong> L1 contained in L2 (inclusive) or separate (exclusive)?</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
