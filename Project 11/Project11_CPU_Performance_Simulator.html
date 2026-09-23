@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 11: CPU Performance (CPI Analysis) Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #2196f3; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-panel { background: #e3f2fd; padding: 20px; border-radius: 8px; border: 2px solid #2196f3; }
+        h2 { color: #2196f3; margin-bottom: 15px; font-size: 1.2em; }
+        h3 { color: #1976d2; margin-top: 15px; margin-bottom: 10px; font-size: 1em; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; margin: 5px 5px 5px 0; }
+        button { background: #2196f3; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; }
+        button:hover { background: #1976d2; }
+        button.secondary { background: #999; }
+        button.secondary:hover { background: #666; }
+        .results-box { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; border-radius: 4px; margin: 10px 0; }
+        .stat { background: #f5f5f5; padding: 12px; border-radius: 4px; text-align: center; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #2196f3; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .workload-description { background: #fff8e1; padding: 15px; border-left: 4px solid #ffc107; border-radius: 4px; margin: 10px 0; }
+        .performance-breakdown { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .cache-stats { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .memory-stats { background: #f3e5f5; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #9c27b0; }
+        .latency-stats { background: #ffe0b2; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #ff9800; }
+        .optimization-box { background: #c8e6c9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #4caf50; }
+        .metric { display: inline-block; margin: 5px 15px 5px 0; }
+        .metric-value { font-weight: bold; color: #2196f3; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2196f3; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .slider-container { margin: 15px 0; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #ddd; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Project 11: CPU Performance (CPI Analysis) Simulator</h1>
+            <p class="subtitle">Analyze instruction-level parallelism, cache behavior, and branch prediction</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="grid">
+            <div class="card control-panel">
+                <h2>🎮 Configuration & Control</h2>
+                
+                <h3>CPU Configuration</h3>
+                <div>
+                    <label>CPU Frequency:</label>
+                    <select id="frequency">
+                        <option value="2.5">2.5 GHz</option>
+                        <option value="3.0">3.0 GHz</option>
+                        <option value="3.5" selected>3.5 GHz (Standard)</option>
+                        <option value="4.0">4.0 GHz</option>
+                        <option value="4.5">4.5 GHz</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Pipeline Depth:</label>
+                    <select id="pipelineDepth">
+                        <option value="10">10 stages (older)</option>
+                        <option value="14" selected>14 stages (Haswell-like)</option>
+                        <option value="20">20 stages (aggressive)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Issue Width:</label>
+                    <select id="issueWidth">
+                        <option value="2">2-issue (dual)</option>
+                        <option value="4" selected>4-issue (quad, standard)</option>
+                        <option value="6">6-issue (superscalar)</option>
+                    </select>
+                </div>
+
+                <h3>Workload Selection</h3>
+                <select id="workload">
+                    <option value="integer">Workload 1: Sequential Integer Math</option>
+                    <option value="gemm">Workload 2: Matrix Mult (GEMM)</option>
+                    <option value="database">Workload 3: Database Query</option>
+                    <option value="web">Workload 4: Web Server (Branchy)</option>
+                    <option value="simd">Workload 5: Image Processing (SIMD)</option>
+                    <option value="mixed" selected>Workload 6: Mixed Workload</option>
+                </select>
+
+                <h3>Cache Configuration</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>L1 Hit Rate: <strong id="l1HitLabel">95%</strong></span>
+                    </div>
+                    <input type="range" id="l1Hit" min="50" max="99" value="95" class="slider">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>L2 Hit Rate: <span id="l2HitLabel">90%</span></strong></span>
+                    </div>
+                    <input type="range" id="l2Hit" min="50" max="99" value="90" class="slider">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Branch Accuracy: <strong id="branchLabel">95%</strong></span>
+                    </div>
+                    <input type="range" id="branchAccuracy" min="80" max="99" value="95" class="slider">
+                </div>
+
+                <h3>Number of Instructions</h3>
+                <select id="instructionCount">
+                    <option value="100000">100K instructions</option>
+                    <option value="1000000" selected>1 million (1M) instructions</option>
+                    <option value="1000000000">1 billion instructions</option>
+                </select>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="runSimulation()">▶ Run Simulation</button>
+                    <button class="secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+
+                <div id="workloadDescription" class="workload-description" style="display:none;"></div>
+            </div>
+
+            <div class="card" id="workloadInfo">
+                <h2>📋 Workload Information</h2>
+                <p id="workloadText" style="line-height: 1.8;">Select a workload to see details...</p>
+            </div>
+        </div>
+
+        <div class="card grid-full">
+            <h2>⚡ Performance Results</h2>
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-value" id="cpiResult">--</div>
+                    <div class="stat-label">CPI (cycles/instr)</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="ipcResult">--</div>
+                    <div class="stat-label">IPC (instr/cycle)</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="throughput">-- GIPS</div>
+                    <div class="stat-label">Instruction Throughput</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="execTime">-- s</div>
+                    <div class="stat-label">Execution Time</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📊 CPI Breakdown (Stall Components)</h2>
+                <div class="performance-breakdown">
+                    <table>
+                        <tr>
+                            <th>Component</th>
+                            <th>Cycles</th>
+                            <th>% of Total CPI</th>
+                        </tr>
+                        <tr>
+                            <td>Base CPI</td>
+                            <td id="baseCpi">1.00</td>
+                            <td id="baseCpiPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>RAW Hazard Stalls</td>
+                            <td id="rawStalls">0.00</td>
+                            <td id="rawPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>Branch Misprediction Stalls</td>
+                            <td id="branchStalls">0.00</td>
+                            <td id="branchPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>L1 Cache Miss Stalls</td>
+                            <td id="l1Stalls">0.00</td>
+                            <td id="l1Pct">--</td>
+                        </tr>
+                        <tr>
+                            <td>L2/L3 Cache Miss Stalls</td>
+                            <td id="l2Stalls">0.00</td>
+                            <td id="l2Pct">--</td>
+                        </tr>
+                        <tr style="font-weight: bold; background: #e3f2fd;">
+                            <td>Total CPI</td>
+                            <td id="totalCpi">--</td>
+                            <td id="totalCpiPct">100%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>💾 Cache Analysis</h2>
+                <div class="cache-stats">
+                    <div class="metric">
+                        <strong>L1 Hit Rate:</strong> <span class="metric-value" id="l1HitRate">95%</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>L1 Miss Penalty:</strong> <span class="metric-value" id="l1Penalty">6 cycles</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>L2 Hit Rate:</strong> <span class="metric-value" id="l2HitRate">90%</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>L2 Miss Penalty:</strong> <span class="metric-value" id="l2Penalty">100 cycles</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Memory Stall Rate:</strong> <span class="metric-value" id="memoryStallRate">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🔀 Branch Prediction Impact</h2>
+                <div class="memory-stats">
+                    <div class="metric">
+                        <strong>Branch Accuracy:</strong> <span class="metric-value" id="branchAcc">95%</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Misprediction Rate:</strong> <span class="metric-value" id="mispredRate">5%</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Flush Penalty:</strong> <span class="metric-value" id="flushPenalty">-- cycles</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Branch Stall Contribution:</strong> <span class="metric-value" id="branchContrib">-- cycles/instr</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⏱️ Latency & Throughput</h2>
+                <div class="latency-stats">
+                    <div class="metric">
+                        <strong>CPU Frequency:</strong> <span class="metric-value" id="freqDisplay">3.5 GHz</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Cycle Time:</strong> <span class="metric-value" id="cycleTime">286 ps</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Peak IPC:</strong> <span class="metric-value" id="peakIpc">4.0</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Achieved IPC:</strong> <span class="metric-value" id="achievedIpc">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Utilization vs Peak:</strong> <span class="metric-value" id="utilization">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📈 CPI Comparison Across Workloads</h2>
+                <div class="chart-container">
+                    <canvas id="cpiCompareChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚙️ Stall Breakdown (Pie Chart)</h2>
+                <div class="chart-container">
+                    <canvas id="stallBreakdownChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎯 Optimization Recommendations</h2>
+                <div class="optimization-box" id="recommendations">
+                    <p>Run a simulation to see optimization recommendations...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Instruction Mix (Current Workload)</h2>
+                <div class="chart-container">
+                    <canvas id="instructionMixChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script>
+        const workloadData = {
+            integer: {
+                name: 'Sequential Integer Math',
+                desc: 'Tight loops of integer arithmetic (no branches, predictable memory). Great instruction cache, L1 working set ~8 KB.',
+                mix: { alu: 50, mul: 20, load: 15, store: 10, branch: 5 },
+                l1Hit: 98,
+                l2Hit: 99,
+                branchAcc: 99,
+                hazardRate: 4,
+                expectedCpi: 0.8
+            },
+            gemm: {
+                name: 'Matrix Multiplication (GEMM)',
+                desc: 'Triple nested loop, heavy FMA usage, variable cache behavior depending on matrix size.',
+                mix: { alu: 5, mul: 40, fma: 35, load: 30, store: 10, branch: 15 },
+                l1Hit: 85,
+                l2Hit: 90,
+                branchAcc: 98,
+                hazardRate: 8,
+                expectedCpi: 1.9
+            },
+            database: {
+                name: 'Database Query (Pointer Chasing)',
+                desc: 'Hash table/B-tree traversal, unpredictable memory access, heavy branch misses (85% accuracy).',
+                mix: { alu: 30, mul: 5, load: 40, store: 15, branch: 10 },
+                l1Hit: 70,
+                l2Hit: 85,
+                branchAcc: 85,
+                hazardRate: 10,
+                expectedCpi: 3.6
+            },
+            web: {
+                name: 'Web Server (Branchy Code)',
+                desc: 'Protocol parsing, string matching, conditional logic. Many data-dependent branches.',
+                mix: { alu: 40, mul: 5, load: 25, store: 10, branch: 20 },
+                l1Hit: 92,
+                l2Hit: 95,
+                branchAcc: 92,
+                hazardRate: 6,
+                expectedCpi: 1.5
+            },
+            simd: {
+                name: 'Image Processing (SIMD)',
+                desc: 'Vectorized operations (4-8 elements per instruction), linear access patterns, prefetchable.',
+                mix: { alu: 10, fma: 50, load: 25, store: 10, branch: 5 },
+                l1Hit: 96,
+                l2Hit: 98,
+                branchAcc: 98,
+                hazardRate: 3,
+                expectedCpi: 0.4
+            },
+            mixed: {
+                name: 'Mixed Workload (TechCorp)',
+                desc: '40% integer math, 30% GEMM, 20% database, 10% web. Represents typical data center.',
+                mix: { alu: 30, mul: 15, fma: 10, load: 25, store: 10, branch: 10 },
+                l1Hit: 88,
+                l2Hit: 90,
+                branchAcc: 94,
+                hazardRate: 7,
+                expectedCpi: 1.76
+            }
+        };
+
+        let simulationState = {
+            workload: 'mixed',
+            frequency: 3.5,
+            pipelineDepth: 14,
+            issueWidth: 4,
+            l1Hit: 95,
+            l2Hit: 90,
+            branchAcc: 95,
+            cpi: 1.0,
+            ipc: 1.0,
+            throughput: 3.5
+        };
+
+        // Update labels when sliders change
+        document.getElementById('l1Hit').addEventListener('input', function() {
+            document.getElementById('l1HitLabel').textContent = this.value + '%';
+        });
+        document.getElementById('l2Hit').addEventListener('input', function() {
+            document.getElementById('l2HitLabel').textContent = this.value + '%';
+        });
+        document.getElementById('branchAccuracy').addEventListener('input', function() {
+            document.getElementById('branchLabel').textContent = this.value + '%';
+        });
+
+        document.getElementById('workload').addEventListener('change', function() {
+            const wld = workloadData[this.value];
+            document.getElementById('workloadText').innerHTML = `
+                <strong>${wld.name}</strong><br><br>
+                ${wld.desc}
+            `;
+            updateWorkloadDefaults();
+        });
+
+        function updateWorkloadDefaults() {
+            const workload = document.getElementById('workload').value;
+            const data = workloadData[workload];
+            
+            document.getElementById('l1Hit').value = data.l1Hit;
+            document.getElementById('l2Hit').value = data.l2Hit;
+            document.getElementById('branchAccuracy').value = data.branchAcc;
+            
+            document.getElementById('l1HitLabel').textContent = data.l1Hit + '%';
+            document.getElementById('l2HitLabel').textContent = data.l2Hit + '%';
+            document.getElementById('branchLabel').textContent = data.branchAcc + '%';
+        }
+
+        function runSimulation() {
+            const workload = document.getElementById('workload').value;
+            const frequency = parseFloat(document.getElementById('frequency').value);
+            const pipelineDepth = parseInt(document.getElementById('pipelineDepth').value);
+            const issueWidth = parseInt(document.getElementById('issueWidth').value);
+            const l1Hit = parseInt(document.getElementById('l1Hit').value);
+            const l2Hit = parseInt(document.getElementById('l2Hit').value);
+            const branchAcc = parseInt(document.getElementById('branchAccuracy').value);
+            const instructionCount = parseInt(document.getElementById('instructionCount').value);
+
+            simulationState = {
+                workload: workload,
+                frequency: frequency,
+                pipelineDepth: pipelineDepth,
+                issueWidth: issueWidth,
+                l1Hit: l1Hit,
+                l2Hit: l2Hit,
+                branchAcc: branchAcc
+            };
+
+            const wldData = workloadData[workload];
+            
+            // Calculate base CPI
+            let baseCpi = 1.0 / issueWidth;
+            
+            // RAW hazard stalls
+            let hazardRate = wldData.hazardRate / 100;
+            let rawStalls = hazardRate * 1.5; // Average 1.5 cycle penalty per RAW
+            
+            // Branch misprediction stalls
+            let branchRate = (wldData.mix.branch || 0) / 100;
+            let mispredRate = (100 - branchAcc) / 100;
+            let branchStalls = branchRate * mispredRate * pipelineDepth * 0.5; // ~50% of pipeline depth
+            
+            // Cache miss stalls
+            let loadRate = (wldData.mix.load || 0) / 100;
+            let l1MissRate = (100 - l1Hit) / 100;
+            let l2MissRate = (100 - l2Hit) / 100;
+            let l1Stalls = loadRate * l1MissRate * 6; // L2 latency - L1 latency
+            let l2Stalls = loadRate * (1 - l1Hit/100) * l2MissRate * 100; // DRAM latency
+            
+            // Total CPI
+            let totalCpi = baseCpi + rawStalls + branchStalls + l1Stalls + l2Stalls;
+            totalCpi = Math.max(totalCpi, 0.25); // Min CPI
+            
+            simulationState.cpi = totalCpi;
+            simulationState.ipc = 1 / totalCpi;
+            simulationState.throughput = frequency / totalCpi;
+            simulationState.baseCpi = baseCpi;
+            simulationState.rawStalls = rawStalls;
+            simulationState.branchStalls = branchStalls;
+            simulationState.l1Stalls = l1Stalls;
+            simulationState.l2Stalls = l2Stalls;
+            simulationState.mix = wldData.mix;
+
+            updateDisplay();
+            updateCharts();
+        }
+
+        function updateDisplay() {
+            const totalCpi = simulationState.cpi;
+            const ipc = simulationState.ipc;
+            const throughput = simulationState.throughput;
+            const frequency = simulationState.frequency;
+
+            document.getElementById('cpiResult').textContent = totalCpi.toFixed(2);
+            document.getElementById('ipcResult').textContent = ipc.toFixed(2);
+            document.getElementById('throughput').textContent = throughput.toFixed(2);
+            
+            const instructionCount = parseInt(document.getElementById('instructionCount').value);
+            const execTime = (instructionCount * totalCpi) / (frequency * 1e9);
+            document.getElementById('execTime').textContent = execTime.toFixed(6);
+
+            // CPI breakdown
+            const totalStalls = simulationState.baseCpi + simulationState.rawStalls + 
+                               simulationState.branchStalls + simulationState.l1Stalls + simulationState.l2Stalls;
+            
+            document.getElementById('baseCpi').textContent = simulationState.baseCpi.toFixed(3);
+            document.getElementById('baseCpiPct').textContent = ((simulationState.baseCpi / totalCpi) * 100).toFixed(1) + '%';
+            
+            document.getElementById('rawStalls').textContent = simulationState.rawStalls.toFixed(3);
+            document.getElementById('rawPct').textContent = ((simulationState.rawStalls / totalCpi) * 100).toFixed(1) + '%';
+            
+            document.getElementById('branchStalls').textContent = simulationState.branchStalls.toFixed(3);
+            document.getElementById('branchPct').textContent = ((simulationState.branchStalls / totalCpi) * 100).toFixed(1) + '%';
+            
+            document.getElementById('l1Stalls').textContent = simulationState.l1Stalls.toFixed(3);
+            document.getElementById('l1Pct').textContent = ((simulationState.l1Stalls / totalCpi) * 100).toFixed(1) + '%';
+            
+            document.getElementById('l2Stalls').textContent = simulationState.l2Stalls.toFixed(3);
+            document.getElementById('l2Pct').textContent = ((simulationState.l2Stalls / totalCpi) * 100).toFixed(1) + '%';
+            
+            document.getElementById('totalCpi').textContent = totalCpi.toFixed(3);
+
+            // Cache stats
+            document.getElementById('l1HitRate').textContent = simulationState.l1Hit + '%';
+            document.getElementById('l1Penalty').textContent = '6 cycles';
+            document.getElementById('l2HitRate').textContent = simulationState.l2Hit + '%';
+            document.getElementById('l2Penalty').textContent = '100 cycles';
+            const memStallRate = ((simulationState.l1Stalls + simulationState.l2Stalls) / totalCpi * 100).toFixed(1);
+            document.getElementById('memoryStallRate').textContent = memStallRate + '%';
+
+            // Branch prediction
+            document.getElementById('branchAcc').textContent = simulationState.branchAcc + '%';
+            document.getElementById('mispredRate').textContent = (100 - simulationState.branchAcc) + '%';
+            document.getElementById('flushPenalty').textContent = simulationState.pipelineDepth + ' cycles';
+            document.getElementById('branchContrib').textContent = simulationState.branchStalls.toFixed(3) + ' cycles/instr';
+
+            // Latency & throughput
+            const cycleTime = (1000 / frequency).toFixed(0);
+            document.getElementById('freqDisplay').textContent = frequency + ' GHz';
+            document.getElementById('cycleTime').textContent = cycleTime + ' ps';
+            document.getElementById('peakIpc').textContent = simulationState.issueWidth.toFixed(1);
+            document.getElementById('achievedIpc').textContent = ipc.toFixed(2);
+            const util = ((ipc / simulationState.issueWidth) * 100).toFixed(1);
+            document.getElementById('utilization').textContent = util + '%';
+
+            // Recommendations
+            generateRecommendations();
+        }
+
+        function generateRecommendations() {
+            const cpi = simulationState.cpi;
+            const branchStalls = simulationState.branchStalls;
+            const l1Stalls = simulationState.l1Stalls;
+            const l2Stalls = simulationState.l2Stalls;
+            const rawStalls = simulationState.rawStalls;
+            
+            let recommendations = '<ul style="margin-left: 20px;">';
+            
+            if (cpi > 2.0) {
+                recommendations += '<li><strong>HIGH CPI WARNING:</strong> CPI ' + cpi.toFixed(2) + ' is suboptimal (target <1.2)</li>';
+            }
+            
+            if (l2Stalls > 0.5) {
+                recommendations += '<li><strong>Improve Cache:</strong> L2 stalls dominate (' + (l2Stalls / cpi * 100).toFixed(0) + '% of CPI). Increase L3 cache or improve prefetching.</li>';
+            }
+            
+            if (l1Stalls > 0.3) {
+                recommendations += '<li><strong>Optimize Working Set:</strong> L1 cache misses significant (' + (l1Stalls / cpi * 100).toFixed(0) + '%). Improve data locality.</li>';
+            }
+            
+            if (branchStalls > 0.2) {
+                recommendations += '<li><strong>Improve Branch Prediction:</strong> Mispredictions cause ' + (branchStalls / cpi * 100).toFixed(0) + '% of CPI. Use better predictors or code layout.</li>';
+            }
+            
+            if (rawStalls > 0.2) {
+                recommendations += '<li><strong>Reduce Data Dependencies:</strong> RAW hazards cause ' + (rawStalls / cpi * 100).toFixed(0) + '% of CPI. Increase instruction-level parallelism.</li>';
+            }
+            
+            if (simulationState.ipc < 0.8 && simulationState.issueWidth >= 4) {
+                recommendations += '<li><strong>Underutilized Pipeline:</strong> Achieving ' + simulationState.ipc.toFixed(2) + ' IPC on ' + simulationState.issueWidth + '-issue CPU. Consider wider issue or different microarchitecture.</li>';
+            }
+            
+            recommendations += '</ul>';
+            
+            document.getElementById('recommendations').innerHTML = recommendations;
+        }
+
+        let charts = {};
+
+        function updateCharts() {
+            // CPI comparison
+            const cpiCtx = document.getElementById('cpiCompareChart').getContext('2d');
+            if(charts.cpiCompare) charts.cpiCompare.destroy();
+            
+            const cpiData = Object.entries(workloadData).map(([key, val]) => val.expectedCpi);
+            const cpiLabels = Object.entries(workloadData).map(([key, val]) => 
+                val.name.split('(')[0].trim()
+            );
+            
+            charts.cpiCompare = new Chart(cpiCtx, {
+                type: 'bar',
+                data: {
+                    labels: cpiLabels,
+                    datasets: [{
+                        label: 'CPI',
+                        data: cpiData,
+                        backgroundColor: '#42a5f5',
+                        borderColor: '#2196f3',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'x',
+                    plugins: { legend: { display: true } },
+                    scales: { y: { min: 0, max: 4 } }
+                }
+            });
+
+            // Stall breakdown pie
+            const stallCtx = document.getElementById('stallBreakdownChart').getContext('2d');
+            if(charts.stallBreakdown) charts.stallBreakdown.destroy();
+            
+            const stallData = [
+                simulationState.baseCpi,
+                simulationState.rawStalls,
+                simulationState.branchStalls,
+                simulationState.l1Stalls,
+                simulationState.l2Stalls
+            ].map(x => x * 100 / simulationState.cpi);
+            
+            charts.stallBreakdown = new Chart(stallCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Base CPI', 'RAW Hazards', 'Branch Mispredict', 'L1 Misses', 'L2/L3 Misses'],
+                    datasets: [{
+                        data: stallData,
+                        backgroundColor: ['#42a5f5', '#ef5350', '#ffa726', '#66bb6a', '#ab47bc'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            // Instruction mix
+            const mixCtx = document.getElementById('instructionMixChart').getContext('2d');
+            if(charts.mix) charts.mix.destroy();
+            
+            const mix = simulationState.mix;
+            const mixLabels = Object.keys(mix).map(k => k.toUpperCase());
+            const mixValues = Object.values(mix);
+            
+            charts.mix = new Chart(mixCtx, {
+                type: 'radar',
+                data: {
+                    labels: mixLabels,
+                    datasets: [{
+                        label: 'Instruction %',
+                        data: mixValues,
+                        borderColor: '#2196f3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                        borderWidth: 2,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { min: 0, max: 50 } }
+                }
+            });
+        }
+
+        function resetSimulation() {
+            location.reload();
+        }
+
+        // Initialize
+        updateWorkloadDefaults();
+        document.getElementById('workload').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>

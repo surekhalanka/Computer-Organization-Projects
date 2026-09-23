@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 11: CPU Performance (CPI Analysis) - Multi-Task Scheduling</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2196f3; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2196f3; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #42a5f5; padding-bottom: 10px; }
+        h3 { color: #1976d2; margin-top: 15px; margin-bottom: 10px; }
+        .scenario-box { background: #e3f2fd; padding: 20px; border-left: 4px solid #2196f3; margin: 15px 0; }
+        .test-cases { background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #fff9e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2196f3; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .instruction-mix { background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 15px 0; font-family: monospace; }
+        .architecture-level { background: #fff8f0; padding: 15px; border: 2px solid #42a5f5; border-radius: 4px; margin: 15px 0; }
+        .level { margin: 10px 0; padding: 10px; border-radius: 4px; border-left: 4px solid #2196f3; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⚡ Project 11: CPU Performance Analysis (CPI)</h1>
+            <p class="subtitle">Scenario: Multi-Task Scheduling & Performance Optimization</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze CPU performance using Cycles Per Instruction (CPI) as the primary metric. You'll examine how instruction types (ALU, memory, branch), pipeline hazards, branch prediction, and cache behavior affect overall performance. The goal is to understand performance bottlenecks, calculate CPI for different workloads, and identify optimization opportunities in modern CPUs.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>TechCorp Data Processing: Multi-Task CPU Scheduler</h3>
+                <p><strong>Background:</strong> TechCorp operates a high-performance computing cluster with 1,000 nodes, each with dual Intel Xeon processors (3.5 GHz, 6-core). The cluster processes mixed workloads: scientific simulations (matrix math), database queries (memory-intensive), and web servers (branchy code). The OS scheduler multiplexes 48 concurrent tasks on 12 cores (4 tasks per core, time-sliced). Performance targets: execute 100+ billion instructions/second per socket, maintain <50 ms latency for interactive queries, and optimize energy (mW/GIPS). The bottleneck: CPI varies from 0.8 (math-heavy) to 4.0 (branchy code), causing unpredictable latency and wasted CPU power.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Requirements:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>CPU Frequency:</strong> 3.5 GHz (3.5 × 10⁹ cycles/second)</li>
+                    <li><strong>Pipeline Depth:</strong> 14 stages (Haswell-like)</li>
+                    <li><strong>Issue Width:</strong> 4 instructions/cycle (quad-issue superscalar)</li>
+                    <li><strong>Target CPI:</strong> ≤ 1.0 (ideally close to 0.8 for superscalar)</li>
+                    <li><strong>Throughput:</strong> ≥ 3.5 billion instructions/second (IPC ≥ 1.0)</li>
+                    <li><strong>L1 Cache Hit Rate:</strong> ≥ 95% (latency ~4 cycles)</li>
+                    <li><strong>L2 Cache Hit Rate:</strong> ≥ 90% (latency ~10 cycles)</li>
+                    <li><strong>Branch Prediction Accuracy:</strong> ≥ 95% (misprediction penalty ~20 cycles)</li>
+                    <li><strong>Task Latency Tail (P99):</strong> &lt; 50 ms</li>
+                    <li><strong>Power Efficiency:</strong> &lt; 5 mW/GIPS</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ CPU Performance Fundamentals</h2>
+            <div class="architecture-level">
+                <h3>What is CPI?</h3>
+                <p><strong>Definition:</strong> Cycles Per Instruction (CPI) is the average number of clock cycles required to execute one instruction.</p>
+                <div class="instruction-mix">
+CPI Basics:
+
+Perfect execution:     CPI = 1.0 (one instruction per cycle)
+Superscalar (4-issue): CPI = 0.25 (four instructions per cycle)
+Realistic (hazards):   CPI = 1.5-2.0 (stalls from dependencies)
+Memory-bound:          CPI = 4.0+ (waiting for L2/L3 cache)
+
+Inverse: IPC (Instructions Per Cycle) = 1 / CPI
+
+Example:
+  Task: 1 billion instructions @ CPI 1.5
+  Time = 1,000,000,000 instr × 1.5 cycles/instr ÷ 3.5 GHz
+       = 1.5 × 10⁹ cycles ÷ 3.5 × 10⁹ cycles/sec
+       = 0.429 seconds
+                </div>
+
+                <h3 style="margin-top: 20px;">The CPI Equation</h3>
+                <div class="instruction-mix">
+CPI = (Base CPI) + (Stalls from hazards) + (Stalls from memory)
+    = 1.0 + (RAW stalls) + (Branch misprediction stalls) + (Cache miss stalls)
+
+Base CPI ≈ 1.0 (one instruction per cycle with no stalls)
+  For N-issue superscalar: Base CPI ≈ 1/N (but hard to achieve)
+
+RAW (Read-After-Write) Hazards: 
+  Dependent instructions must wait for result
+  Example: load r1, [r0]; add r2, r1, r3  → 1-2 cycle stall
+
+Branch Misprediction:
+  Wrong path fetched/executed, must flush pipeline
+  Penalty: ~20 cycles (pipeline depth) per misprediction
+  Frequency: (1 - branch_accuracy) / branch_rate
+
+Cache Misses:
+  L1 miss → L2 hit: +6 cycles (L2 latency - L1 latency = 10-4)
+  L2 miss → L3 hit: +30-50 cycles
+  L3 miss → Memory: +150-300 cycles (DRAM latency)
+
+Example calculation:
+  Base CPI:                      1.0
+  RAW hazards (4% of instr):     0.04 × 2 = 0.08
+  Branch penalties (1% mispredict rate × 20 cycles):
+    Branches are ~15% of code
+    Mispredicts = 1% × 15% = 0.15% instr
+    Penalty = 0.0015 × 20 = 0.03
+  L1 cache miss penalty (5% miss rate × 6 cycles):
+    L1 reads = ~30% of instr
+    Misses = 5% × 30% = 1.5%
+    Penalty = 0.015 × 6 = 0.09
+  
+  Total CPI = 1.0 + 0.08 + 0.03 + 0.09 = 1.20
+                </div>
+            </div>
+
+            <h3>Instruction Classification</h3>
+            <div class="architecture-level">
+                <h4>By Execution Latency</h4>
+                <table>
+                    <tr>
+                        <th>Instruction Type</th>
+                        <th>Latency (cycles)</th>
+                        <th>Throughput (per cycle)</th>
+                        <th>Frequency in Code</th>
+                    </tr>
+                    <tr>
+                        <td>Integer ALU (ADD, SUB, XOR, etc.)</td>
+                        <td>1</td>
+                        <td>4 (quad-issue)</td>
+                        <td>~40%</td>
+                    </tr>
+                    <tr>
+                        <td>Integer Multiply (IMUL, MULH)</td>
+                        <td>3-4</td>
+                        <td>1 (single-issue)</td>
+                        <td>~5%</td>
+                    </tr>
+                    <tr>
+                        <td>Integer Divide (IDIV, MOD)</td>
+                        <td>20-40</td>
+                        <td>1 (single-issue)</td>
+                        <td>~1%</td>
+                    </tr>
+                    <tr>
+                        <td>Float ADD/SUB</td>
+                        <td>3-4</td>
+                        <td>2 (dual-issue)</td>
+                        <td>~10%</td>
+                    </tr>
+                    <tr>
+                        <td>Float Multiply (FMA)</td>
+                        <td>4-5</td>
+                        <td>2</td>
+                        <td>~8%</td>
+                    </tr>
+                    <tr>
+                        <td>Float Divide (FDIV)</td>
+                        <td>10-20</td>
+                        <td>1 (single-issue)</td>
+                        <td>~1%</td>
+                    </tr>
+                    <tr>
+                        <td>Load (L1 hit)</td>
+                        <td>4</td>
+                        <td>2 (dual-issue)</td>
+                        <td>~20%</td>
+                    </tr>
+                    <tr>
+                        <td>Load (L1 miss, L2 hit)</td>
+                        <td>10</td>
+                        <td>2</td>
+                        <td>~1%</td>
+                    </tr>
+                    <tr>
+                        <td>Store (L1 hit)</td>
+                        <td>1 (commit)</td>
+                        <td>2 (dual-issue)</td>
+                        <td>~10%</td>
+                    </tr>
+                    <tr>
+                        <td>Branch (predicted correct)</td>
+                        <td>0 (no delay)</td>
+                        <td>1</td>
+                        <td>~3%</td>
+                    </tr>
+                    <tr>
+                        <td>Branch (mispredicted)</td>
+                        <td>20 (flush penalty)</td>
+                        <td>0.5</td>
+                        <td>~0.15%</td>
+                    </tr>
+                </table>
+
+                <h4 style="margin-top: 15px;">By Data Dependencies (Hazards)</h4>
+                <p><strong>RAW (Read-After-Write):</strong> Instruction must wait for prior instruction's result</p>
+                <div class="instruction-mix">
+Example sequence (Xeon-like with 3-cycle FMA latency):
+  FMA r1, r2, r3, r4  (multiply-add, latency 4)  [Cycle 1-4]
+  ADD r5, r1, r6      (needs r1, RAW hazard)     [Cycle 5-8: waits 4 cycles]
+  
+CPI impact: First instr 1.0 + Second instr 4.0 = 2.5 average
+                </div>
+
+                <h4 style="margin-top: 15px;">By Memory Behavior</h4>
+                <p><strong>Memory-Bound vs Compute-Bound:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Compute-Bound:</strong> Bottleneck is ALU throughput (CPI ~0.8-1.2)</li>
+                    <li><strong>Memory-Bound:</strong> Bottleneck is cache misses (CPI ~2.0-4.0+)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Multi-Task Workloads</h2>
+            <div class="test-cases">
+                <h3>Workload 1: Sequential Integer Math</h3>
+                <p><strong>Code Profile:</strong> Tight loops of integer arithmetic (no branches, predictable memory)</p>
+                <p><strong>Instruction Mix:</strong> 50% ALU, 20% Multiply, 15% Load (L1 hit), 10% Store, 5% Branch (correct)</p>
+                <p><strong>Cache Behavior:</strong> 98% L1 hit rate (working set ~8 KB)</p>
+                <p><strong>Branch Prediction:</strong> 99% accuracy (simple loops)</p>
+                <p><strong>Expected CPI:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Base: 1.0</li>
+                    <li>ALU (50% × 1 cycle): 0.5</li>
+                    <li>Multiply (20% × 3 cycles - 1): 0.4</li>
+                    <li>Load (15% × 4 cycles - 1): 0.45</li>
+                    <li>Store (10% × 0): 0</li>
+                    <li>Branch misprediction (1% × 0.05 × 20): 0.01</li>
+                    <li>Total: ~0.8 CPI (excellent!)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Workload 2: Matrix Multiplication (GEMM)</h3>
+                <p><strong>Code Profile:</strong> Triple nested loop (3D array traversal), heavy FMA usage</p>
+                <p><strong>Instruction Mix:</strong> 5% ALU (loop control), 40% FMA, 30% Load, 10% Store, 15% Branch</p>
+                <p><strong>Cache Behavior:</strong> 85% L1 hit, 10% L2 hit, 5% L3 miss (working set >1 MB on large matrices)</p>
+                <p><strong>Branch Prediction:</strong> 98% (outer loop branches predictable, inner less so)</p>
+                <p><strong>Expected CPI:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Base: 1.0</li>
+                    <li>FMA (40% × 4 cycles - 1): 1.2</li>
+                    <li>L1 Load (25.5% × 4 - 1): 0.76</li>
+                    <li>L2 Load (3% × 10 - 1): 0.27</li>
+                    <li>L3 Miss (1.5% × 100 - 1): 1.5</li>
+                    <li>Branch misprediction (2% × 0.15 × 20): 0.06</li>
+                    <li>Total: ~1.9 CPI (compute-limited on small matrices, memory-limited on large)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Workload 3: Database Query (Pointer Chasing)</h3>
+                <p><strong>Code Profile:</strong> Hash table/B-tree traversal (unpredictable memory access, branches)</p>
+                <p><strong>Instruction Mix:</strong> 30% ALU, 40% Load (random address), 15% Store, 10% Branch, 5% Multiply</p>
+                <p><strong>Cache Behavior:</strong> 70% L1 hit, 15% L2 hit, 15% L3 miss (pointer-chasing inherent misses)</p>
+                <p><strong>Branch Prediction:</strong> 85% (branchy code, hard to predict)</p>
+                <p><strong>Expected CPI:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Base: 1.0</li>
+                    <li>ALU (30% × 1): 0.3</li>
+                    <li>L1 Load (28% × 4 - 1): 0.84</li>
+                    <li>L2 Load (6% × 10 - 1): 0.54</li>
+                    <li>L3 Miss (6% × 100 - 1): 5.94 (MEMORY STALL!)</li>
+                    <li>Branch misprediction (15% × 0.15 × 20): 0.45</li>
+                    <li>Total: ~3.6 CPI (severely memory-bound)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Workload 4: Web Server (Branchy Code)</h3>
+                <p><strong>Code Profile:</strong> Protocol parsing, string matching, conditional logic</p>
+                <p><strong>Instruction Mix:</strong> 40% ALU, 25% Load, 20% Branch, 10% Store, 5% Multiply</p>
+                <p><strong>Cache Behavior:</strong> 92% L1 hit (instruction cache miss &gt; data cache miss), 8% L2 hit</p>
+                <p><strong>Branch Prediction:</strong> 92% (many data-dependent branches)</p>
+                <p><strong>Expected CPI:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Base: 1.0</li>
+                    <li>ALU (40% × 1): 0.4</li>
+                    <li>Load (25% × 4 - 1): 0.75</li>
+                    <li>Branch misprediction (8% × 0.20 × 20): 0.32</li>
+                    <li>Total: ~1.5 CPI (branch misprediction is significant)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Workload 5: Image Processing (SIMD)</h3>
+                <p><strong>Code Profile:</strong> Vectorized operations (4-8 elements per instruction), linear access patterns</p>
+                <p><strong>Instruction Mix:</strong> 10% ALU, 50% SIMD (FMA/Add), 25% Load, 10% Store, 5% Branch</p>
+                <p><strong>Cache Behavior:</strong> 96% L1 hit (sequential memory), 4% L2 hit</p>
+                <p><strong>Branch Prediction:</strong> 98% (simple outer loop)</p>
+                <p><strong>Expected CPI:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Base: 1.0</li>
+                    <li>SIMD FMA (50% but 4 elements/instr = 200% work): 0.5 / 4 = 0.125</li>
+                    <li>Load (25% / 4 elements): 0.06</li>
+                    <li>Total: ~0.4 IPC (but measured in elements: ~1.6 elements/cycle) or ~2.5 CPI per microinstruction</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Workload 6: Mixed Workload (TechCorp Cluster)</h3>
+                <p><strong>Code Profile:</strong> 40% math (Workload 1), 30% GEMM (Workload 2), 20% database queries (Workload 3), 10% web (Workload 4)</p>
+                <p><strong>Expected CPI:</strong> 0.4 × 0.8 + 0.3 × 1.9 + 0.2 × 3.6 + 0.1 × 1.5 = 0.32 + 0.57 + 0.72 + 0.15 = 1.76 CPI</p>
+                <p><strong>Throughput:</strong> 3.5 GHz / 1.76 CPI = 2.0 billion instructions/second (57% of peak)</p>
+                <p><strong>Analysis:</strong> The database queries (20% of time, 3.6 CPI) and GEMM (30% of time, 1.9 CPI) are the bottlenecks</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Optimization Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>CPI (Cycles Per Instruction)</td>
+                        <td>Average cycles needed per instruction</td>
+                        <td>Total cycles / Total instructions</td>
+                        <td>&lt; 1.2 (good)</td>
+                    </tr>
+                    <tr>
+                        <td>IPC (Instructions Per Cycle)</td>
+                        <td>Average instructions executed per cycle</td>
+                        <td>1 / CPI or Total instructions / Total cycles</td>
+                        <td>&gt; 0.8 (good)</td>
+                    </tr>
+                    <tr>
+                        <td>Instruction Throughput (GIPS)</td>
+                        <td>Billion instructions per second</td>
+                        <td>CPU frequency GHz / CPI</td>
+                        <td>&gt; 2.8 GIPS (70% of 3.5 GHz)</td>
+                    </tr>
+                    <tr>
+                        <td>Execution Time</td>
+                        <td>Wall clock time to complete task</td>
+                        <td>Total instructions × CPI / Frequency</td>
+                        <td>&lt; 0.5 seconds for 1B instr</td>
+                    </tr>
+                    <tr>
+                        <td>L1 Cache Hit Rate (%)</td>
+                        <td>% of L1 accesses that hit</td>
+                        <td>(L1 hits / Total L1 accesses) × 100</td>
+                        <td>&gt; 95%</td>
+                    </tr>
+                    <tr>
+                        <td>L2 Cache Hit Rate (%)</td>
+                        <td>% of L2 accesses that hit</td>
+                        <td>(L2 hits / Total L2 accesses) × 100</td>
+                        <td>&gt; 80%</td>
+                    </tr>
+                    <tr>
+                        <td>Branch Prediction Accuracy (%)</td>
+                        <td>% of branches predicted correctly</td>
+                        <td>(Correct predictions / Total branches) × 100</td>
+                        <td>&gt; 95%</td>
+                    </tr>
+                    <tr>
+                        <td>RAW Stalls (% of cycles)</td>
+                        <td>% of time waiting for data dependencies</td>
+                        <td>(RAW stall cycles / Total cycles) × 100</td>
+                        <td>&lt; 5%</td>
+                    </tr>
+                    <tr>
+                        <td>Memory Stall Rate (%)</td>
+                        <td>% of time waiting for memory</td>
+                        <td>(Memory stall cycles / Total cycles) × 100</td>
+                        <td>&lt; 20%</td>
+                    </tr>
+                    <tr>
+                        <td>Power Efficiency (mW/GIPS)</td>
+                        <td>Watts per billion instructions/sec</td>
+                        <td>Power (mW) / Throughput (GIPS)</td>
+                        <td>&lt; 5 mW/GIPS</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand CPI/IPC as primary performance metrics</li>
+                <li>Classify instructions by latency, throughput, and dependencies</li>
+                <li>Calculate CPI for different instruction mixes</li>
+                <li>Identify RAW hazards and estimate stall penalties</li>
+                <li>Model cache miss impact on performance</li>
+                <li>Analyze branch prediction effectiveness</li>
+                <li>Identify memory-bound vs compute-bound bottlenecks</li>
+                <li>Estimate execution time from CPI and frequency</li>
+                <li>Optimize code/CPU design for better IPC</li>
+                <li>Understand multi-task scheduling and task latency</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
