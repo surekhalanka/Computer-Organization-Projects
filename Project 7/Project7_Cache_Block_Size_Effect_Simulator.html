@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 7: Cache Block Size Effect Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #333; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; margin-bottom: 5px; }
+        .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-group { display: inline-block; margin-right: 30px; margin-bottom: 15px; }
+        .control-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #f5576c; }
+        .control-group select, .control-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 1em; }
+        .control-group button { padding: 10px 20px; background: #f5576c; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .control-group button:hover { background: #e74556; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .card h2 { color: #f093fb; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 10px; }
+        .stats-box { background: #f0ffe7; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .metric { display: flex; justify-content: space-between; margin: 8px 0; padding: 8px; background: #fff; border-radius: 3px; }
+        .metric-label { font-weight: bold; color: #333; }
+        .metric-value { color: #f5576c; font-weight: bold; }
+        .chart-container { background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .comparison-table th { background: #f5576c; color: white; padding: 10px; }
+        .comparison-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
+        .comparison-table tr:hover { background: #f5f5f5; }
+        .workload-desc { color: #666; font-size: 0.9em; margin: 10px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #f5576c; }
+        .optimal-box { background: #ffe7f3; padding: 10px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #f5576c; font-weight: bold; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📥 Project 7: Cache Block Size Effect Simulator</h1>
+            <p style="color: #999;">Analyze how cache block size impacts large file download performance</p>
+            <p style="color: #999; font-size: 0.9em;">© 2026 Dr. Surekha Lanka</p>
+        </header>
+
+        <div class="controls">
+            <h2 style="color: #f5576c; margin-bottom: 15px;">Configuration & Controls</h2>
+            
+            <div class="control-group">
+                <label for="workload">Workload Type:</label>
+                <select id="workload">
+                    <option value="sequential">Sequential 100MB File</option>
+                    <option value="random">Random Seek (Database)</option>
+                    <option value="streaming" selected>Streaming with Prefetch</option>
+                    <option value="mixed">Mixed (90% seq, 10% random)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="cacheSize">Cache Size (KB):</label>
+                <select id="cacheSize">
+                    <option value="16">16</option>
+                    <option value="32">32</option>
+                    <option value="64" selected>64</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="bandwidth">Bus Bandwidth (GB/s):</label>
+                <select id="bandwidth">
+                    <option value="4">4 GB/s</option>
+                    <option value="8" selected>8 GB/s (Standard)</option>
+                    <option value="16">16 GB/s</option>
+                    <option value="32">32 GB/s</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="numAccesses">Memory Accesses:</label>
+                <select id="numAccesses">
+                    <option value="1000">1000</option>
+                    <option value="5000" selected>5000</option>
+                    <option value="10000">10000</option>
+                </select>
+            </div>
+
+            <br>
+
+            <div class="control-group">
+                <button onclick="runSimulation()">▶ Run Simulation</button>
+            </div>
+
+            <div class="control-group">
+                <button onclick="resetSimulation()">↻ Reset</button>
+            </div>
+        </div>
+
+        <div class="workload-desc" id="workloadDesc"></div>
+
+        <!-- Block Size vs Hit Rate Chart -->
+        <div class="card">
+            <h2>📊 Block Size vs Hit Rate</h2>
+            <div class="chart-container">
+                <canvas id="hrCanvas" style="width: 100%; height: 300px;"></canvas>
+            </div>
+            <div class="optimal-box" id="optimalSize"></div>
+        </div>
+
+        <!-- Block Size vs AAT Chart -->
+        <div class="card">
+            <h2>⏱️ Block Size vs Average Access Time</h2>
+            <div class="chart-container">
+                <canvas id="aatCanvas" style="width: 100%; height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <div class="grid">
+            <!-- Memory Bus Utilization -->
+            <div class="card">
+                <h2>🚌 Memory Bus Utilization</h2>
+                <div class="stats-box">
+                    <div class="metric">
+                        <span class="metric-label">Optimal Size:</span>
+                        <span class="metric-value" id="optimalBusSize">64 bytes</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Max Utilization:</span>
+                        <span class="metric-value" id="maxUtilization">85%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Throughput:</span>
+                        <span class="metric-value" id="maxThroughput">0.0 GB/s</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <canvas id="busCanvas" style="width: 100%; height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Download Throughput -->
+            <div class="card">
+                <h2>📈 Download Throughput Analysis</h2>
+                <div class="stats-box">
+                    <div class="metric">
+                        <span class="metric-label">Best Throughput:</span>
+                        <span class="metric-value" id="bestTP">0.0 GB/s</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">At Block Size:</span>
+                        <span class="metric-value" id="bestTPSize">64 bytes</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Fill Time:</span>
+                        <span class="metric-value" id="fillTime">0.0 cycles</span>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <canvas id="tpCanvas" style="width: 100%; height: 250px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Comparison Table -->
+        <div class="card">
+            <h2>📈 Block Size Comparison Table</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>Block Size</th>
+                    <th>Hit Rate</th>
+                    <th>Miss Penalty</th>
+                    <th>AAT (cycles)</th>
+                    <th>Bus Util (%)</th>
+                    <th>Throughput (GB/s)</th>
+                    <th>Fill Time (cy)</th>
+                </tr>
+                <tbody id="comparisonBody">
+                    <tr><td colspan="7" style="text-align: center; color: #999;">Run simulation to populate</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Analysis & Recommendations -->
+        <div class="card">
+            <h2>🎯 Analysis & Recommendations</h2>
+            <div id="recommendations" style="line-height: 1.8;">
+                <p style="color: #999;">Results will appear here after running simulation</p>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka | All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script>
+        const HIT_TIME = 1;
+        const CLOCK_FREQ = 3.0; // GHz
+        
+        const BLOCK_SIZES = [16, 32, 64, 128, 256]; // bytes
+
+        let hrChart, aatChart, busChart, tpChart;
+
+        function generateFileDownloadWorkload(type, numAccesses, blockSize) {
+            let accesses = [];
+            
+            switch(type) {
+                case 'sequential':
+                    // Sequential access: A, A+B, A+2B, ...
+                    for (let i = 0; i < numAccesses; i++) {
+                        accesses.push(i * blockSize);
+                    }
+                    break;
+                case 'random':
+                    // Random seeks (512KB gaps)
+                    const seekSize = 512 * 1024;
+                    for (let i = 0; i < numAccesses; i++) {
+                        accesses.push(Math.floor(Math.random() * 1000) * seekSize + Math.floor(Math.random() * 4096));
+                    }
+                    break;
+                case 'streaming':
+                    // Sequential with prefetch ahead 2 blocks
+                    for (let i = 0; i < numAccesses; i++) {
+                        const prefetch = Math.floor(i / 5) % 3; // 0, 1, 2 (prefetch distance)
+                        accesses.push((i + prefetch * blockSize) * blockSize);
+                    }
+                    break;
+                case 'mixed':
+                    // 90% sequential, 10% random
+                    for (let i = 0; i < numAccesses; i++) {
+                        if (Math.random() < 0.9) {
+                            accesses.push(i * blockSize);
+                        } else {
+                            accesses.push(Math.floor(Math.random() * 1000000) * blockSize);
+                        }
+                    }
+                    break;
+            }
+            return accesses;
+        }
+
+        function simulateBlockSize(accesses, cacheSize, blockSize, bandwidth) {
+            const cache = new Map();
+            const numLines = (cacheSize * 1024) / blockSize;
+            let hits = 0, misses = 0;
+            const usedBytes = new Array(BLOCK_SIZES.length).fill(0);
+
+            for (let addr of accesses) {
+                const blockAddr = Math.floor(addr / blockSize) * blockSize;
+                const cacheIdx = Math.floor(blockAddr / blockSize) % numLines;
+
+                const isHit = cache.has(cacheIdx) && cache.get(cacheIdx) === blockAddr;
+                if (isHit) {
+                    hits++;
+                } else {
+                    misses++;
+                }
+
+                cache.set(cacheIdx, blockAddr);
+            }
+
+            const hitRate = hits / accesses.length;
+            const missPenalty = Math.ceil((blockSize / 8) / (bandwidth / CLOCK_FREQ)) + 2; // bytes->bits, account for bus latency
+            const aat = HIT_TIME + (1 - hitRate) * missPenalty;
+            
+            // Bus utilization: assume 80% of block is typically used (except for random)
+            const utilization = Math.min(0.95, Math.max(0.3, hitRate));
+            const throughput = hitRate * bandwidth * utilization;
+            const fillTime = (blockSize * 8) / (bandwidth * 1024 * 1024 * 1024 / CLOCK_FREQ);
+
+            return {
+                hitRate,
+                missPenalty,
+                aat,
+                utilization,
+                throughput,
+                fillTime,
+                totalCycles: hits * HIT_TIME + misses * missPenalty
+            };
+        }
+
+        function runSimulation() {
+            const workload = document.getElementById('workload').value;
+            const cacheSize = parseInt(document.getElementById('cacheSize').value);
+            const bandwidth = parseInt(document.getElementById('bandwidth').value);
+            const numAccesses = parseInt(document.getElementById('numAccesses').value);
+
+            // Update workload description
+            const descriptions = {
+                sequential: '📊 Sequential: Download file from start to end. Large blocks help via spatial locality.',
+                random: '🎲 Random: Database index scans with 512KB seeks. Blocks have limited benefit.',
+                streaming: '🎬 Streaming: Video codec with hardware prefetch. Balanced block size optimal.',
+                mixed: '⚙️ Mixed: Real workload—90% sequential, 10% random seeks.'
+            };
+            document.getElementById('workloadDesc').textContent = descriptions[workload];
+
+            // Run simulation for all block sizes
+            const results = [];
+            for (let blockSize of BLOCK_SIZES) {
+                const accesses = generateFileDownloadWorkload(workload, numAccesses, blockSize);
+                const sim = simulateBlockSize(accesses, cacheSize, blockSize, bandwidth);
+                results.push({
+                    size: blockSize,
+                    hitRate: sim.hitRate,
+                    missPenalty: sim.missPenalty,
+                    aat: sim.aat,
+                    utilization: sim.utilization * 100,
+                    throughput: sim.throughput,
+                    fillTime: sim.fillTime,
+                    totalCycles: sim.totalCycles
+                });
+            }
+
+            updateCharts(results);
+            updateComparisonTable(results, bandwidth);
+            updateRecommendations(results, workload);
+        }
+
+        function updateCharts(results) {
+            const sizes = results.map(r => r.size + ' B');
+            const hitRates = results.map(r => (r.hitRate * 100).toFixed(1));
+            const aats = results.map(r => r.aat.toFixed(2));
+            const utils = results.map(r => r.utilization.toFixed(1));
+            const tps = results.map(r => r.throughput.toFixed(2));
+
+            // Hit Rate Chart
+            if (hrChart) hrChart.destroy();
+            const hrCtx = document.getElementById('hrCanvas').getContext('2d');
+            hrChart = new Chart(hrCtx, {
+                type: 'line',
+                data: {
+                    labels: sizes,
+                    datasets: [{
+                        label: 'Hit Rate (%)',
+                        data: hitRates,
+                        borderColor: '#f5576c',
+                        backgroundColor: 'rgba(245, 87, 108, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+            });
+
+            // AAT Chart
+            if (aatChart) aatChart.destroy();
+            const aatCtx = document.getElementById('aatCanvas').getContext('2d');
+            aatChart = new Chart(aatCtx, {
+                type: 'line',
+                data: {
+                    labels: sizes,
+                    datasets: [{
+                        label: 'Average Access Time (cycles)',
+                        data: aats,
+                        borderColor: '#f093fb',
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
+            });
+
+            // Bus Utilization Chart
+            if (busChart) busChart.destroy();
+            const busCtx = document.getElementById('busCanvas').getContext('2d');
+            busChart = new Chart(busCtx, {
+                type: 'bar',
+                data: {
+                    labels: sizes,
+                    datasets: [{
+                        label: 'Bus Utilization (%)',
+                        data: utils,
+                        backgroundColor: 'rgba(245, 87, 108, 0.7)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: true } } }
+            });
+
+            // Throughput Chart
+            if (tpChart) tpChart.destroy();
+            const tpCtx = document.getElementById('tpCanvas').getContext('2d');
+            tpChart = new Chart(tpCtx, {
+                type: 'bar',
+                data: {
+                    labels: sizes,
+                    datasets: [{
+                        label: 'Throughput (GB/s)',
+                        data: tps,
+                        backgroundColor: 'rgba(240, 147, 251, 0.7)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: true } } }
+            });
+
+            // Find optimal block size (best throughput)
+            const best = results.reduce((a, b) => a.throughput > b.throughput ? a : b);
+            document.getElementById('optimalSize').textContent = `💡 Optimal Block Size: ${best.size} bytes (${best.throughput.toFixed(2)} GB/s throughput)`;
+        }
+
+        function updateComparisonTable(results, bandwidth) {
+            let html = '';
+            for (let r of results) {
+                html += `<tr>
+                    <td><strong>${r.size} bytes</strong></td>
+                    <td>${(r.hitRate * 100).toFixed(1)}%</td>
+                    <td>${r.missPenalty}</td>
+                    <td>${r.aat.toFixed(2)}</td>
+                    <td>${r.utilization.toFixed(1)}%</td>
+                    <td>${r.throughput.toFixed(2)}</td>
+                    <td>${r.fillTime.toFixed(2)}</td>
+                </tr>`;
+            }
+            document.getElementById('comparisonBody').innerHTML = html;
+
+            // Update best values
+            const bestTP = Math.max(...results.map(r => r.throughput));
+            const bestTPResult = results.find(r => r.throughput === bestTP);
+            document.getElementById('bestTP').textContent = bestTPResult.throughput.toFixed(2) + ' GB/s';
+            document.getElementById('bestTPSize').textContent = bestTPResult.size + ' bytes';
+            document.getElementById('fillTime').textContent = bestTPResult.fillTime.toFixed(2) + ' cycles';
+
+            const bestUtil = Math.max(...results.map(r => r.utilization));
+            const bestUtilResult = results.find(r => r.utilization === bestUtil);
+            document.getElementById('optimalBusSize').textContent = bestUtilResult.size + ' bytes';
+            document.getElementById('maxUtilization').textContent = bestUtilResult.utilization.toFixed(1) + '%';
+            document.getElementById('maxThroughput').textContent = bestUtilResult.throughput.toFixed(2) + ' GB/s';
+        }
+
+        function updateRecommendations(results, workload) {
+            const best = results.reduce((a, b) => a.throughput > b.throughput ? a : b);
+            const bestAAT = results.reduce((a, b) => a.aat < b.aat ? a : b);
+            const maxUtil = Math.max(...results.map(r => r.utilization));
+
+            let rec = `
+                <h3 style="color: #f5576c;">Analysis Results</h3>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Best Throughput:</strong> ${best.size} bytes (${best.throughput.toFixed(2)} GB/s)</li>
+                    <li><strong>Best AAT:</strong> ${bestAAT.size} bytes (${bestAAT.aat.toFixed(2)} cycles)</li>
+                    <li><strong>Max Bus Utilization:</strong> ${maxUtil.toFixed(1)}%</li>
+                    <li><strong>Recommended Size for ${workload}:</strong> ${best.size} bytes</li>
+                </ul>
+                <h3 style="color: #f5576c; margin-top: 15px;">Tradeoff Analysis</h3>
+            `;
+
+            if (best.size > 64) {
+                rec += `<p>Larger block size benefits this workload (high spatial locality). Trade: Miss penalty increases but hit rate compensates.</p>`;
+            } else if (best.size < 64) {
+                rec += `<p>Smaller block size better for this workload (random or mixed access). Trade: More frequent misses but lower pollution.</p>`;
+            } else {
+                rec += `<p>64-byte block size is standard choice—good balance for typical workloads.</p>`;
+            }
+
+            document.getElementById('recommendations').innerHTML = rec;
+        }
+
+        function resetSimulation() {
+            document.getElementById('workload').value = 'streaming';
+            document.getElementById('cacheSize').value = '64';
+            document.getElementById('bandwidth').value = '8';
+            document.getElementById('numAccesses').value = '5000';
+            document.getElementById('workloadDesc').textContent = '';
+            document.getElementById('recommendations').innerHTML = '<p style="color: #999;">Results will appear here after running simulation</p>';
+        }
+    </script>
+</body>
+</html>

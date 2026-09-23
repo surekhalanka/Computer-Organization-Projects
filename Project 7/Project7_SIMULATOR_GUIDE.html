@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 7: Simulator Guide - Cache Block Size Effect</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #f093fb; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 10px; }
+        h3 { color: #f5576c; margin-top: 15px; margin-bottom: 10px; }
+        .quick-start { background: #ffe7f3; padding: 20px; border-left: 4px solid #f5576c; margin: 15px 0; }
+        .step { background: #f0f0ff; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #f093fb; }
+        .step-number { background: #f5576c; color: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+        .code-block { background: #f5f5f5; border: 1px solid #ddd; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; margin: 10px 0; overflow-x: auto; }
+        .concept { background: #f0ffe7; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #2ecc71; }
+        .warning { background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #ffc107; }
+        .example { background: #f0f0f0; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .metric-table th { background: #f5576c; color: white; padding: 12px; text-align: left; }
+        .metric-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .metric-table tr:hover { background: #f5f5f5; }
+        ul { margin-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 8px; }
+        .checkpoint { background: #d4edda; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #28a745; }
+        .tradeoff-box { background: #f3e7ff; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #f093fb; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 7: Simulator Guide</h1>
+            <p class="subtitle">Cache Block Size Effect – How to Use the Simulator</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>⚡ Quick Start (5 Steps)</h2>
+            <div class="quick-start">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <strong>Open the Simulator</strong><br>
+                    Launch Project7_Cache_Block_Size_Effect_Simulator.html in your web browser
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <strong>Select Workload</strong><br>
+                    Choose: Sequential, Random Seek, Streaming with Prefetch, or Mixed workload
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <strong>Configure Cache & Bus</strong><br>
+                    Set cache size (64 KB default), bus bandwidth (8 GB/s default), access count (5000 default)
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <strong>Run Simulation</strong><br>
+                    Click "▶ Run Simulation" to analyze 5 block sizes (16, 32, 64, 128, 256 bytes)
+                </div>
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <strong>Analyze Results</strong><br>
+                    Review charts, throughput, and recommendations to find optimal block size
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Using the Simulator</h2>
+
+            <h3>Configuration Options</h3>
+            <table class="metric-table">
+                <tr>
+                    <th>Parameter</th>
+                    <th>Options</th>
+                    <th>Impact</th>
+                    <th>Recommendation</th>
+                </tr>
+                <tr>
+                    <td><strong>Workload Type</strong></td>
+                    <td>4 types</td>
+                    <td>Determines memory access pattern (sequential vs random)</td>
+                    <td>Test all 4</td>
+                </tr>
+                <tr>
+                    <td><strong>Cache Size (KB)</strong></td>
+                    <td>16, 32, 64</td>
+                    <td>Fixes cache capacity; block size analysis independent</td>
+                    <td>64 KB (standard)</td>
+                </tr>
+                <tr>
+                    <td><strong>Bus Bandwidth (GB/s)</strong></td>
+                    <td>4, 8, 16, 32</td>
+                    <td>Affects miss penalty time (BW determines fill time)</td>
+                    <td>8 GB/s (typical)</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory Accesses</strong></td>
+                    <td>1K, 5K, 10K</td>
+                    <td>More accesses → more reliable statistics</td>
+                    <td>5000+</td>
+                </tr>
+            </table>
+
+            <h3>Understanding the Output</h3>
+
+            <div class="concept">
+                <h4>📊 Hit Rate Chart (Line Graph)</h4>
+                <p><strong>What it shows:</strong> How hit rate changes with block size</p>
+                <p><strong>Key patterns:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Sequential:</strong> Steep rise → hit rate increases with block size (blocks capture more useful data)</li>
+                    <li><strong>Random:</strong> Flat or declining → block size doesn't help (data scattered)</li>
+                    <li><strong>Streaming:</strong> Moderate rise → prefetch hides misses efficiently</li>
+                </ul>
+                <p><strong>Target:</strong> &gt; 90% for download workloads</p>
+            </div>
+
+            <div class="concept">
+                <h4>⏱️ Average Access Time (AAT)</h4>
+                <p><strong>Formula:</strong> AAT = Hit Time + (Miss Rate × Miss Penalty)</p>
+                <p><strong>Key insight:</strong> Miss penalty INCREASES with block size (takes longer to fill)</p>
+                <p><strong>Example (64-byte block @ 8 GB/s):</strong></p>
+                <div class="code-block">
+Fill time = 64 bytes / (8 GB/s) = 8 ns ≈ 24 cycles @ 3GHz
+Miss penalty ≈ 26 cycles (tag latency + fill + delivery)
+
+With larger blocks (256 bytes):
+Fill time = 256 bytes / (8 GB/s) = 32 ns ≈ 96 cycles @ 3GHz
+Miss penalty ≈ 98 cycles (much longer!)
+
+AAT tradeoff: Larger block → fewer misses but longer penalty
+                </div>
+            </div>
+
+            <div class="concept">
+                <h4>🚌 Memory Bus Utilization</h4>
+                <p><strong>Definition:</strong> Fraction of fetched bytes actually used</p>
+                <p><strong>Formula:</strong> Utilization = (Used Bytes / Block Size) × 100%</p>
+                <p><strong>Examples:</strong></p>
+                <div class="code-block">
+Sequential access: 100% useful (every byte in block accessed)
+Random access: ~40% useful (only 1 access per block, rest unused)
+
+Larger blocks = lower utilization on random workloads
+= wasted memory bandwidth = wasted power
+                </div>
+                <p><strong>Target:</strong> &gt; 80% (avoid excessive pollution)</p>
+            </div>
+
+            <div class="concept">
+                <h4>📈 Download Throughput (GB/s)</h4>
+                <p><strong>Definition:</strong> File data per second (practical measure of performance)</p>
+                <p><strong>Formula:</strong> Throughput = Hit Rate × Bus Bandwidth × Utilization</p>
+                <p><strong>Example:</strong></p>
+                <div class="code-block">
+64-byte block, sequential workload:
+Hit Rate: 90%, Utilization: 95%, Bus: 8 GB/s
+Throughput = 0.90 × 8 × 0.95 = 6.84 GB/s ✓ Excellent
+
+128-byte block, random workload:
+Hit Rate: 55%, Utilization: 40%, Bus: 8 GB/s
+Throughput = 0.55 × 8 × 0.40 = 1.76 GB/s ✗ Poor
+                </div>
+                <p><strong>Key insight:</strong> Sequential = prefer larger blocks; Random = smaller blocks</p>
+            </div>
+
+            <div class="concept">
+                <h4>⏱️ Cache Block Fill Time</h4>
+                <p><strong>Definition:</strong> Time to transfer one block from memory to cache</p>
+                <p><strong>Formula:</strong> Fill Time = (Block Size × 8 bits/byte) / Bandwidth</p>
+                <p><strong>Examples:</strong></p>
+                <div class="code-block">
+@ 8 GB/s bus:
+16 bytes: 16 ns = 48 cycles @ 3GHz
+64 bytes: 64 ns = 192 cycles (but hide with prefetch)
+256 bytes: 256 ns = 768 cycles (risky—blocks for too long)
+
+Target: Fill time < 20-30 cycles (CPU prefetch window)
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Key Concepts Explained</h2>
+
+            <h3>Spatial Locality & Block Size</h3>
+            <div class="concept">
+                <p><strong>Principle:</strong> Large blocks exploit spatial locality—if A accessed, nearby addresses likely accessed soon</p>
+                <p><strong>Sequential Access:</strong> Perfect spatial locality. Larger blocks amortize miss penalty over many useful hits.</p>
+                <p><strong>Random Access:</strong> No spatial locality. Larger blocks fetch useless data → cache pollution</p>
+                <p><strong>Real Workloads:</strong> Mix of both. Block size is compromise.</p>
+            </div>
+
+            <h3>Cache Pollution</h3>
+            <div class="concept">
+                <h4>Definition</h4>
+                <p>Fetching useless data that evicts hot (frequently used) data from cache</p>
+                
+                <h4>Example: Random Database Scan</h4>
+                <div class="code-block">
+Miss at Address A → Fetch 256-byte block (A to A+255)
+But only address A is accessed (1 byte used, 255 wasted)
+Block fills cache lines → evicts other hot pages
+Later miss at Address B triggers another 256-byte fetch
+Result: Cache full of pollution → thrashing → many misses
+                </div>
+                
+                <h4>Solution</h4>
+                <p>Smaller block size → less pollution → better for random workloads</p>
+            </div>
+
+            <h3>Miss Penalty vs Block Size</h3>
+            <div class="tradeoff-box">
+                <h4>📊 The Tradeoff Curve</h4>
+                <p><strong>Large Blocks:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>✅ Lower miss count (better spatial locality)</li>
+                    <li>❌ Higher miss penalty (longer fill time)</li>
+                    <li>❌ More cache pollution</li>
+                    <li>❌ More memory bus traffic (power)</li>
+                </ul>
+                
+                <p style="margin-top: 15px;"><strong>Small Blocks:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>❌ Higher miss count (poor spatial locality)</li>
+                    <li>✅ Lower miss penalty (quick fill)</li>
+                    <li>✅ Less cache pollution</li>
+                    <li>✅ Less memory bus traffic</li>
+                </ul>
+
+                <p style="margin-top: 15px;"><strong>Optimal Size:</strong> Where product of (miss rate) × (miss penalty) is minimized</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Lab Experiments</h2>
+
+            <h3>Experiment 1: Sequential vs Random Workload Impact</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Compare optimal block sizes for different access patterns</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Run: Sequential workload → record hit rate & throughput for all block sizes</li>
+                    <li>Run: Random workload → record same metrics</li>
+                    <li>Compare: Which block size preferred for each?</li>
+                </ul>
+                <p><strong>Expected Result:</strong> Sequential prefers 128-256B; Random prefers 32-64B</p>
+            </div>
+
+            <h3>Experiment 2: Bus Bandwidth Sensitivity</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> How bus speed affects optimal block size</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Fix: Sequential streaming workload</li>
+                    <li>Vary: Bus bandwidth 4, 8, 16, 32 GB/s</li>
+                    <li>Record: Throughput and AAT for each block size</li>
+                </ul>
+                <p><strong>Expected Result:</strong> Faster bus → larger blocks become more attractive (lower fill time penalty)</p>
+            </div>
+
+            <h3>Experiment 3: Measuring Cache Pollution</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Quantify pollution impact on random workloads</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Run: Random workload with 16-byte block</li>
+                    <li>Run: Random workload with 256-byte block</li>
+                    <li>Compare: Hit rate, utilization, throughput</li>
+                    <li>Calculate: Wasted bytes = (Block Size - 1) × Number of Misses</li>
+                </ul>
+                <p><strong>Expected Result:</strong> 256-byte blocks waste ~240×misses bytes on random workloads</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Data Collection Template</h2>
+            <div class="code-block">
+Experiment: Cache Block Size Impact
+
+Configuration:
+- Workload: _________________
+- Cache Size: _____ KB
+- Bus Bandwidth: _____ GB/s
+- Number of Accesses: _____
+
+Results:
+┌─────────┬─────────┬──────┬────────┬─────┐
+│BlockSz  │HitRate  │ AAT  │BusUtil │TP   │
+├─────────┼─────────┼──────┼────────┼─────┤
+│  16 B   │  ____%  │ __cy │  ___  │_GB/s│
+│  32 B   │  ____%  │ __cy │  ___  │_GB/s│
+│  64 B   │  ____%  │ __cy │  ___  │_GB/s│
+│ 128 B   │  ____%  │ __cy │  ___  │_GB/s│
+│ 256 B   │  ____%  │ __cy │  ___  │_GB/s│
+└─────────┴─────────┴──────┴────────┴─────┘
+
+Analysis:
+1. Optimal block size for this workload? ____________
+2. Why does hit rate trend this way? _________________
+3. How does utilization change? ____________________
+4. Is larger block always better? ___________________
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Common Issues & Troubleshooting</h2>
+
+            <div class="warning">
+                <h3>❌ "Hit rate decreases with larger block size"</h3>
+                <p><strong>Cause:</strong> Random access pattern—larger blocks cause cache pollution</p>
+                <p><strong>Solution:</strong> Try "Sequential" workload to see expected behavior</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "All block sizes show same throughput"</h3>
+                <p><strong>Cause:</strong> Other factors dominating (maybe cache already full)</p>
+                <p><strong>Solution:</strong> Use smaller cache (16 KB) to amplify block size effects</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "AAT increases with larger blocks"</h3>
+                <p><strong>Cause:</strong> Correct! Longer fill times outweigh hit rate gains</p>
+                <p><strong>Lesson:</strong> Larger block ≠ always faster. Tradeoff depends on workload.</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Bus utilization drops to 40% on random workload"</h3>
+                <p><strong>Cause:</strong> Correct—random access doesn't benefit from large blocks</p>
+                <p><strong>Lesson:</strong> 60% wasted bandwidth = 60% wasted power on random patterns</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Verification Checklist</h2>
+            <div class="checkpoint">
+                <p>✓ Simulator loads without errors</p>
+                <p>✓ Hit Rate chart shows 5 data points (one per block size)</p>
+                <p>✓ Sequential workload shows rising hit rate curve</p>
+                <p>✓ Random workload shows flatter curve</p>
+                <p>✓ AAT generally increases (miss penalty effect)</p>
+                <p>✓ Bus utilization shown in bar chart</p>
+                <p>✓ Throughput chart identifies best block size</p>
+                <p>✓ Comparison table has 5 rows (all block sizes)</p>
+                <p>✓ Recommendations match data</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Extended Reading</h2>
+            <ul>
+                <li><strong>Spatial Locality:</strong> Programs access nearby memory addresses within short time</li>
+                <li><strong>Prefetching:</strong> Hardware speculatively fetches next blocks to hide latency</li>
+                <li><strong>Memory Bus:</strong> Shared link between CPU/cache and main memory—bandwidth limited</li>
+                <li><strong>Cache Coherence:</strong> Multi-core systems need protocols (MESI) to maintain consistency</li>
+                <li><strong>Streaming Workloads:</strong> Sequential access patterns (video, compression, databases)</li>
+                <li><strong>Power Wall:</strong> Memory bandwidth scales with power—block size impacts energy</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

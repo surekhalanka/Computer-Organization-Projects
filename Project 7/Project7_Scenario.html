@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 7: Cache Block Size Effect - Large File Download</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #f5576c; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #f093fb; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #f5576c; padding-bottom: 10px; }
+        .scenario-box { background: #ffe7f3; padding: 20px; border-left: 4px solid #f5576c; margin: 15px 0; }
+        .blocksize-box { background: #f3e7ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e7f7ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #f0ffe7; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f5576c; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .arch-box { background: #f8f9ff; padding: 15px; border: 2px solid #f093fb; border-radius: 4px; margin: 15px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📥 Project 7: Cache Block Size Effect</h1>
+            <p class="subtitle">Scenario: Large File Download</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze how CPU cache block size (also called cache line size) impacts performance on large sequential file downloads. You'll compare block sizes from 16 bytes to 256 bytes, measuring hit rates, miss penalties, memory bandwidth utilization, and bus traffic. The goal is to determine the optimal block size for download workloads—balancing spatial locality exploitation against memory bandwidth and cache line fill time.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>DataFlow Systems: Large File Download Optimization</h3>
+                <p><strong>Background:</strong> DataFlow Systems operates a cloud storage platform handling 10 million file downloads/day. Users download files ranging from 100 MB to 10 GB (videos, datasets, archives). Each download streams through CPU cache on its way to disk/network. The cache block size determines: (1) How many bytes fetched per memory access, (2) Prefetch effectiveness, (3) Memory bus utilization, (4) Wasted bandwidth on unused data.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Constraints:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Download Throughput:</strong> &gt; 1 GB/sec (10GbE network)</li>
+                    <li><strong>Cache Hit Rate:</strong> &gt; 95% (prefetch should hide memory latency)</li>
+                    <li><strong>Memory Bus Utilization:</strong> &gt; 80% (avoid wasted fills)</li>
+                    <li><strong>Cache Block Fill Time:</strong> &lt; 20 cycles (must keep up with CPU)</li>
+                    <li><strong>Power Consumption:</strong> Minimize memory bus traffic (power scales with bandwidth)</li>
+                    <li><strong>Cache Pollution:</strong> Don't evict hot data with large unnecessary blocks</li>
+                    <li><strong>Prefetch Distance:</strong> 4-8 blocks ahead (hidden in latency)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Cache Block Size Analysis Framework</h2>
+            <div class="blocksize-box">
+                <h3>Why Cache Block Size Matters</h3>
+                <p><strong>Key Insight:</strong> Block size determines spatial locality exploitation. Larger blocks fetch more data per miss (amortize miss penalty), but waste bandwidth if data unused. Smaller blocks reduce pollution but increase miss count.</p>
+
+                <h3 style="margin-top: 20px;">Block Size Trade-offs</h3>
+                <table>
+                    <tr>
+                        <th>Block Size</th>
+                        <th>Typical Miss Penalty</th>
+                        <th>Bus Traffic/Miss</th>
+                        <th>Spatial Locality</th>
+                        <th>Cache Pollution</th>
+                        <th>Use Case</th>
+                    </tr>
+                    <tr>
+                        <td>16 bytes</td>
+                        <td>~20 cycles</td>
+                        <td>128 bits</td>
+                        <td>Poor</td>
+                        <td>Minimal</td>
+                        <td>Cache-hostile workloads</td>
+                    </tr>
+                    <tr>
+                        <td>32 bytes</td>
+                        <td>~35 cycles</td>
+                        <td>256 bits</td>
+                        <td>Moderate</td>
+                        <td>Low</td>
+                        <td>Pointer-heavy (linked lists)</td>
+                    </tr>
+                    <tr>
+                        <td>64 bytes (Standard)</td>
+                        <td>~60 cycles</td>
+                        <td>512 bits</td>
+                        <td>Good</td>
+                        <td>Moderate</td>
+                        <td>General-purpose (Project 5-6)</td>
+                    </tr>
+                    <tr>
+                        <td>128 bytes</td>
+                        <td>~120 cycles</td>
+                        <td>1024 bits</td>
+                        <td>Excellent</td>
+                        <td>Moderate-High</td>
+                        <td>Streaming, sequential</td>
+                    </tr>
+                    <tr>
+                        <td>256 bytes</td>
+                        <td>~240 cycles</td>
+                        <td>2048 bits</td>
+                        <td>Outstanding</td>
+                        <td>High</td>
+                        <td>Large file transfers</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Impact on Performance Metrics</h3>
+                <table>
+                    <tr>
+                        <th>Block Size</th>
+                        <th>Miss Rate Impact</th>
+                        <th>Hit Rate @ 32KB</th>
+                        <th>Memory BW @ Saturation</th>
+                        <th>Effective Latency</th>
+                    </tr>
+                    <tr>
+                        <td>16 bytes</td>
+                        <td>High misses (small blocks)</td>
+                        <td>70%</td>
+                        <td>2 GB/s (light)</td>
+                        <td>~30 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>32 bytes</td>
+                        <td>Moderate misses</td>
+                        <td>80%</td>
+                        <td>4 GB/s (medium)</td>
+                        <td>~20 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>64 bytes</td>
+                        <td>Baseline (2-3 misses/1000)</td>
+                        <td>88%</td>
+                        <td>8 GB/s (standard)</td>
+                        <td>~15 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>128 bytes</td>
+                        <td>Few misses (large blocks)</td>
+                        <td>94%</td>
+                        <td>12 GB/s (heavy)</td>
+                        <td>~20 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>256 bytes</td>
+                        <td>Very few misses</td>
+                        <td>97%</td>
+                        <td>16+ GB/s (saturated)</td>
+                        <td>~30 cycles</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Miss Penalty vs Block Size</h3>
+                <p><strong>Key Relationship:</strong> Miss Penalty = Cache latency + Fill Time + Contention</p>
+                <div class="arch-box">
+                    <p><strong>Miss Penalty Components:</strong></p>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Tag lookup:</strong> ~2 cycles (constant)</li>
+                        <li><strong>Data fetch from memory:</strong> B/BW cycles (B = block size, BW = bus bandwidth)</li>
+                        <li><strong>Bus contention:</strong> 0-10 cycles (depends on other traffic)</li>
+                        <li><strong>Result delivery:</strong> ~1 cycle</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Example (64-byte block @ 8GB/s bus):</strong></p>
+                    <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace;">
+Fetch time = 64 bytes / (8 GB/s) = 8 ns = ~24 cycles @ 3GHz
+Total miss penalty = 2 + 24 + 2 + 1 ≈ 29 cycles ≈ ~30 cycles typical
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Large File Download Workload Characteristics</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Sequential 100 MB File (Baseline)</h3>
+                <p><strong>Workload:</strong> Download file from start to end, sequential access</p>
+                <p><strong>Memory Pattern:</strong> Address A, A+64, A+128, ... (strictly sequential)</p>
+                <p><strong>Expected Hit Rates by Block Size:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>16 bytes: 75% (many misses)</li>
+                    <li>32 bytes: 82% (fewer misses)</li>
+                    <li>64 bytes: 90% (good spatial reuse)</li>
+                    <li>128 bytes: 96% (excellent prefetch)</li>
+                    <li>256 bytes: 98% (near-optimal)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Random Seek Pattern (Database Scan)</h3>
+                <p><strong>Workload:</strong> Random seeks within file (index scans, B-tree traversal)</p>
+                <p><strong>Memory Pattern:</strong> Address A₁, A₂, A₃, ... (scattered, 512 KB gaps)</p>
+                <p><strong>Spatial Locality:</strong> Within each 4 KB page, some sequential access</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>16 bytes: 40% (no prefetch help)</li>
+                    <li>32 bytes: 45% (little gain)</li>
+                    <li>64 bytes: 52% (some intra-page help)</li>
+                    <li>128 bytes: 58% (more intra-page)</li>
+                    <li>256 bytes: 62% (over-fetching hurts)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Streaming with Prefetch (Video Stream)</h3>
+                <p><strong>Workload:</strong> Video codec reads frame buffer sequentially, CPU prefetches</p>
+                <p><strong>Memory Pattern:</strong> Sequential with 1-2 cache block lookahead</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>16 bytes: 80% (prefetch helps small blocks)</li>
+                    <li>32 bytes: 88%</li>
+                    <li>64 bytes: 95% (ideal for prefetch distance)</li>
+                    <li>128 bytes: 96% (over-prefetch)</li>
+                    <li>256 bytes: 94% (too aggressive)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Mixed Workload (Real Download)</h3>
+                <p><strong>Workload:</strong> Mostly sequential with occasional index lookups</p>
+                <p><strong>Memory Pattern:</strong> 90% sequential, 10% scattered</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>16 bytes: 68%</li>
+                    <li>32 bytes: 75%</li>
+                    <li>64 bytes: 85%</li>
+                    <li>128 bytes: 90%</li>
+                    <li>256 bytes: 92%</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Optimization Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Hit Rate (%)</td>
+                        <td>% of accesses satisfied by cache</td>
+                        <td>Hits / Total Accesses</td>
+                        <td>&gt; 90%</td>
+                    </tr>
+                    <tr>
+                        <td>Average Access Time (AAT)</td>
+                        <td>Expected time per access</td>
+                        <td>HT + (MR × MP)</td>
+                        <td>&lt; 10 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Memory Bus Utilization (%)</td>
+                        <td>Useful data / Total transferred</td>
+                        <td>(Used bytes / Block size) × 100%</td>
+                        <td>&gt; 80%</td>
+                    </tr>
+                    <tr>
+                        <td>Block Fill Time</td>
+                        <td>Cycles to fill one cache block</td>
+                        <td>Block Size / Bus Bandwidth</td>
+                        <td>&lt; 20 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Download Throughput (GB/s)</td>
+                        <td>File bytes per second</td>
+                        <td>Cache hit rate × Bandwidth</td>
+                        <td>&gt; 1 GB/s</td>
+                    </tr>
+                    <tr>
+                        <td>Cache Pollution Ratio</td>
+                        <td>Unused bytes evicted / Total</td>
+                        <td>1 - (Useful / Block Size)</td>
+                        <td>&lt; 30%</td>
+                    </tr>
+                    <tr>
+                        <td>Power Efficiency (W/GB/s)</td>
+                        <td>Power per throughput unit</td>
+                        <td>Power / Throughput</td>
+                        <td>&lt; 2.0 W/(GB/s)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand cache block size (line size) impact on performance</li>
+                <li>Analyze tradeoff: spatial locality vs. memory bandwidth vs. miss penalty</li>
+                <li>Calculate miss penalty as function of block size and bus bandwidth</li>
+                <li>Recognize when larger blocks help (sequential) vs hurt (random)</li>
+                <li>Evaluate memory bus utilization for different block sizes</li>
+                <li>Understand cache pollution (fetching unused data)</li>
+                <li>Apply block size optimization to streaming workloads</li>
+                <li>Predict performance across block size spectrum</li>
+                <li>Measure prefetch effectiveness on cache fills</li>
+                <li>Balance power consumption against throughput</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
