@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 4: 4-Bit ALU Construction - Digital Logic Verification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #00f2fe; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #4facfe; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #00f2fe; padding-bottom: 10px; }
+        .scenario-box { background: #e0f4ff; padding: 20px; border-left: 4px solid #4facfe; margin: 15px 0; }
+        .alu-design { background: #e0e8ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e0ffe0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #ffe0e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4facfe; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .logic-diagram { background: #f8f9ff; padding: 15px; border: 1px dashed #4facfe; border-radius: 4px; font-family: monospace; margin: 15px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 Project 4: 4-Bit ALU Construction</h1>
+            <p class="subtitle">Scenario: Digital Logic Verification</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll design and verify a 4-bit Arithmetic Logic Unit (ALU) from gate-level components. You'll construct full adders, multiplexers, and control logic to create a functional ALU that performs arithmetic and logic operations on 4-bit numbers. This builds deeper understanding of how processors implement computation at the hardware level.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>ChipDesign Corp: Building an Ultra-Low-Power 4-Bit Microprocessor</h3>
+                <p><strong>Background:</strong> ChipDesign Corp manufactures IoT microcontrollers for smart home devices. A cost-effective 4-bit ALU can reduce die size by 40% and power consumption by 60% compared to 8-bit designs. Your team must verify the correctness and efficiency of a 4-bit ALU design across 16 different test cases before manufacturing 10 million units.</p>
+                
+                <h3 style="margin-top: 20px;">Design Constraints:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Bit Width:</strong> 4-bit operands (0-15 range)</li>
+                    <li><strong>Operations:</strong> ADD, SUB, AND, OR, XOR, NOT (6 core operations)</li>
+                    <li><strong>Gate Limit:</strong> &lt; 200 logic gates (cost constraint)</li>
+                    <li><strong>Propagation Delay:</strong> &lt; 5ns per operation (speed requirement)</li>
+                    <li><strong>Power Dissipation:</strong> &lt; 50mW @ 1GHz (thermal constraint)</li>
+                    <li><strong>Testability:</strong> All 16 test vectors must pass without fault</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ 4-Bit ALU Architecture</h2>
+            <div class="alu-design">
+                <h3>Block Diagram:</h3>
+                <div class="logic-diagram">
+                    ┌─────────────────────────────────────────┐<br>
+                    │  4-Bit ALU - Digital Logic Architecture  │<br>
+                    ├─────────────────────────────────────────┤<br>
+                    │  Inputs: A[3:0], B[3:0], OpCode[2:0]     │<br>
+                    │  Outputs: Result[3:0], Carry, Overflow   │<br>
+                    ├─────────────────────────────────────────┤<br>
+                    │  ┌──────────────┐  ┌──────────────┐      │<br>
+                    │  │  Full Adder  │  │  Full Sub.   │      │<br>
+                    │  │  (4-bit)     │  │  (4-bit)     │      │<br>
+                    │  └──────┬───────┘  └──────┬───────┘      │<br>
+                    │         │                  │               │<br>
+                    │  ┌──────────────────────────────┐          │<br>
+                    │  │  Logic Unit (AND/OR/XOR)    │          │<br>
+                    │  └──────────────────────────────┘          │<br>
+                    │         │                                  │<br>
+                    │  ┌──────────────────────────────┐          │<br>
+                    │  │  4-to-1 Multiplexer (OpCode) │          │<br>
+                    │  │  Select output from ALU ops  │          │<br>
+                    │  └──────────────────────────────┘          │<br>
+                    │         │                                  │<br>
+                    │    Result[3:0], Flags                      │<br>
+                    └─────────────────────────────────────────┘
+                </div>
+
+                <h3 style="margin-top: 20px;">Core Components:</h3>
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                        <th>Gate Count</th>
+                        <th>Propagation Delay</th>
+                    </tr>
+                    <tr>
+                        <td>Full Adder (1-bit)</td>
+                        <td>Add two bits with carry</td>
+                        <td>9 gates</td>
+                        <td>1.5ns</td>
+                    </tr>
+                    <tr>
+                        <td>Full Adder (4-bit)</td>
+                        <td>Add 4-bit numbers</td>
+                        <td>36 gates</td>
+                        <td>6ns (ripple carry)</td>
+                    </tr>
+                    <tr>
+                        <td>2-to-1 Multiplexer</td>
+                        <td>Select between inputs</td>
+                        <td>3 gates</td>
+                        <td>0.5ns</td>
+                    </tr>
+                    <tr>
+                        <td>4-to-1 Multiplexer</td>
+                        <td>Select ALU operation</td>
+                        <td>12 gates</td>
+                        <td>1.0ns</td>
+                    </tr>
+                    <tr>
+                        <td>AND Gate (4-bit)</td>
+                        <td>Bitwise AND operation</td>
+                        <td>4 gates</td>
+                        <td>0.2ns</td>
+                    </tr>
+                    <tr>
+                        <td>OR Gate (4-bit)</td>
+                        <td>Bitwise OR operation</td>
+                        <td>4 gates</td>
+                        <td>0.2ns</td>
+                    </tr>
+                    <tr>
+                        <td>XOR Gate (4-bit)</td>
+                        <td>Bitwise XOR operation</td>
+                        <td>8 gates</td>
+                        <td>0.3ns</td>
+                    </tr>
+                    <tr>
+                        <td>NOT Gate (4-bit)</td>
+                        <td>Bitwise NOT operation</td>
+                        <td>4 gates</td>
+                        <td>0.1ns</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">OpCode Encoding (3-bit select):</h3>
+                <div class="logic-diagram">
+                    OpCode[2:0] = Operation<br>
+                    000 = ADD (A + B)<br>
+                    001 = SUB (A - B)<br>
+                    010 = AND (A & B)<br>
+                    011 = OR  (A | B)<br>
+                    100 = XOR (A ^ B)<br>
+                    101 = NOT (¬A)<br>
+                    110 = SHL (A &lt;&lt; 1)<br>
+                    111 = SHR (A &gt;&gt; 1)
+                </div>
+
+                <h3 style="margin-top: 20px;">Critical Path Analysis:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>ADD Operation:</strong> 4-bit ripple carry adder = 6ns (critical path)</li>
+                    <li><strong>SUB Operation:</strong> 4-bit adder + NOT gate = 6.1ns</li>
+                    <li><strong>Logic Operations:</strong> Parallel gates = &lt; 1ns</li>
+                    <li><strong>Multiplexer Delay:</strong> +1ns to select final output</li>
+                    <li><strong>Total ALU Delay:</strong> 6ns + 1ns = 7ns (violates 5ns target)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Optimization Opportunities:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Carry Lookahead Adder (CLA):</strong> Replace ripple carry → 3ns, but uses +20 gates</li>
+                    <li><strong>Pipelined Design:</strong> Split into 2-stage pipeline → 4ns per stage</li>
+                    <li><strong>Gate Sharing:</strong> Reuse logic between operations (NOT for SUB precompute)</li>
+                    <li><strong>Clock Gating:</strong> Disable unused ALU units to reduce power</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Test Cases (16 Vectors)</h2>
+            <div class="test-cases">
+                <h3>Test Set 1: Basic Arithmetic (A=5, B=3)</h3>
+                <table style="font-size: 0.9em;">
+                    <tr>
+                        <th>OpCode</th>
+                        <th>Operation</th>
+                        <th>Expected Result</th>
+                        <th>Carry/Overflow</th>
+                    </tr>
+                    <tr>
+                        <td>000</td>
+                        <td>ADD (5+3)</td>
+                        <td>8 (1000)</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>001</td>
+                        <td>SUB (5-3)</td>
+                        <td>2 (0010)</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>010</td>
+                        <td>AND (5&3)</td>
+                        <td>1 (0001)</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>011</td>
+                        <td>OR (5|3)</td>
+                        <td>7 (0111)</td>
+                        <td>No</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Test Set 2: Edge Cases (Carry/Overflow)</h3>
+                <table style="font-size: 0.9em;">
+                    <tr>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>Operation</th>
+                        <th>Expected Result</th>
+                        <th>Flags</th>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>1</td>
+                        <td>ADD (15+1)</td>
+                        <td>0 (overflow)</td>
+                        <td>C=1, V=1</td>
+                    </tr>
+                    <tr>
+                        <td>0</td>
+                        <td>5</td>
+                        <td>SUB (0-5)</td>
+                        <td>11 (2's comp)</td>
+                        <td>C=1</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>8</td>
+                        <td>SUB (8-8)</td>
+                        <td>0</td>
+                        <td>Z=1</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Test Set 3: Logic Operations (All Bits)</h3>
+                <table style="font-size: 0.9em;">
+                    <tr>
+                        <th>A (4-bit)</th>
+                        <th>B (4-bit)</th>
+                        <th>AND</th>
+                        <th>OR</th>
+                        <th>XOR</th>
+                        <th>NOT A</th>
+                    </tr>
+                    <tr>
+                        <td>1010</td>
+                        <td>1100</td>
+                        <td>1000</td>
+                        <td>1110</td>
+                        <td>0110</td>
+                        <td>0101</td>
+                    </tr>
+                    <tr>
+                        <td>1111</td>
+                        <td>0000</td>
+                        <td>0000</td>
+                        <td>1111</td>
+                        <td>1111</td>
+                        <td>0000</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Verification Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Test Pass Rate</td>
+                        <td>% of test vectors producing correct result</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>Propagation Delay</td>
+                        <td>Max time from input to output</td>
+                        <td>&lt; 5ns</td>
+                    </tr>
+                    <tr>
+                        <td>Gate Count</td>
+                        <td>Total logic gates in design</td>
+                        <td>&lt; 200</td>
+                    </tr>
+                    <tr>
+                        <td>Power Dissipation</td>
+                        <td>Dynamic power @ 1GHz, 3.3V</td>
+                        <td>&lt; 50mW</td>
+                    </tr>
+                    <tr>
+                        <td>Area Efficiency</td>
+                        <td>Operations per unit gate count</td>
+                        <td>&gt; 0.03</td>
+                    </tr>
+                    <tr>
+                        <td>Arithmetic Accuracy</td>
+                        <td>Carry/Overflow flags correct</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>Logic Correctness</td>
+                        <td>Bitwise operations match expected</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>Critical Path Slack</td>
+                        <td>Margin to timing constraint</td>
+                        <td>&gt; 0ns</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Design digital logic from basic gates (AND, OR, XOR, NOT)</li>
+                <li>Build multi-bit arithmetic units (Full Adders, 4-bit Adders)</li>
+                <li>Understand carry propagation and overflow detection</li>
+                <li>Implement multiplexers for operation selection</li>
+                <li>Analyze critical path and propagation delay</li>
+                <li>Test ALU against comprehensive test vectors</li>
+                <li>Optimize for speed vs. area vs. power tradeoffs</li>
+                <li>Debug digital logic faults and timing violations</li>
+                <li>Apply 2's complement arithmetic for negative numbers</li>
+                <li>Understand hardware-level implementation of computer operations</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
