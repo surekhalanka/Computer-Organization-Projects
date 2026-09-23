@@ -250,7 +250,7 @@
         <!-- PROJECT SELECTION DROPDOWN -->
         <div class="project-selector">
             <div class="selector-label">📌 SELECT YOUR ASSIGNED PROJECT:</div>
-            <select id="projectSelect" onchange="updateProjectDisplay()">
+            <select id="projectSelect" onchange="openSelectedProject()">
                 <option value="">-- Choose Your Project --</option>
                 <option value="1">Project 1: CPU Instruction Execution (Image Brightness Processing)</option>
                 <option value="2">Project 2: Register & Memory Changes (File Data Encryption)</option>
@@ -777,7 +777,16 @@
                 placeholder.style.display = 'flex';
             }
         }
+        
+              function openSelectedProject() {
+            const selectedValue = document.getElementById('projectSelect').value;
 
+            if (!selectedValue) {
+                return;
+            }
+
+            window.location.href = `Project ${selectedValue}/index.html`;
+        }
         // Initialize on page load
         window.addEventListener('load', function() {
             updateProjectDisplay();
