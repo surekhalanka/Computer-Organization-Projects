@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use Project 1 CPU Simulator - Quick Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .subtitle { text-align: center; color: #ffff00; margin-bottom: 30px; }
+        
+        .section {
+            background: #222;
+            border-left: 4px solid #00ff00;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .section h2 { color: #00ffff; margin-bottom: 15px; font-size: 1.5em; border-bottom: 2px solid #0088ff; padding-bottom: 10px; }
+        .section h3 { color: #ffff00; margin-top: 15px; margin-bottom: 10px; font-size: 1.1em; }
+        .section p { margin-bottom: 10px; line-height: 1.7; }
+        
+        .step-box {
+            background: #1a3a5c;
+            border-left: 4px solid #00aaff;
+            padding: 15px;
+            margin-bottom: 12px;
+            border-radius: 3px;
+        }
+        .step-number { 
+            display: inline-block;
+            background: #00aaff;
+            color: #000;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .step-title { color: #ffff00; font-weight: bold; margin-bottom: 5px; }
+        .step-desc { color: #ccc; margin-left: 40px; }
+        
+        .button-guide {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .button-box {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .button-box h4 { color: #00ffff; margin-bottom: 8px; }
+        .button-box p { color: #ccc; font-size: 0.95em; }
+        
+        .panel-guide {
+            background: #1a3a5c;
+            border: 1px solid #0088ff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .panel-guide h4 { color: #00aaff; margin-bottom: 8px; }
+        .panel-guide ul { margin-left: 20px; }
+        .panel-guide li { color: #ccc; margin-bottom: 6px; }
+        
+        .checklist {
+            background: #1a4a1a;
+            border: 2px solid #00ff00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .checklist h4 { color: #00ff00; margin-bottom: 10px; }
+        .checklist li { margin-left: 20px; margin-bottom: 6px; color: #ccc; }
+        
+        .highlight {
+            background: #4a3a1a;
+            border-left: 4px solid #ffaa00;
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 3px;
+            color: #ffaa00;
+        }
+        
+        .data-table {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+        .data-table th {
+            background: #333;
+            color: #00ffff;
+            padding: 8px;
+            border: 1px solid #555;
+            text-align: left;
+        }
+        .data-table td {
+            padding: 8px;
+            border: 1px solid #333;
+            color: #ccc;
+        }
+        
+        .example-section {
+            background: #1a3a5c;
+            border: 1px solid #0088ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .example-section h4 { color: #00aaff; margin-bottom: 10px; }
+        .example-code {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #00ff00;
+            font-size: 0.85em;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 HOW TO USE PROJECT 1 SIMULATOR</h1>
+        <p class="subtitle">Step-by-Step Guide to CPU Instruction Execution</p>
+
+        <!-- QUICK START -->
+        <div class="section">
+            <h2>⚡ QUICK START (2 Minutes)</h2>
+            
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <div class="step-title">Open Simulator</div>
+                <div class="step-desc">Click on: <strong>Project1_CPU_Instruction_Simulator.html</strong></div>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <div class="step-title">Choose Test Case</div>
+                <div class="step-desc">
+                    Dropdown shows 4 options:
+                    <ul style="margin-left: 20px; margin-top: 8px;">
+                        <li><strong>Best Case:</strong> All pixels = 0 (easiest)</li>
+                        <li><strong>Worst Case:</strong> Alternating pattern (hardest)</li>
+                        <li><strong>Real Case 1:</strong> 70% dark (realistic)</li>
+                        <li><strong>Real Case 2:</strong> Clustered bright/dark</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <div class="step-title">Click START SIMULATION</div>
+                <div class="step-desc">Prepares the simulator for your test case</div>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <div class="step-title">Click STEP FORWARD or RUN ALL</div>
+                <div class="step-desc">
+                    <strong>STEP FORWARD:</strong> Execute one instruction at a time (watch what happens)<br>
+                    <strong>RUN ALL:</strong> Run entire algorithm automatically
+                </div>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <div class="step-title">Collect Results</div>
+                <div class="step-desc">Screenshot the final metrics or copy the "DETAILED METRICS" section</div>
+            </div>
+        </div>
+
+        <!-- CONTROLS EXPLAINED -->
+        <div class="section">
+            <h2>🎛️ Control Panel (Left Side)</h2>
+            
+            <div class="button-guide">
+                <div class="button-box">
+                    <h4>TEST CASE</h4>
+                    <p>Choose which pixel pattern to test. Each case shows different CPU behavior.</p>
+                </div>
+                
+                <div class="button-box">
+                    <h4>SPEED</h4>
+                    <p>Slider controls animation speed (50-1000ms per instruction). Lower = slower, higher = faster.</p>
+                </div>
+                
+                <div class="button-box">
+                    <h4>▶ START</h4>
+                    <p>Initialize simulator with chosen test case. Must click this first!</p>
+                </div>
+                
+                <div class="button-box">
+                    <h4>↓ STEP</h4>
+                    <p>Execute ONE instruction. Watch register values change in real-time.</p>
+                </div>
+
+                <div class="button-box">
+                    <h4>⏩ RUN ALL</h4>
+                    <p>Execute entire algorithm automatically. Faster than stepping through manually.</p>
+                </div>
+                
+                <div class="button-box">
+                    <h4>🔄 RESET</h4>
+                    <p>Clear all data and restart. Use this to switch to a different test case.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERFACE PANELS -->
+        <div class="section">
+            <h2>📊 Understanding the Display</h2>
+            
+            <div class="panel-guide">
+                <h4>📝 INSTRUCTION SEQUENCE (Top-Left)</h4>
+                <ul>
+                    <li><strong>Yellow highlight:</strong> Currently executing instruction</li>
+                    <li><strong>Gray text:</strong> Already completed instructions</li>
+                    <li><strong>PC (Program Counter):</strong> Memory address of instruction</li>
+                    <li><strong>Code:</strong> The actual CPU instruction</li>
+                    <li><strong>Cycles:</strong> How many CPU cycles this instruction normally takes</li>
+                </ul>
+            </div>
+
+            <div class="panel-guide">
+                <h4>📦 REGISTERS (Top-Right)</h4>
+                <ul>
+                    <li><strong>R0:</strong> Loop counter (counts pixels 0-15)</li>
+                    <li><strong>R1:</strong> Pixel address (starts at 1024)</li>
+                    <li><strong>R2:</strong> Threshold value (128 = midpoint brightness)</li>
+                    <li><strong>R3:</strong> Current pixel value (loaded from memory)</li>
+                    <li><strong>R4:</strong> Result pixel (adjusted brightness)</li>
+                    <li><strong>R6:</strong> Add offset (+32 for dark pixels)</li>
+                    <li><strong>R7:</strong> Subtract offset (-8 for bright pixels)</li>
+                </ul>
+                <p style="color: #ffaa00; margin-top: 10px;"><strong>💡 Watch R3 and R4:</strong> You'll see pixel values being read and adjusted.</p>
+            </div>
+
+            <div class="panel-guide">
+                <h4>🎨 PIXEL DATA (Middle-Left)</h4>
+                <ul>
+                    <li><strong>Top grid:</strong> Original pixel values (grayscale colors)</li>
+                    <li><strong>Bottom grid:</strong> Adjusted pixel values after brightness processing</li>
+                    <li><strong>Darker pixels:</strong> Get +32 brightness (become lighter)</li>
+                    <li><strong>Brighter pixels:</strong> Get -8 brightness (become slightly darker for tone balance)</li>
+                </ul>
+            </div>
+
+            <div class="panel-guide">
+                <h4>💾 MEMORY & ⚡ CACHE (Middle-Right)</h4>
+                <ul>
+                    <li><strong>Memory:</strong> Shows pixels being read/written</li>
+                    <li><strong>Cache:</strong> Shows hits (fast, 3 cycles) vs misses (slow, 50 cycles)</li>
+                    <li><strong>Red highlight:</strong> Cache miss = penalty cycles</li>
+                    <li><strong>Green highlight:</strong> Cache hit = normal speed</li>
+                </ul>
+            </div>
+
+            <div class="panel-guide">
+                <h4>📋 EVENT LOG (Bottom-Right)</h4>
+                <ul>
+                    <li><strong>Red:</strong> Cache misses (performance problem)</li>
+                    <li><strong>Orange:</strong> Branch mispredictions (pipeline flush)</li>
+                    <li><strong>Blue:</strong> Pipeline stalls (waiting for data)</li>
+                </ul>
+            </div>
+
+            <div class="panel-guide">
+                <h4>📊 DETAILED METRICS (Bottom)</h4>
+                <ul>
+                    <li>Total cycles for this test case</li>
+                    <li>Cycles per pixel (CPP) - key metric for optimization</li>
+                    <li>Cache hit rate (% of memory accesses that are fast)</li>
+                    <li>Branch prediction accuracy</li>
+                    <li>Estimated cycles for full-size image (256×256)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- QUICK METRICS EXPLAINED -->
+        <div class="section">
+            <h2>📈 Key Metrics You're Measuring</h2>
+            
+            <div class="data-table">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>What It Means</th>
+                        <th>Good Value</th>
+                        <th>Bad Value</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Cycles</strong></td>
+                        <td>Sum of all CPU cycles used</td>
+                        <td>&lt;100 for 16 pixels</td>
+                        <td>&gt;200 for 16 pixels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cycles Per Pixel</strong></td>
+                        <td>Average cycles spent on each pixel</td>
+                        <td>&lt;5 CPP</td>
+                        <td>&gt;10 CPP</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cache Hit Rate</strong></td>
+                        <td>% of memory accesses that find data in fast cache</td>
+                        <td>&gt;95% hits</td>
+                        <td>&lt;50% hits</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Branch Accuracy</strong></td>
+                        <td>% of branch predictions that were correct</td>
+                        <td>&gt;90% correct</td>
+                        <td>&lt;50% correct</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pipeline Stalls</strong></td>
+                        <td>Extra cycles wasted waiting for data</td>
+                        <td>0 stalls</td>
+                        <td>&gt;100 stalls</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- STEP-BY-STEP WORKFLOW -->
+        <div class="section">
+            <h2>📋 Complete Workflow for Analysis</h2>
+            
+            <div class="checklist">
+                <h4>✓ For Each Test Case (Do 4 times - once per case):</h4>
+                <li>Click RESET to clear previous data</li>
+                <li>Select test case from dropdown</li>
+                <li>Click START SIMULATION</li>
+                <li>Choose: STEP FORWARD (to observe) OR RUN ALL (to get results faster)</li>
+                <li>Wait for "SIMULATION COMPLETE" message</li>
+                <li>Take screenshot of DETAILED METRICS (bottom panel)</li>
+                <li>Copy key numbers: Total Cycles, CPP, Cache Hit Rate, Branch Accuracy</li>
+                <li>Record in your Excel data collection sheet</li>
+            </div>
+
+            <h3>Optional: Detailed Observation (For Deep Learning)</h3>
+            <p>Instead of RUN ALL, try STEP FORWARD 3-4 times per test case to see:</p>
+            <ul style="margin-left: 20px;">
+                <li>How registers change with each instruction</li>
+                <li>When cache hits vs misses happen</li>
+                <li>How branch predictor works (right/wrong)</li>
+                <li>When pixels get brightened or darkened</li>
+            </ul>
+        </div>
+
+        <!-- DATA COLLECTION TEMPLATE -->
+        <div class="section">
+            <h2>📊 Data Collection Template</h2>
+            
+            <p>Copy this into your Excel spreadsheet:</p>
+            
+            <div class="data-table">
+                <table>
+                    <tr>
+                        <th>Test Case</th>
+                        <th>Total Cycles</th>
+                        <th>Cycles/Pixel</th>
+                        <th>Cache Hits</th>
+                        <th>Cache Misses</th>
+                        <th>Hit Rate %</th>
+                        <th>Branch Correct</th>
+                        <th>Branch Total</th>
+                        <th>Accuracy %</th>
+                        <th>Stalls</th>
+                    </tr>
+                    <tr>
+                        <td>Best (All 0)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Worst (Alternating)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Real Case 1 (70% Dark)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Real Case 2 (Clustered)</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- EXAMPLE WALKTHROUGH -->
+        <div class="section">
+            <h2>👉 Example: Running "Best Case" Test</h2>
+            
+            <div class="example-section">
+                <h4>Step 1: Select & Start</h4>
+                <div class="example-code">
+Dropdown: "Best Case: All Dark (0)"
+Click: "START SIMULATION"
+Status shows: "Simulation initialized"
+                </div>
+            </div>
+
+            <div class="example-section">
+                <h4>Step 2: Run Simulation</h4>
+                <div class="example-code">
+Click: "RUN ALL"
+Watch the progress...
+Instruction Window: PC moves 0x00 → 0x04 → 0x08... until 0x34
+Registers: R0 increases (0→1→2...→16)
+Pixels: Output grid fills with adjusted pixel values
+                </div>
+            </div>
+
+            <div class="example-section">
+                <h4>Step 3: Check Results</h4>
+                <div class="example-code">
+Status shows: "✓ Execution complete!"
+Scroll to: "DETAILED METRICS" panel
+See example output:
+  Total Cycles: 87
+  Cycles Per Pixel: 5.44
+  Cache Hits: 14
+  Cache Misses: 2
+  Hit Rate: 87.5%
+  Branch Accuracy: 100% (Best case!)
+                </div>
+            </div>
+
+            <div class="example-section">
+                <h4>Step 4: Record Data</h4>
+                <div class="example-code">
+Screenshot DETAILED METRICS
+Copy numbers into Excel sheet under "Best Case" row
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMON QUESTIONS -->
+        <div class="section">
+            <h2>❓ Common Questions</h2>
+            
+            <div class="highlight">
+                <strong>Q: Why does "Worst Case" have higher cycles than "Best Case"?</strong><br>
+                A: Branch mispredictions cause 15+ cycle penalties. Worst case alternates pixels, so predictor gets it wrong half the time. Best case all pixels are dark, so predictor gets it right every time.
+            </div>
+
+            <div class="highlight">
+                <strong>Q: What is "Cycles Per Pixel" and why does it matter?</strong><br>
+                A: It's the average CPU time spent per pixel. For 2M images/day, reducing CPP from 7 to 5 = 40% faster processing = millions in cost savings!
+            </div>
+
+            <div class="highlight">
+                <strong>Q: What is cache and why do misses hurt?</strong><br>
+                A: Cache is super-fast memory (3 cycles to access). Misses force CPU to fetch from slow main memory (50 cycles). One miss = 47 wasted cycles!
+            </div>
+
+            <div class="highlight">
+                <strong>Q: Why do I need to run all 4 test cases?</strong><br>
+                A: Each shows different behavior. Best/Worst show extreme cases. Real cases show what actually happens in real photos. Comparing teaches you about CPU optimization.
+            </div>
+
+            <div class="highlight">
+                <strong>Q: What should I put in my analysis report?</strong><br>
+                A: (1) Screenshot of results for each test case, (2) Explanation of why each case had different performance, (3) Which metrics matter most, (4) How to optimize (e.g., branch-free code), (5) Cost impact on full 256×256 images.
+            </div>
+        </div>
+
+        <!-- NEXT STEPS -->
+        <div class="section">
+            <h2>🎯 Next Steps After Running Simulator</h2>
+            
+            <ol style="margin-left: 20px;">
+                <li><strong>Collect Data:</strong> Run all 4 test cases, record metrics in Excel</li>
+                <li><strong>Analyze Results:</strong> Why did each case perform differently?</li>
+                <li><strong>Find Bottleneck:</strong> Is it cache, branches, or memory bandwidth?</li>
+                <li><strong>Optimize:</strong> Write your analysis on how to improve (loop unrolling, branch prediction, cache prefetching)</li>
+                <li><strong>Extrapolate:</strong> Scale CPP to full 256×256 image (multiply by 4096)</li>
+                <li><strong>Calculate Cost:</strong> How much money saved per day if you reduce CPP by 1?</li>
+            </ol>
+        </div>
+
+        <footer>
+            <p><strong>Project 1: CPU Instruction Simulator Usage Guide</strong></p>
+            <p>Ready to learn about CPU architecture? Open the simulator and start experimenting!</p>
+        </footer>
+    </div>
+</body>
+</html>
