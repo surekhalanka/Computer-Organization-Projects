@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 6: Simulator Guide - Cache Size Impact</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #764ba2; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        h3 { color: #667eea; margin-top: 15px; margin-bottom: 10px; }
+        .quick-start { background: #f3f0ff; padding: 20px; border-left: 4px solid #667eea; margin: 15px 0; }
+        .step { background: #e7f7ff; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #667eea; }
+        .step-number { background: #667eea; color: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+        .code-block { background: #f5f5f5; border: 1px solid #ddd; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; margin: 10px 0; overflow-x: auto; }
+        .concept { background: #f0ffe7; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #2ecc71; }
+        .warning { background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #ffc107; }
+        .example { background: #f0f0f0; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .metric-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .metric-table th { background: #667eea; color: white; padding: 12px; text-align: left; }
+        .metric-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .metric-table tr:hover { background: #f5f5f5; }
+        ul { margin-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 8px; }
+        .checkpoint { background: #d4edda; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #28a745; }
+        .curve-box { background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 10px 0; border-left: 4px solid #764ba2; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 6: Simulator Guide</h1>
+            <p class="subtitle">Cache Size Impact – How to Use the Simulator</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>⚡ Quick Start (5 Steps)</h2>
+            <div class="quick-start">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <strong>Open the Simulator</strong><br>
+                    Launch Project6_Cache_Size_Impact_Simulator.html in your web browser
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <strong>Select Workload</strong><br>
+                    Choose workload type: Single 4K Stream, Multi-Stream (16), Adaptive Bitrate, or Worst Case
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <strong>Configure Parameters</strong><br>
+                    Set cache line size (64 bytes default), associativity (4-way default), and access count (5000 default)
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <strong>Run Simulation</strong><br>
+                    Click "▶ Run Simulation" to analyze 7 cache sizes (4 KB to 256 KB)
+                </div>
+                <div class="step">
+                    <span class="step-number">5</span>
+                    <strong>Analyze Results</strong><br>
+                    Review charts, comparison table, and recommendations to find optimal cache size
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎮 Using the Simulator</h2>
+
+            <h3>Configuration Options</h3>
+            <table class="metric-table">
+                <tr>
+                    <th>Parameter</th>
+                    <th>Options</th>
+                    <th>Impact</th>
+                    <th>Recommendation</th>
+                </tr>
+                <tr>
+                    <td><strong>Workload Type</strong></td>
+                    <td>4 types</td>
+                    <td>Affects working set size and access patterns</td>
+                    <td>Test all 4 to compare behavior</td>
+                </tr>
+                <tr>
+                    <td><strong>Cache Line Size</strong></td>
+                    <td>32, 64, 128 bytes</td>
+                    <td>Larger lines → fewer cache lines available per size</td>
+                    <td>64 bytes (standard)</td>
+                </tr>
+                <tr>
+                    <td><strong>Associativity</strong></td>
+                    <td>1-way, 2-way, 4-way, 8-way</td>
+                    <td>Higher associativity → fewer conflict misses</td>
+                    <td>4-way (good balance)</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory Accesses</strong></td>
+                    <td>1K, 5K, 10K, 50K</td>
+                    <td>More accesses → more reliable statistics</td>
+                    <td>5000+ for stability</td>
+                </tr>
+            </table>
+
+            <h3>Understanding the Output</h3>
+
+            <div class="concept">
+                <h4>📊 Hit Rate Chart (Line Graph)</h4>
+                <p><strong>What it shows:</strong> How hit rate increases with cache size</p>
+                <p><strong>Key pattern:</strong> Steep rise (small sizes) then flattens (large sizes) = diminishing returns</p>
+                <p><strong>Reading it:</strong> Vertical axis = hit rate (0-100%), horizontal = cache size (4-256 KB)</p>
+                <p><strong>Target:</strong> Aim for &gt; 95% for video streaming</p>
+            </div>
+
+            <div class="concept">
+                <h4>⏱️ Average Access Time (AAT) Chart</h4>
+                <p><strong>Formula:</strong> AAT = Hit Time + (Miss Rate × Miss Penalty)</p>
+                <p><strong>Example:</strong> 90% hit rate → AAT = 1 + 0.10 × 100 = 11 cycles</p>
+                <p><strong>Why it matters:</strong> Lower AAT = faster program execution</p>
+                <p><strong>Target:</strong> &lt; 5 cycles (near optimal)</p>
+            </div>
+
+            <div class="concept">
+                <h4>💰 Performance/Area Efficiency</h4>
+                <p><strong>Definition:</strong> Hit rate per unit die area (mm²)</p>
+                <p><strong>Formula:</strong> Efficiency = Hit Rate / Cache Area</p>
+                <p><strong>Why important:</strong> Larger caches are exponentially more expensive to manufacture</p>
+                <p><strong>Example:</strong></p>
+                <div class="code-block">
+32 KB: 90% hit rate / 14 mm² = 6.4% per mm²
+64 KB: 95% hit rate / 26 mm² = 3.7% per mm²
+Verdict: 32 KB is MORE efficient (fewer mm² wasted)
+                </div>
+            </div>
+
+            <div class="concept">
+                <h4>⚡ Energy Efficiency (nJ/access)</h4>
+                <p><strong>Definition:</strong> Energy consumed per memory access</p>
+                <p><strong>Formula:</strong> Energy = Power × AAT (in Joules at 3GHz)</p>
+                <p><strong>Example:</strong></p>
+                <div class="code-block">
+4 KB cache:  0.5W × 21 cycles / 3GHz = 3.5 nJ/access
+32 KB cache: 2.5W × 11 cycles / 3GHz = 9.2 nJ/access
+Target: &lt; 20 nJ/access for streaming servers
+                </div>
+                <p><strong>Key insight:</strong> Larger cache uses more power, but fewer misses save time—tradeoff!</p>
+            </div>
+
+            <h3>Identifying the "Knee Point"</h3>
+            <div class="curve-box">
+                <h4>💡 What is the Knee Point?</h4>
+                <p>The cache size where diminishing returns begin—additional capacity provides minimal benefit.</p>
+                <p><strong>How to spot it:</strong> In Hit Rate chart, look for where curve changes from steep to flat</p>
+                <p><strong>The simulator marks it:</strong> "Knee Point (diminishing returns): 32 KB" means beyond 32 KB, hit rate gain is negligible</p>
+                <p><strong>Business decision:</strong> Knee point = sweet spot: stop adding cache here</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Key Concepts Explained</h2>
+
+            <h3>Capacity Misses vs. Conflict Misses</h3>
+            <div class="concept">
+                <h4>Capacity Misses</h4>
+                <p><strong>Definition:</strong> Working set exceeds cache capacity</p>
+                <p><strong>Example:</strong> 10 MB video buffer with 8 MB cache → 20% capacity misses minimum</p>
+                <p><strong>Solution:</strong> Increase cache size (this simulator's focus)</p>
+                <p><strong>Limit:</strong> Even with infinite cache, can't eliminate if WS &gt; cache</p>
+            </div>
+
+            <div class="concept">
+                <h4>Conflict Misses</h4>
+                <p><strong>Definition:</strong> Multiple addresses compete for same cache location</p>
+                <p><strong>Controlled by:</strong> Associativity (not size)</p>
+                <p><strong>Note:</strong> This simulator uses 4-way default (mostly eliminates conflicts)</p>
+            </div>
+
+            <h3>Working Set Theory</h3>
+            <div class="concept">
+                <p><strong>Principle:</strong> Programs use small subset of memory repeatedly (working set)</p>
+                <p><strong>For video:</strong> Working set = current frame buffer + codec state (~10 MB for 4K)</p>
+                <p><strong>Implication:</strong> Cache size should match working set size for optimal performance</p>
+                <p><strong>Reality:</strong> WS &gt; typical L1 cache → need L2/L3 hierarchy</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Lab Experiments</h2>
+
+            <h3>Experiment 1: Single vs. Multi-Stream Scalability</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Compare how different cache sizes handle workload scaling</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Run: Single 4K Stream workload → record all hit rates</li>
+                    <li>Run: Multi-Stream (16) workload → record all hit rates</li>
+                    <li>Compare: How much additional cache needed for 16× workload?</li>
+                </ul>
+                <p><strong>Expected Result:</strong> Multi-stream requires ~3-4× larger cache (WS grows linearly)</p>
+            </div>
+
+            <h3>Experiment 2: Finding Your Knee Point</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Identify optimal cache size for your workload</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Run simulation with your typical workload</li>
+                    <li>Locate where Hit Rate chart flattens (simulator marks it)</li>
+                    <li>Record cache size at knee point</li>
+                    <li>Check Performance/Area ratio at that size</li>
+                </ul>
+                <p><strong>Expected Result:</strong> 32 KB for single stream, 64 KB for multi-stream</p>
+            </div>
+
+            <h3>Experiment 3: Energy vs. Performance Tradeoff</h3>
+            <div class="example">
+                <p><strong>Objective:</strong> Balance performance gains against power increase</p>
+                <p><strong>Procedure:</strong></p>
+                <ul>
+                    <li>Compare: 32 KB (baseline) vs 64 KB cache</li>
+                    <li>Measure: AAT improvement, power increase, energy/access</li>
+                    <li>Calculate: Is 5% AAT improvement worth 1.7W power increase?</li>
+                </ul>
+                <p><strong>Expected Result:</strong> 32 KB better value (diminishing returns at 64 KB)</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 Data Collection Template</h2>
+            <div class="code-block">
+Experiment: Cache Size Impact on Video Streaming
+
+Configuration:
+- Workload: _________________
+- Line Size: _____ bytes
+- Associativity: ___-way
+- Number of Accesses: _____
+
+Results Summary:
+┌──────────┬─────────┬──────┬────────┬──────┐
+│Size (KB) │Hit Rate │ AAT  │Area(mm)│Power │
+├──────────┼─────────┼──────┼────────┼──────┤
+│     4    │   ___   │ __   │   2.5  │ 0.5W │
+│     8    │   ___   │ __   │   4.0  │ 0.8W │
+│    16    │   ___   │ __   │   8.0  │ 1.5W │
+│    32    │   ___   │ __   │  14.0  │ 2.5W │
+│    64    │   ___   │ __   │  26.0  │ 4.2W │
+│   128    │   ___   │ __   │  48.0  │ 7.5W │
+│   256    │   ___   │ __   │  92.0  │14.0W │
+└──────────┴─────────┴──────┴────────┴──────┘
+
+Analysis Questions:
+1. At what cache size does hit rate plateau? ____________
+2. What is the optimal size (Perf/Area)? ____________
+3. Is 64 KB justified over 32 KB? Why/why not? ________
+4. How does multi-stream differ from single-stream? ______
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Common Issues & Troubleshooting</h2>
+
+            <div class="warning">
+                <h3>❌ "All cache sizes show same hit rate"</h3>
+                <p><strong>Cause:</strong> Working set fits in smallest cache (4 KB)</p>
+                <p><strong>Solution:</strong> Try "Multi-Stream (16 concurrent)" workload</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Hit rate doesn't reach 90%+ even with 256 KB"</h3>
+                <p><strong>Cause:</strong> Working set exceeds 256 MB (capacity miss limit)</p>
+                <p><strong>Solution:</strong> This is expected! Cache can't exceed physics. Try "Single 4K Stream".</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Energy chart shows larger cache uses more energy"</h3>
+                <p><strong>Cause:</strong> Correct! Larger cache = more power (even if AAT improves)</p>
+                <p><strong>Lesson:</strong> Power budget may limit cache size despite performance gains</p>
+            </div>
+
+            <div class="warning">
+                <h3>❌ "Charts don't update when I change settings"</h3>
+                <p><strong>Solution:</strong> Click "▶ Run Simulation" button after changing any setting</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✅ Verification Checklist</h2>
+            <div class="checkpoint">
+                <p>✓ Simulator loads and charts display correctly</p>
+                <p>✓ Hit Rate chart shows diminishing returns curve (S-shaped)</p>
+                <p>✓ AAT decreases as cache size increases</p>
+                <p>✓ "Knee Point" marker appears on Hit Rate chart</p>
+                <p>✓ Performance/Area chart identifies optimal size</p>
+                <p>✓ Energy chart shows power/access tradeoff</p>
+                <p>✓ Comparison table has 7 rows (4 KB to 256 KB)</p>
+                <p>✓ Recommendations match data in charts</p>
+                <p>✓ Results change when workload type is switched</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Extended Reading</h2>
+            <ul>
+                <li><strong>Amdahl's Law:</strong> Overall speedup limited by cache-bound portion</li>
+                <li><strong>Working Set:</strong> Concept from Denning (1968)—subset of pages actively referenced</li>
+                <li><strong>Page Fault:</strong> When working set accessed > cache capacity available</li>
+                <li><strong>Scaling Laws:</strong> Cache area grows quadratically, but performance gain sublinear</li>
+                <li><strong>Power-Performance:</strong> Larger cache = higher power, but hit rate improvement plateaus</li>
+                <li><strong>Multi-Level Hierarchy:</strong> L1 (fast, small) + L2 (slower, large) balances tradeoffs</li>
+                <li><strong>Memory Wall:</strong> CPU-memory gap grows → cache critical for performance</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

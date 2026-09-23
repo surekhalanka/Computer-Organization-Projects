@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 6: Cache Size Impact - Video Streaming Caching</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #764ba2; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .scenario-box { background: #f3f0ff; padding: 20px; border-left: 4px solid #667eea; margin: 15px 0; }
+        .impact-box { background: #ffe7f0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e7f7ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #f0ffe7; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .arch-box { background: #f8f9ff; padding: 15px; border: 2px solid #764ba2; border-radius: 4px; margin: 15px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📹 Project 6: Cache Size Impact</h1>
+            <p class="subtitle">Scenario: Video Streaming Caching</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze how CPU cache size impacts performance on video streaming workloads. You'll compare cache configurations ranging from 4 KB to 256 KB, measuring hit rates, access times, and buffer stalls. The goal is to determine the optimal cache size for streaming systems—balancing performance gains against area and power constraints.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>StreamVision Inc: Video Delivery Platform Optimization</h3>
+                <p><strong>Background:</strong> StreamVision operates a global video streaming platform serving 50 million concurrent users watching 4K video. Each stream requires real-time CPU cache lookups for: video frame buffers, codec state machines, network packet queues, and playback metadata. Cache misses cause frame buffering (stalls), reducing video quality. StreamVision must choose the optimal cache size for their next-generation edge server CPU.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Constraints:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Streaming Quality:</strong> 4K @ 60fps requires &lt; 2ms per frame = &lt; 6,000 CPU cycles @ 3GHz</li>
+                    <li><strong>Buffer Stall Limit:</strong> &lt; 2% of frames stall (causes visible buffering)</li>
+                    <li><strong>Cache Hit Rate:</strong> &gt; 97% (video workload is highly predictable)</li>
+                    <li><strong>Die Area Budget:</strong> Cache &lt; 80mm² (cost limit)</li>
+                    <li><strong>Power Envelope:</strong> &lt; 15W for L1+L2 cache @ 3GHz</li>
+                    <li><strong>Concurrent Streams:</strong> 32-128 streams per server (working set 1-10 MB)</li>
+                    <li><strong>Frame Buffer Size:</strong> ~10 MB (4 frames × 2.5 MB per 4K frame)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Cache Size Analysis Framework</h2>
+            <div class="impact-box">
+                <h3>Why Cache Size Matters for Video</h3>
+                <p><strong>Key Insight:</strong> Video has high temporal and spatial locality—same buffers accessed repeatedly. Increasing cache size captures more of working set, reducing misses exponentially until diminishing returns.</p>
+
+                <h3 style="margin-top: 20px;">Cache Size Configurations:</h3>
+                <table>
+                    <tr>
+                        <th>Cache Size</th>
+                        <th>Typical Hit Rate</th>
+                        <th>Relative Area</th>
+                        <th>Power @ 3GHz</th>
+                        <th>Use Case</th>
+                    </tr>
+                    <tr>
+                        <td>4 KB (L0)</td>
+                        <td>65-75%</td>
+                        <td>2.5 mm²</td>
+                        <td>0.5W</td>
+                        <td>Registers + tags only</td>
+                    </tr>
+                    <tr>
+                        <td>8 KB (Minimal)</td>
+                        <td>75-82%</td>
+                        <td>4 mm²</td>
+                        <td>0.8W</td>
+                        <td>Embedded systems</td>
+                    </tr>
+                    <tr>
+                        <td>16 KB (Small)</td>
+                        <td>82-88%</td>
+                        <td>8 mm²</td>
+                        <td>1.5W</td>
+                        <td>IoT, low power</td>
+                    </tr>
+                    <tr>
+                        <td>32 KB (Standard)</td>
+                        <td>88-93%</td>
+                        <td>14 mm²</td>
+                        <td>2.5W</td>
+                        <td>Mainstream (Project 5 baseline)</td>
+                    </tr>
+                    <tr>
+                        <td>64 KB (Large)</td>
+                        <td>93-96%</td>
+                        <td>26 mm²</td>
+                        <td>4.2W</td>
+                        <td>Server, workstation</td>
+                    </tr>
+                    <tr>
+                        <td>128 KB (Very Large)</td>
+                        <td>96-98%</td>
+                        <td>48 mm²</td>
+                        <td>7.5W</td>
+                        <td>High-end servers (video, ML)</td>
+                    </tr>
+                    <tr>
+                        <td>256 KB (Huge)</td>
+                        <td>98-99%</td>
+                        <td>92 mm²</td>
+                        <td>14W</td>
+                        <td>Specialized (exceeds budget)</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Performance Impact Per Size Increment</h3>
+                <table>
+                    <tr>
+                        <th>Size Increase</th>
+                        <th>Hit Rate Gain</th>
+                        <th>AAT Improvement</th>
+                        <th>Area Increase</th>
+                        <th>Power Increase</th>
+                    </tr>
+                    <tr>
+                        <td>4 KB → 8 KB</td>
+                        <td>+7%</td>
+                        <td>-7 cycles</td>
+                        <td>+1.5 mm²</td>
+                        <td>+0.3W</td>
+                    </tr>
+                    <tr>
+                        <td>8 KB → 16 KB</td>
+                        <td>+6%</td>
+                        <td>-6 cycles</td>
+                        <td>+4 mm²</td>
+                        <td>+0.7W</td>
+                    </tr>
+                    <tr>
+                        <td>16 KB → 32 KB</td>
+                        <td>+5%</td>
+                        <td>-5 cycles</td>
+                        <td>+6 mm²</td>
+                        <td>+1.0W</td>
+                    </tr>
+                    <tr>
+                        <td>32 KB → 64 KB</td>
+                        <td>+3%</td>
+                        <td>-3 cycles</td>
+                        <td>+12 mm²</td>
+                        <td>+1.7W</td>
+                    </tr>
+                    <tr>
+                        <td>64 KB → 128 KB</td>
+                        <td>+2%</td>
+                        <td>-2 cycles</td>
+                        <td>+22 mm²</td>
+                        <td>+3.3W</td>
+                    </tr>
+                    <tr>
+                        <td>128 KB → 256 KB</td>
+                        <td>+1%</td>
+                        <td>-1 cycle</td>
+                        <td>+44 mm²</td>
+                        <td>+6.5W</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Video Streaming Workload Characteristics</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Single 4K Stream (Baseline)</h3>
+                <p><strong>Workload:</strong> One video stream, 2.5 MB frame buffer, 10 KB codec state, repeated access pattern</p>
+                <p><strong>Memory References:</strong> ~5,000 per second = ~1,667 per frame @ 3fps</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>8 KB: 70% (buffer misses)</li>
+                    <li>16 KB: 82% (some buffer fit)</li>
+                    <li>32 KB: 90% (most working set fits)</li>
+                    <li>64 KB+: 95%+ (all buffer resident)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Multiple Streams (16 concurrent)</h3>
+                <p><strong>Workload:</strong> 16 independent 4K video streams interleaved</p>
+                <p><strong>Working Set:</strong> 16 × 2.5 MB buffers = 40 MB data</p>
+                <p><strong>Key Challenge:</strong> Capacity misses dominate; associativity helps less</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>8 KB: 25% (severe thrashing)</li>
+                    <li>16 KB: 35% (still poor)</li>
+                    <li>32 KB: 45% (limited help)</li>
+                    <li>64 KB: 55% (some relief)</li>
+                    <li>128 KB: 70% (better but insufficient)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Adaptive Bitrate Streaming (ABR)</h3>
+                <p><strong>Workload:</strong> Codec switches between 1080p ↔ 4K based on network conditions</p>
+                <p><strong>Buffer Size Variation:</strong> 1 MB (1080p) to 2.5 MB (4K)</p>
+                <p><strong>Challenge:</strong> Working set size changes dynamically</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>16 KB: 85% (handles both resolutions)</li>
+                    <li>32 KB: 92% (overhead for lower bitrate)</li>
+                    <li>64 KB: 96% (excellent for all modes)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Worst Case (Rapid Resolution Changes)</h3>
+                <p><strong>Workload:</strong> Frequently switch 360p ↔ 1080p ↔ 4K (stress test)</p>
+                <p><strong>Misses Due To:</strong> Working set thrashing, codec state invalidation</p>
+                <p><strong>Expected Hit Rates:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>8 KB: 60% (high miss penalty)</li>
+                    <li>32 KB: 80% (partial buffering)</li>
+                    <li>64 KB: 88% (most stable)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Optimization Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Cache Hit Rate (%)</td>
+                        <td>% of memory accesses satisfied by cache</td>
+                        <td>Hits / Total Accesses</td>
+                        <td>&gt; 95% (video)</td>
+                    </tr>
+                    <tr>
+                        <td>Average Access Time (AAT)</td>
+                        <td>Expected time per memory access</td>
+                        <td>Hit Time + Miss Rate × Miss Penalty</td>
+                        <td>&lt; 5 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Frame Buffering Stalls</td>
+                        <td>% of frames delayed due to cache misses</td>
+                        <td>Miss Events > 6000 cycles / Frame</td>
+                        <td>&lt; 2%</td>
+                    </tr>
+                    <tr>
+                        <td>Performance/Area Ratio</td>
+                        <td>Hit rate per unit die area</td>
+                        <td>Hit Rate / Cache Area (mm²)</td>
+                        <td>&gt; 5.0</td>
+                    </tr>
+                    <tr>
+                        <td>Energy Efficiency</td>
+                        <td>Energy per memory access</td>
+                        <td>Power × AAT</td>
+                        <td>&lt; 20 nJ/access</td>
+                    </tr>
+                    <tr>
+                        <td>Throughput (streams/W)</td>
+                        <td>Number of streams per watt</td>
+                        <td>Concurrent Streams / Power</td>
+                        <td>&gt; 3.0</td>
+                    </tr>
+                    <tr>
+                        <td>ROI (Diminishing Returns)</td>
+                        <td>Performance gain per mm² added</td>
+                        <td>Δ Hit Rate / Δ Area</td>
+                        <td>Track knee point</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand cache size impact on hit rate (diminishing returns curve)</li>
+                <li>Analyze capacity misses vs. conflict misses</li>
+                <li>Calculate average access time (AAT) across cache sizes</li>
+                <li>Recognize working set size and its relationship to cache sizing</li>
+                <li>Evaluate tradeoffs: performance vs. area vs. power</li>
+                <li>Identify optimal cache size for specific workloads (sweet spot)</li>
+                <li>Understand scalability with multiple concurrent streams</li>
+                <li>Estimate frame buffering and quality impact from cache misses</li>
+                <li>Apply cost-benefit analysis to cache design decisions</li>
+                <li>Predict performance when workload exceeds cache capacity</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
