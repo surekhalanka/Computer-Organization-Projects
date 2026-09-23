@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 2: Register & Memory Changes - File Data Encryption</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #764ba2; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .scenario-box { background: #f8f9ff; padding: 20px; border-left: 4px solid #667eea; margin: 15px 0; }
+        .complexity-factors { background: #fff3cd; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #e7f3ff; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #d4edda; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Project 2: Register & Memory Changes</h1>
+            <p class="subtitle">Scenario: File Data Encryption Pipeline</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze how CPU registers and memory change during a file data encryption operation. You'll track register values, memory modifications, and the efficiency of data movement through the memory hierarchy.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>CloudVault Security: Encrypting Client Files</h3>
+                <p><strong>Background:</strong> CloudVault operates a cloud storage service with 50,000+ daily file uploads. To meet GDPR compliance, all files must be encrypted using AES-256 before storage. The encryption pipeline processes 512-byte file chunks on a custom CPU architecture.</p>
+                
+                <h3 style="margin-top: 20px;">Key Operations:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Key Expansion:</strong> Load encryption key into R0-R3</li>
+                    <li><strong>Data Loading:</strong> Load 16-byte plaintext block into memory addresses 0x1000-0x100F</li>
+                    <li><strong>SubBytes:</strong> Modify plaintext bytes via register transformations</li>
+                    <li><strong>ShiftRows:</strong> Reorder bytes using memory writes</li>
+                    <li><strong>MixColumns:</strong> XOR operations across registers R4-R7</li>
+                    <li><strong>AddRoundKey:</strong> Store ciphertext to output memory (0x2000-0x200F)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Complexity Factors</h2>
+            <div class="complexity-factors">
+                <h3>Register Hazards:</h3>
+                <table>
+                    <tr>
+                        <th>Hazard Type</th>
+                        <th>Impact</th>
+                        <th>Stall Cycles</th>
+                    </tr>
+                    <tr>
+                        <td>Read-After-Write (RAW)</td>
+                        <td>R0 read before previous write completes</td>
+                        <td>2 cycles</td>
+                    </tr>
+                    <tr>
+                        <td>Write-After-Read (WAR)</td>
+                        <td>Write to R0 before previous read completes</td>
+                        <td>1 cycle</td>
+                    </tr>
+                    <tr>
+                        <td>Write-After-Write (WAW)</td>
+                        <td>Consecutive writes to same register</td>
+                        <td>0 cycles (resolved)</td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top: 20px;">Memory Access Patterns:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Cache Hit Rate:</strong> Sequential reads from 0x1000-0x100F = 100% L1 hit</li>
+                    <li><strong>Cache Miss Penalty:</strong> Non-sequential jumps to 0x2000 = 50-cycle penalty</li>
+                    <li><strong>Memory Bandwidth:</strong> AES requires 16 reads + 16 writes = 32 memory transactions</li>
+                    <li><strong>Load-to-Use Latency:</strong> Memory load takes 3 cycles, affects dependent instructions</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Instruction-Level Parallelism:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>ILP Opportunity: 2-4 independent instructions execute in parallel</li>
+                    <li>Dependency Chain: Some SubBytes operations depend on key expansion (critical path)</li>
+                    <li>Pipelining Efficiency: 70% of instructions overlap in 5-stage pipeline</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Test Cases</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: All Zeros (Best Case)</h3>
+                <p><strong>Input:</strong> Plaintext block = 0x00 0x00 ... 0x00</p>
+                <p><strong>Expected Outcome:</strong> Zero register hazards, 100% cache hit rate, minimal memory contention</p>
+                <p><strong>Key Metric:</strong> Cycles Per Block (CPB) &lt; 50</p>
+
+                <h3 style="margin-top: 20px;">Test Case 2: High Register Pressure (Worst Case)</h3>
+                <p><strong>Input:</strong> Plaintext block with alternating patterns forcing all 8 registers to be in use</p>
+                <p><strong>Expected Outcome:</strong> Multiple RAW hazards, memory stalls, register spilling</p>
+                <p><strong>Key Metric:</strong> CPB &gt; 100, register utilization = 100%</p>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Real File Data</h3>
+                <p><strong>Input:</strong> ASCII text: "CloudVault_Security_Protocol_V2_"</p>
+                <p><strong>Expected Outcome:</strong> Realistic register/memory pressure mix</p>
+                <p><strong>Key Metric:</strong> CPB ≈ 70-80</p>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Random Data</h3>
+                <p><strong>Input:</strong> Random byte sequence (entropy analysis)</p>
+                <p><strong>Expected Outcome:</strong> Uniform distribution across hazard types</p>
+                <p><strong>Key Metric:</strong> CPB ≈ 75, hazard rate = 45%</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance Metrics & Targets</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Cycles Per Block (CPB)</td>
+                        <td>Total CPU cycles to encrypt one 16-byte block</td>
+                        <td>&lt; 70</td>
+                    </tr>
+                    <tr>
+                        <td>Register Hazard Rate</td>
+                        <td>% of instructions affected by RAW/WAR/WAW</td>
+                        <td>&lt; 40%</td>
+                    </tr>
+                    <tr>
+                        <td>Memory Stall Cycles</td>
+                        <td>Cycles spent waiting for memory operations</td>
+                        <td>&lt; 20</td>
+                    </tr>
+                    <tr>
+                        <td>Register Utilization</td>
+                        <td>% of 8 registers in active use</td>
+                        <td>60-80%</td>
+                    </tr>
+                    <tr>
+                        <td>ILP Factor</td>
+                        <td>Avg instructions executing per cycle</td>
+                        <td>&gt; 2.0</td>
+                    </tr>
+                    <tr>
+                        <td>Throughput (MB/s)</td>
+                        <td>File encryption speed</td>
+                        <td>&gt; 500 MB/s @ 3GHz</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔑 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Identify and quantify different types of register hazards</li>
+                <li>Analyze memory access patterns and cache behavior</li>
+                <li>Understand trade-offs between register pressure and memory bandwidth</li>
+                <li>Optimize register allocation for instruction-level parallelism</li>
+                <li>Apply performance optimization techniques to real-world workloads</li>
+                <li>Evaluate security implications of cryptographic operations on CPU</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

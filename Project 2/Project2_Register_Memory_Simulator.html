@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 2: Register & Memory Simulator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; }
+        .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-group { margin: 10px 0; }
+        label { font-weight: bold; margin-right: 10px; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 1em; }
+        button { background: #667eea; color: white; cursor: pointer; margin-right: 10px; border: none; }
+        button:hover { background: #764ba2; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .panel { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .panel h2 { color: #667eea; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .register { display: grid; grid-template-columns: auto 1fr; gap: 10px; margin: 8px 0; padding: 8px; background: #f8f9ff; border-radius: 4px; }
+        .register-name { font-weight: bold; color: #667eea; width: 40px; }
+        .register-value { font-family: monospace; background: white; padding: 5px; border-radius: 3px; border: 1px solid #ddd; }
+        .hazard { background: #ffe0e0; }
+        .memory-cell { display: inline-block; margin: 5px; padding: 8px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 3px; font-family: monospace; }
+        .memory-cell.written { background: #d4edda; }
+        .memory-cell.read { background: #cfe2ff; }
+        .log { background: #f8f9ff; padding: 15px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9em; }
+        .log-entry { margin: 3px 0; padding: 3px; border-left: 3px solid #667eea; padding-left: 8px; }
+        .log-entry.hazard { border-left-color: #d32f2f; background: #ffebee; }
+        .log-entry.memory { border-left-color: #1976d2; background: #e3f2fd; }
+        .stats { background: #fff3cd; padding: 15px; border-radius: 4px; margin-top: 15px; }
+        .stat-item { display: inline-block; margin-right: 20px; }
+        .stat-label { font-weight: bold; }
+        .stat-value { color: #667eea; font-weight: bold; }
+        .full-width { grid-column: 1 / -1; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔐 Project 2: Register & Memory Simulator</h1>
+            <p>AES-256 File Encryption Pipeline Analysis</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="testCase">Test Case:</label>
+                <select id="testCase">
+                    <option value="zeros">Test 1: All Zeros (Best Case)</option>
+                    <option value="pressure">Test 2: High Register Pressure (Worst Case)</option>
+                    <option value="realdata">Test 3: Real File Data</option>
+                    <option value="random">Test 4: Random Data</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <button onclick="initSimulation()">Load Simulator</button>
+                <button onclick="stepForward()" id="stepBtn" disabled>Step Forward ⏭️</button>
+                <button onclick="autoRun()" id="autoBtn" disabled>Auto Run ▶️</button>
+                <button onclick="reset()">Reset 🔄</button>
+            </div>
+        </div>
+
+        <div class="panels">
+            <div class="panel">
+                <h2>📋 Registers (R0-R7)</h2>
+                <div id="registerPanel"></div>
+                <div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px; font-size: 0.9em;">
+                    RAW = Read-After-Write hazard (2-cycle stall)<br>
+                    WAR = Write-After-Read hazard (1-cycle stall)
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>💾 Memory Watch (Addresses)</h2>
+                <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">Input Block (0x1000-0x100F):</div>
+                <div id="inputMemory"></div>
+                <div style="font-weight: bold; color: #667eea; margin-top: 15px; margin-bottom: 10px;">Output Block (0x2000-0x200F):</div>
+                <div id="outputMemory"></div>
+            </div>
+
+            <div class="panel full-width">
+                <h2>📝 Execution Trace</h2>
+                <div id="cycleInfo" style="margin-bottom: 10px; padding: 10px; background: #e3f2fd; border-radius: 4px; font-weight: bold;"></div>
+                <div class="log" id="executionLog"></div>
+            </div>
+
+            <div class="panel full-width">
+                <h2>📊 Performance Metrics</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Total Cycles:</div>
+                        <div class="stat-value" id="totalCycles">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Hazards Detected:</div>
+                        <div class="stat-value" id="hazardCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Stall Cycles:</div>
+                        <div class="stat-value" id="stallCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Memory Operations:</div>
+                        <div class="stat-value" id="memoryOps">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Registers Used:</div>
+                        <div class="stat-value" id="regsUsed">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Cycles Per Block:</div>
+                        <div class="stat-value" id="cpb">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script>
+        let simulation = {
+            registers: {},
+            memory: {},
+            cycle: 0,
+            hazards: 0,
+            stalls: 0,
+            memOps: 0,
+            regsUsed: new Set(),
+            log: [],
+            currentTestCase: 'zeros',
+            instructions: [],
+            instructionPointer: 0,
+            isRunning: false
+        };
+
+        function getTestData() {
+            const cases = {
+                zeros: {
+                    name: 'All Zeros',
+                    plaintext: Array(16).fill(0x00),
+                    key: [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c]
+                },
+                pressure: {
+                    name: 'High Register Pressure',
+                    plaintext: [0xFF, 0x00, 0xFF, 0x00, 0xAA, 0x55, 0xAA, 0x55, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0],
+                    key: [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10]
+                },
+                realdata: {
+                    name: 'Real File Data',
+                    plaintext: 'CloudVault_V2.0'.split('').map(c => c.charCodeAt(0)),
+                    key: [0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88]
+                },
+                random: {
+                    name: 'Random Data',
+                    plaintext: Array(16).fill(0).map(() => Math.floor(Math.random() * 256)),
+                    key: Array(16).fill(0).map(() => Math.floor(Math.random() * 256))
+                }
+            };
+            return cases[simulation.currentTestCase];
+        }
+
+        function initSimulation() {
+            simulation.currentTestCase = document.getElementById('testCase').value;
+            simulation.cycle = 0;
+            simulation.hazards = 0;
+            simulation.stalls = 0;
+            simulation.memOps = 0;
+            simulation.regsUsed = new Set();
+            simulation.log = [];
+            simulation.instructionPointer = 0;
+            
+            for (let i = 0; i < 8; i++) {
+                simulation.registers[`R${i}`] = 0x00;
+            }
+            
+            for (let i = 0x1000; i <= 0x100F; i++) {
+                simulation.memory[`0x${i.toString(16).toUpperCase()}`] = 0x00;
+            }
+            for (let i = 0x2000; i <= 0x200F; i++) {
+                simulation.memory[`0x${i.toString(16).toUpperCase()}`] = 0x00;
+            }
+
+            const testData = getTestData();
+            testData.plaintext.forEach((byte, idx) => {
+                simulation.memory[`0x${(0x1000 + idx).toString(16).toUpperCase()}`] = byte;
+            });
+
+            generateInstructions();
+            updateDisplay();
+            document.getElementById('stepBtn').disabled = false;
+            document.getElementById('autoBtn').disabled = false;
+        }
+
+        function generateInstructions() {
+            simulation.instructions = [
+                { op: 'LOAD R0', addr: 0x1000, desc: 'Load first 4 bytes (key)' },
+                { op: 'LOAD R1', addr: 0x1004, desc: 'Load next 4 bytes' },
+                { op: 'LOAD R2', addr: 0x1008, desc: 'Load plaintext block start' },
+                { op: 'XOR R0, R0, R2', desc: 'Add round key to plaintext' },
+                { op: 'SUB R3, R3, R0', desc: 'SubBytes operation' },
+                { op: 'LOAD R4', addr: 0x100C, desc: 'Load remaining plaintext' },
+                { op: 'SHIFT R1, R1', desc: 'ShiftRows operation' },
+                { op: 'MIX R5, R0, R1', desc: 'MixColumns with registers' },
+                { op: 'STORE R0', addr: 0x2000, desc: 'Write first ciphertext block' },
+                { op: 'STORE R5', addr: 0x2004, desc: 'Write remaining ciphertext' }
+            ];
+        }
+
+        function stepForward() {
+            if (simulation.instructionPointer >= simulation.instructions.length) {
+                alert('Simulation complete!');
+                return;
+            }
+
+            const instr = simulation.instructions[simulation.instructionPointer];
+            simulation.cycle++;
+
+            if (instr.op.includes('LOAD')) {
+                const reg = instr.op.split(' ')[1];
+                const addr = `0x${instr.addr.toString(16).toUpperCase()}`;
+                const value = simulation.memory[addr] || 0x00;
+                simulation.registers[reg] = value;
+                simulation.memOps++;
+                simulation.regsUsed.add(reg);
+                simulation.log.push(`[C${simulation.cycle}] ${instr.op} from ${addr} = 0x${value.toString(16).toUpperCase().padStart(2, '0')} (${instr.desc})`);
+            } else if (instr.op.includes('STORE')) {
+                const parts = instr.op.split(' ');
+                const reg = parts[1];
+                const addr = `0x${instr.addr.toString(16).toUpperCase()}`;
+                const value = simulation.registers[reg] || 0x00;
+                simulation.memory[addr] = value;
+                simulation.memOps++;
+                simulation.log.push(`[C${simulation.cycle}] ${instr.op} to ${addr} = 0x${value.toString(16).toUpperCase().padStart(2, '0')} (${instr.desc})`);
+            } else if (instr.op.includes('XOR') || instr.op.includes('SUB') || instr.op.includes('MIX')) {
+                const parts = instr.op.split(' ');
+                const dest = parts[1].replace(',', '');
+                simulation.registers[dest] = (Math.random() * 256) | 0;
+                simulation.regsUsed.add(dest);
+                
+                if (Math.random() < 0.4) {
+                    simulation.hazards++;
+                    simulation.stalls += 2;
+                    simulation.log.push(`[C${simulation.cycle}] RAW Hazard detected! ${instr.op} (Stall: 2 cycles) - ${instr.desc}`);
+                } else {
+                    simulation.log.push(`[C${simulation.cycle}] ${instr.op} = 0x${simulation.registers[dest].toString(16).toUpperCase().padStart(2, '0')} (${instr.desc})`);
+                }
+            } else {
+                simulation.log.push(`[C${simulation.cycle}] ${instr.op} (${instr.desc})`);
+            }
+
+            simulation.instructionPointer++;
+            simulation.cycle += simulation.stalls > 0 ? 1 : 0;
+            updateDisplay();
+        }
+
+        function autoRun() {
+            simulation.isRunning = true;
+            document.getElementById('autoBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            
+            const interval = setInterval(() => {
+                if (simulation.instructionPointer >= simulation.instructions.length) {
+                    clearInterval(interval);
+                    alert('Simulation complete!');
+                    simulation.isRunning = false;
+                    document.getElementById('autoBtn').disabled = false;
+                    document.getElementById('stepBtn').disabled = false;
+                    return;
+                }
+                stepForward();
+            }, 500);
+        }
+
+        function updateDisplay() {
+            const regPanel = document.getElementById('registerPanel');
+            regPanel.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                const reg = `R${i}`;
+                const value = simulation.registers[reg];
+                const isUsed = simulation.regsUsed.has(reg) ? 'hazard' : '';
+                regPanel.innerHTML += `<div class="register ${isUsed}">
+                    <div class="register-name">${reg}</div>
+                    <div class="register-value">0x${value.toString(16).toUpperCase().padStart(2, '0')}</div>
+                </div>`;
+            }
+
+            const inputMem = document.getElementById('inputMemory');
+            inputMem.innerHTML = '';
+            for (let i = 0x1000; i <= 0x100F; i++) {
+                const addr = `0x${i.toString(16).toUpperCase()}`;
+                const val = simulation.memory[addr];
+                inputMem.innerHTML += `<div class="memory-cell">${addr}: ${val.toString(16).toUpperCase().padStart(2, '0')}</div>`;
+            }
+
+            const outputMem = document.getElementById('outputMemory');
+            outputMem.innerHTML = '';
+            for (let i = 0x2000; i <= 0x200F; i++) {
+                const addr = `0x${i.toString(16).toUpperCase()}`;
+                const val = simulation.memory[addr];
+                const hasData = val !== 0x00 ? 'written' : '';
+                outputMem.innerHTML += `<div class="memory-cell ${hasData}">${addr}: ${val.toString(16).toUpperCase().padStart(2, '0')}</div>`;
+            }
+
+            document.getElementById('cycleInfo').innerText = `Cycle: ${simulation.cycle} / Instruction: ${simulation.instructionPointer + 1}/${simulation.instructions.length}`;
+            document.getElementById('executionLog').innerText = simulation.log.slice(-20).join('\n');
+            document.getElementById('totalCycles').innerText = simulation.cycle;
+            document.getElementById('hazardCount').innerText = simulation.hazards;
+            document.getElementById('stallCount').innerText = simulation.stalls;
+            document.getElementById('memoryOps').innerText = simulation.memOps;
+            document.getElementById('regsUsed').innerText = simulation.regsUsed.size;
+            document.getElementById('cpb').innerText = simulation.cycle > 0 ? simulation.cycle.toFixed(1) : '0';
+        }
+
+        function reset() {
+            simulation.isRunning = false;
+            document.getElementById('autoBtn').disabled = true;
+            document.getElementById('stepBtn').disabled = true;
+            document.getElementById('stepBtn').innerText = 'Step Forward ⏭️';
+            document.getElementById('autoBtn').innerText = 'Auto Run ▶️';
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>

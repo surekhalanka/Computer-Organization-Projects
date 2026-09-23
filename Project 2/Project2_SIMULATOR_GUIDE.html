@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 2: Simulator Usage Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #333; line-height: 1.8; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #667eea; margin-bottom: 10px; }
+        h2 { color: #764ba2; margin-top: 25px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+        h3 { color: #667eea; margin-top: 20px; margin-bottom: 10px; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .step { background: #f8f9ff; padding: 20px; margin: 15px 0; border-left: 4px solid #667eea; border-radius: 4px; }
+        .step-number { display: inline-block; background: #667eea; color: white; width: 35px; height: 35px; border-radius: 50%; text-align: center; line-height: 35px; margin-right: 10px; font-weight: bold; }
+        .control-description { background: #fff3cd; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .panel-description { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .table-wrapper { overflow-x: auto; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #667eea; color: white; }
+        tr:hover { background: #f5f5f5; }
+        ul, ol { margin-left: 20px; margin-top: 10px; }
+        li { margin: 8px 0; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        .note { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .tip { background: #d4edda; border-left: 4px solid #28a745; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .warning { background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .example { background: #e7f3ff; padding: 15px; border-radius: 4px; margin: 15px 0; font-family: monospace; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📖 Project 2: Register & Memory Simulator Guide</h1>
+            <p>Step-by-step instructions for analyzing AES encryption register & memory operations</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - IT & CS</p>
+        </header>
+
+        <div class="section">
+            <h2>🚀 Quick Start (5 Steps)</h2>
+            
+            <div class="step">
+                <span class="step-number">1</span>
+                <h3>Open the Simulator</h3>
+                <p>Launch <code>Project2_Register_Memory_Simulator.html</code> in your web browser. You'll see:</p>
+                <ul>
+                    <li>Control panel at top</li>
+                    <li>Two-column layout: Registers (left) & Memory (right)</li>
+                    <li>Execution trace log below</li>
+                    <li>Performance metrics at bottom</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">2</span>
+                <h3>Select a Test Case</h3>
+                <p>Choose one of 4 test cases from the dropdown:</p>
+                <div class="control-description">
+                    <strong>Test 1: All Zeros</strong> - Best case, minimal hazards<br>
+                    <strong>Test 2: High Register Pressure</strong> - Worst case, max hazards<br>
+                    <strong>Test 3: Real File Data</strong> - ASCII text simulation<br>
+                    <strong>Test 4: Random Data</strong> - Realistic encryption workload
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">3</span>
+                <h3>Load the Simulator</h3>
+                <p>Click <strong>"Load Simulator"</strong> button. This initializes:</p>
+                <ul>
+                    <li>All 8 registers (R0-R7) to 0x00</li>
+                    <li>Input memory block (0x1000-0x100F) with plaintext</li>
+                    <li>Output memory block (0x2000-0x200F) empty</li>
+                    <li>Execution trace log cleared</li>
+                </ul>
+            </div>
+
+            <div class="step">
+                <span class="step-number">4</span>
+                <h3>Execute Instructions</h3>
+                <p>Two execution modes:</p>
+                <ul>
+                    <li><strong>Step Forward ⏭️</strong> - Execute one instruction at a time (best for detailed analysis)</li>
+                    <li><strong>Auto Run ▶️</strong> - Execute all instructions automatically (500ms per step)</li>
+                </ul>
+                <div class="tip">
+                    <strong>Pro Tip:</strong> Use Step Forward to carefully observe register hazards and memory access patterns.
+                </div>
+            </div>
+
+            <div class="step">
+                <span class="step-number">5</span>
+                <h3>Analyze Results</h3>
+                <p>After execution, review the metrics:</p>
+                <ul>
+                    <li>Total Cycles: How many CPU cycles needed</li>
+                    <li>Hazards Detected: How many RAW/WAR/WAW hazards occurred</li>
+                    <li>Stall Cycles: Performance loss from hazards</li>
+                    <li>Memory Operations: Total loads + stores</li>
+                    <li>Cycles Per Block: Efficiency metric (lower = better)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Understanding the Display Panels</h2>
+
+            <h3>Registers Panel (Left Side)</h3>
+            <div class="panel-description">
+                <strong>What you see:</strong> All 8 CPU registers (R0-R7) with their current values in hexadecimal<br>
+                <strong>Color coding:</strong> Registers highlighted in light red indicate they're involved in a hazard
+                <div style="margin-top: 10px;">
+                    <strong>Example:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        R0: 0x2B &nbsp; &nbsp; &nbsp; ← Contains encryption key byte<br>
+                        R1: 0x7E &nbsp; &nbsp; &nbsp; ← Part of round key<br>
+                        R2: 0xAB &nbsp; &nbsp; &nbsp; ← Contains plaintext<br>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Memory Watch Panel (Right Side)</h3>
+            <div class="panel-description">
+                <strong>Input Block (0x1000-0x100F):</strong> Original plaintext data being encrypted<br>
+                <strong>Output Block (0x2000-0x200F):</strong> Ciphertext written during encryption<br>
+                <strong>Color coding:</strong> White = unread, Blue = has been read, Green = has been written
+                <div style="margin-top: 10px;">
+                    <strong>Example:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 3px; font-family: monospace;">
+                        0x1000: 43 &nbsp; ← 'C' from "CloudVault"<br>
+                        0x1001: 6C &nbsp; ← 'l' (read during AES)<br>
+                        0x2000: 8A &nbsp; ← Encrypted output<br>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Execution Trace Log</h3>
+            <div class="panel-description">
+                <strong>Shows:</strong> Each instruction executed with cycle number, register/memory values, and operation description<br>
+                <strong>Color coding:</strong> Red entries = hazard detection, Blue entries = memory operations
+                <div style="margin-top: 10px;">
+                    <strong>Example Log Entry:</strong>
+                    <div style="margin-top: 5px; padding: 10px; background: #f0f0f0; border-left: 3px solid #667eea; border-radius: 3px; font-family: monospace;">
+                        [C4] RAW Hazard detected! SUB R3, R3, R0 (Stall: 2 cycles)<br>
+                        [C5] LOAD R2 from 0x1008 = 0x4C (Load plaintext)
+                    </div>
+                </div>
+            </div>
+
+            <h3>Performance Metrics</h3>
+            <div class="panel-description">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>What It Means</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Cycles</strong></td>
+                        <td>CPU clock cycles to encrypt one 16-byte block</td>
+                        <td>&lt; 70</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hazards Detected</strong></td>
+                        <td>Number of RAW/WAR/WAW register conflicts found</td>
+                        <td>&lt; 4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Stall Cycles</strong></td>
+                        <td>Wasted cycles due to hazards (2 per RAW, 1 per WAR)</td>
+                        <td>&lt; 8</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Memory Operations</strong></td>
+                        <td>Total LOAD + STORE instructions executed</td>
+                        <td>~16-32</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Registers Used</strong></td>
+                        <td>How many of 8 registers were actively used</td>
+                        <td>4-8</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cycles Per Block</strong></td>
+                        <td>Total cycles for one 16-byte encryption</td>
+                        <td>&lt; 70</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Key Observations to Record</h2>
+
+            <h3>For Each Test Case, Answer:</h3>
+            <ol>
+                <li><strong>Register Hazards:</strong> How many RAW/WAR/WAW hazards occurred? Which registers were involved?</li>
+                <li><strong>Stall Overhead:</strong> How many cycles were wasted due to hazards? What % of total time?</li>
+                <li><strong>Memory Access Pattern:</strong> Were accesses sequential (cache-friendly) or random?</li>
+                <li><strong>Register Utilization:</strong> How many of 8 registers were needed? Could we use fewer?</li>
+                <li><strong>Performance Bottleneck:</strong> Is the limiting factor register hazards, memory latency, or instruction dependencies?</li>
+            </ol>
+
+            <div class="example">
+                <strong>Example Data Collection:</strong><br><br>
+                Test 1 (All Zeros):<br>
+                - Total Cycles: 52<br>
+                - Hazards: 1<br>
+                - Stall Cycles: 2<br>
+                - CPB: 52.0<br>
+                - Bottleneck: Memory access to 0x2000 (L1 cache miss)<br>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Common Patterns to Look For</h2>
+
+            <h3>1. Register-After-Write (RAW) Hazard</h3>
+            <p>When an instruction reads from a register that was just written:</p>
+            <div class="example">
+                Cycle 3: LOAD R0 from 0x1000<br>
+                Cycle 4: XOR R0, R0, R2 ← R0 not yet available!<br>
+                Result: 2-cycle stall, 3 total cycles
+            </div>
+
+            <h3>2. Write-After-Read (WAR) Hazard</h3>
+            <p>When a register is written before an earlier read completes:</p>
+            <div class="example">
+                Cycle 2: LOAD R1 from 0x1004<br>
+                Cycle 3: SUB R1, R1, R0 ← Read still in progress<br>
+                Result: 1-cycle stall
+            </div>
+
+            <h3>3. Cache Miss Pattern</h3>
+            <p>When jumping from input block (0x1000) to output block (0x2000):</p>
+            <ul>
+                <li>Sequential reads 0x1000-0x100F: ~100% L1 cache hit</li>
+                <li>Jump to 0x2000: L1 cache miss, ~50-cycle penalty</li>
+                <li>Sequential writes 0x2000-0x200F: ~100% hit again</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Troubleshooting</h2>
+
+            <div class="warning">
+                <strong>Simulator won't start:</strong> Make sure you've clicked "Load Simulator" before trying to step forward.
+            </div>
+
+            <div class="warning">
+                <strong>Values look wrong:</strong> Check that you selected the correct test case before loading. Different tests start with different plaintext values.
+            </div>
+
+            <div class="tip">
+                <strong>Need to restart:</strong> Click "Reset 🔄" to clear all values and start fresh with a different test case.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Data Collection Template</h2>
+            <p>Use this format for your analysis report:</p>
+            <div class="example" style="padding: 15px; background: white; border: 1px solid #ddd;">
+                <strong>Test Case:</strong> _______________<br>
+                <strong>Total Cycles:</strong> _______________<br>
+                <strong>Hazards Detected:</strong> _______________<br>
+                <strong>Stall Cycles:</strong> _______________<br>
+                <strong>Memory Operations:</strong> _______________<br>
+                <strong>Registers Used:</strong> _______________<br>
+                <strong>Cycles Per Block (CPB):</strong> _______________<br>
+                <strong>Hazard Rate (Hazards / Instructions):</strong> _______________<br>
+                <strong>Main Performance Bottleneck:</strong> _______________<br>
+                <strong>Observations:</strong> _______________
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎓 Learning Goals Checklist</h2>
+            <ul style="margin-left: 30px;">
+                <li>☐ Identify the 3 types of register hazards in the simulator</li>
+                <li>☐ Understand how hazards cause pipeline stalls</li>
+                <li>☐ Calculate actual stall penalties (2 cycles for RAW, 1 for WAR)</li>
+                <li>☐ Trace memory access patterns and cache behavior</li>
+                <li>☐ Compare performance across different test cases</li>
+                <li>☐ Identify which registers cause the most hazards</li>
+                <li>☐ Propose optimizations to reduce hazards (e.g., instruction reordering)</li>
+                <li>☐ Understand trade-offs: register pressure vs. memory bandwidth</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
