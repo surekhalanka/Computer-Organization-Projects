@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 12: Direct Memory Access (DMA) - Disk I/O Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2196f3; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #2196f3; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #42a5f5; padding-bottom: 10px; }
+        h3 { color: #1976d2; margin-top: 15px; margin-bottom: 10px; }
+        .scenario-box { background: #e3f2fd; padding: 20px; border-left: 4px solid #2196f3; margin: 15px 0; }
+        .test-cases { background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #fff9e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #2196f3; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .diagram { background: #f9f9f9; padding: 15px; border: 2px solid #2196f3; border-radius: 4px; margin: 15px 0; font-family: monospace; font-size: 0.9em; }
+        .architecture { background: #fff8f0; padding: 15px; border: 2px solid #42a5f5; border-radius: 4px; margin: 15px 0; }
+        .level { margin: 10px 0; padding: 10px; border-radius: 4px; border-left: 4px solid #2196f3; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        ul, ol { margin-left: 20px; }
+        li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💾 Project 12: Direct Memory Access (DMA) - Disk I/O Operations</h1>
+            <p class="subtitle">Scenario: High-Performance Database Server with Asynchronous I/O</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll analyze Direct Memory Access (DMA), a critical component for high-performance I/O systems. DMA allows peripherals (disks, network, GPU) to transfer data directly to/from main memory WITHOUT CPU intervention, freeing the CPU for other tasks. You'll model disk I/O latencies, DMA transfer times, interrupt handling, and overall system throughput to understand modern I/O subsystems in servers and data centers.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>StorageFlow Inc: High-Performance Database Server</h3>
+                <p><strong>Background:</strong> StorageFlow Inc operates a fleet of database servers handling 100,000 concurrent database queries from financial trading firms. Each server runs a 2-socket Intel Xeon system with 256 GB RAM, dual 10 Gbps network NICs, and NVMe SSD storage (1 TB, ~500K IOPS, <1 ms latency). The system must achieve:</p>
+                
+                <h3 style="margin-top: 20px;">Performance Requirements:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Disk I/O Throughput:</strong> ≥ 10 GB/s (saturate 2× 10 Gbps NICs)</li>
+                    <li><strong>DMA Transfer Latency:</strong> &lt; 100 μs (microseconds)</li>
+                    <li><strong>Query Latency (P99):</strong> &lt; 50 ms (end-to-end)</li>
+                    <li><strong>CPU Utilization:</strong> &lt; 30% for I/O overhead (rest for queries)</li>
+                    <li><strong>Interrupt Overhead:</strong> &lt; 5% of total CPU cycles</li>
+                    <li><strong>Memory Bandwidth:</strong> ≥ 80 GB/s sustained (3× typical disk read rate)</li>
+                    <li><strong>DMA Efficiency:</strong> ≥ 95% (minimize idle time, maximize throughput)</li>
+                    <li><strong>Power Efficiency:</strong> &lt; 2 mW per 100 MB/s transferred</li>
+                </ul>
+
+                <p style="margin-top: 15px;"><strong>Challenge:</strong> Previous design used PIO (Programmed I/O) where CPU copies data byte-by-byte → 80% CPU utilization! Switching to DMA can free 50%+ of CPU cycles for actual queries.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ DMA Fundamentals</h2>
+
+            <h3>1. Programmed I/O (PIO) vs Direct Memory Access (DMA)</h3>
+            <div class="architecture">
+                <h4>PIO: CPU Does All Work</h4>
+                <div class="diagram">
+Disk Read with PIO (Programmed I/O):
+
+Step 1: CPU sends "read sector 12345" command to disk controller
+Step 2: CPU polls/waits for data ready (inefficient polling or interrupt)
+Step 3: Disk transfers data to controller buffer (fast, ~1 MB/s from disk firmware)
+Step 4: CPU reads data word-by-word from disk controller:
+        for (i = 0; i < 4096; i++)
+          memory[base + i] = disk_controller_data_port;
+        [STALLS CPU FOR ~4096 READ CYCLES!]
+Step 5: Repeat for next disk block
+
+Problem: CPU BLOCKED during all data transfer!
+  - Disk → Controller: ~5-100 us (disk latency)
+  - Controller → Memory: ~1-10 ms (4 KB block at slow PIO)
+  - CPU utilization: 95%+ for I/O, no query processing!
+                </div>
+
+                <h4 style="margin-top: 20px;">DMA: Let Hardware Do It</h4>
+                <div class="diagram">
+Disk Read with DMA (Direct Memory Access):
+
+Step 1: CPU sends "read sector 12345 via DMA to 0x80000000" to DMA controller
+Step 2: CPU returns to query processing (NOT BLOCKED!)
+Step 3: DMA controller manages transfer:
+        - Sends read command to disk
+        - Waits for disk ready
+        - Transfers disk → controller buffer
+        - Transfers controller buffer → memory (direct!)
+        - Increments memory address pointer
+        - Decrements byte count
+Step 4: DMA completes, sends INTERRUPT to CPU
+Step 5: CPU interrupt handler:
+        - Receives DMA completion interrupt
+        - Marks buffer ready for processing
+        - Returns to query (total CPU time: ~1-5 microseconds)
+
+Benefit:
+  - CPU FREE during DMA transfer (~1-10 ms)!
+  - CPU utilization for I/O: <5%
+  - 95% CPU available for queries!
+                </div>
+
+                <h3 style="margin-top: 15px;">Why DMA is Essential</h3>
+                <ul style="margin-left: 20px;">
+                    <li><strong>CPU-Memory speed gap:</strong> Modern CPUs ~3 GHz (can read/write 12-50 GB/s), disks ~500 MB/s. CPU is 1000× faster!</li>
+                    <li><strong>PIO blocks CPU:</strong> Transferring 1 MB with PIO on modern CPU takes ~200 cycles (57 ns/byte × 1M), CPU can't do anything else</li>
+                    <li><strong>DMA offloads:</strong> DMA controller manages transfer in hardware, CPU processes queries in parallel</li>
+                    <li><strong>Interrupt-driven:</strong> Only interrupt CPU when transfer complete (~1 μs), not for every byte!</li>
+                </ul>
+            </div>
+
+            <h3>2. DMA Architecture & Data Path</h3>
+            <div class="architecture">
+                <h4>System Block Diagram</h4>
+                <div class="diagram">
+┌─────────────────────────────────────────────────────────┐
+│                     CPU (Multi-Core)                    │
+│  [Core0]  [Core1]  [Core2]  [Core3]  [Core4]  [Core5]  │
+│     ↕        ↕        ↕        ↕        ↕        ↕      │
+└──────────────────────┬──────────────────────────────────┘
+                       │ FSB (Front-Side Bus)
+              ┌────────┴────────┐
+              ↓                 ↓
+        ┌──────────────┐  ┌──────────────────┐
+        │  L3 Cache    │  │ Memory Controller│
+        │   8 MB       │  │   (QPI/UMI)      │
+        └──────┬───────┘  └────────┬─────────┘
+               │                  │
+        ┌──────┴──────────────────┴──────┐
+        │   Main Memory (256 GB DDR4)    │ ← DMA writes here
+        │   Bandwidth: 100 GB/s          │
+        └──────────────┬─────────────────┘
+                       │
+        ┌──────────────┴─────────────────┐
+        │                                │
+        ↓                                ↓
+   ┌─────────────┐           ┌──────────────────┐
+   │  PCIe Root  │           │  DMA Controller  │
+   │  Complex    │           │  (IOMMU support) │
+   └─────────────┘           └────────┬─────────┘
+        │                             │
+   ┌────┴─────┬───────┬──────────┬───┴────┐
+   ↓          ↓       ↓          ↓        ↓
+[NIC0]   [NIC1]  [Storage]  [GPU]  [I/O Hub]
+(10G)    (10G)   (NVMe)     (PCIe) (SATA/USB)
+
+Data Flow (DMA Read):
+  Disk → DMA Controller Buffer → Memory (direct write via QPI)
+  After transfer: CPU interrupt (just 1 interrupt, not per-byte!)
+                </div>
+
+                <h4 style="margin-top: 15px;">DMA Transfer Process (Step-by-Step)</h4>
+                <table>
+                    <tr>
+                        <th>Step</th>
+                        <th>Action</th>
+                        <th>Time</th>
+                        <th>CPU Blocked?</th>
+                    </tr>
+                    <tr>
+                        <td>1. Command</td>
+                        <td>CPU writes DMA descriptor (source, dest, count)</td>
+                        <td>~1 μs</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>2. Queue</td>
+                        <td>DMA controller queues transfer request</td>
+                        <td>~0.1 μs</td>
+                        <td>No</td>
+                    </tr>
+                    <tr>
+                        <td>3. Disk Access</td>
+                        <td>Send read to disk, wait for data ready</td>
+                        <td>~100-500 μs (SSD), ~5-10 ms (HDD)</td>
+                        <td>No (CPU free!)</td>
+                    </tr>
+                    <tr>
+                        <td>4. Transfer</td>
+                        <td>DMA copies disk buffer → memory via interconnect</td>
+                        <td>~10-100 μs (4 KB @ 100 GB/s)</td>
+                        <td>No (hardware path)</td>
+                    </tr>
+                    <tr>
+                        <td>5. Interrupt</td>
+                        <td>DMA sends interrupt to CPU (completion signal)</td>
+                        <td>~1-5 μs</td>
+                        <td>Brief (ISR only)</td>
+                    </tr>
+                    <tr>
+                        <td>6. ISR (Interrupt Service Routine)</td>
+                        <td>CPU handles interrupt, mark buffer ready</td>
+                        <td>~1-2 μs</td>
+                        <td>Yes (brief)</td>
+                    </tr>
+                    <tr>
+                        <td>Total (CPU overhead)</td>
+                        <td>Sum of CPU activities</td>
+                        <td>~3-8 μs</td>
+                        <td>~3-8 μs out of 100+ μs</td>
+                    </tr>
+                </table>
+
+                <p style="margin-top: 15px;"><strong>Example: 1 GB Read from SSD</strong></p>
+                <div class="diagram">
+With PIO:
+  Bytes: 1,000,000,000
+  CPU cycles per byte: 10-20 cycles (read, write, loop overhead)
+  CPU cycles total: 10,000,000,000 cycles
+  @ 3.5 GHz: 10B / 3.5B = 2.86 seconds (CPU 100% blocked!)
+
+With DMA:
+  Transfer: 1 GB / 100 GB/s = 10 ms (DMA hardware, CPU free!)
+  CPU overhead: 10 ms / (4 KB blocks) × 3 μs/interrupt = 7.5 ms
+  Total CPU overhead: ~10 ms (1% CPU utilization for I/O!)
+  Speedup: 2.86 s (PIO) → 10 ms (DMA) = 286× faster! (CPU freed for queries)
+                </div>
+            </div>
+
+            <h3>3. Interrupt Handling & Overhead</h3>
+            <div class="architecture">
+                <h4>Interrupt Service Routine (ISR) Latency</h4>
+                <table>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Time (μs)</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>Hardware interrupt delay</td>
+                        <td>~0.1-0.5</td>
+                        <td>Time for DMA to signal interrupt to CPU</td>
+                    </tr>
+                    <tr>
+                        <td>CPU pipeline flush</td>
+                        <td>~0.5-1.0</td>
+                        <td>CPU stops current instruction, drains pipeline</td>
+                    </tr>
+                    <tr>
+                        <td>Context save (registers)</td>
+                        <td>~0.5-1.0</td>
+                        <td>Push IP, flags, registers to stack</td>
+                    </tr>
+                    <tr>
+                        <td>ISR dispatch</td>
+                        <td>~0.1-0.2</td>
+                        <td>Jump to interrupt handler</td>
+                    </tr>
+                    <tr>
+                        <td>ISR execution</td>
+                        <td>~0.5-1.0</td>
+                        <td>Mark buffer, queue callbacks</td>
+                    </tr>
+                    <tr>
+                        <td>Context restore</td>
+                        <td>~0.5-1.0</td>
+                        <td>Pop registers, return to interrupted task</td>
+                    </tr>
+                    <tr style="background: #e3f2fd; font-weight: bold;">
+                        <td>Total ISR latency</td>
+                        <td>~3-5</td>
+                        <td>Sum of all phases</td>
+                    </tr>
+                </table>
+
+                <h4 style="margin-top: 15px;">Interrupt Coalescing (Optimization)</h4>
+                <p><strong>Problem:</strong> If disk sends 10,000 interrupts/sec (10 Gbps ÷ 4 KB blocks), CPU spends 10ms/sec just in ISRs!</p>
+                <p><strong>Solution:</strong> Coalesce multiple completions into single interrupt</p>
+                <div class="diagram">
+Without coalescing: 10,000 interrupts/sec × 3 μs/interrupt = 30 ms CPU/sec (3%)
+With coalescing (10 blocks/interrupt): 1,000 interrupts/sec × 4 μs/interrupt = 4 ms CPU/sec (0.4%)
+
+Trade-off: Latency vs throughput
+  - No coalesce: Lower latency (fast completion), high CPU overhead
+  - Coalesce 100: Higher throughput, slightly higher latency (microseconds)
+                </div>
+            </div>
+
+            <h3>4. DMA Channels & Queuing</h3>
+            <div class="architecture">
+                <h4>Multi-Channel DMA</h4>
+                <p>Modern systems have multiple DMA channels to enable concurrent transfers:</p>
+                <div class="diagram">
+8-Channel DMA Controller:
+
+┌───────────────────────────────────────┐
+│  DMA Controller (8 independent ch.)   │
+│                                       │
+│  ┌─────┐  ┌─────┐  ┌─────┐  ...     │
+│  │ Ch0 │  │ Ch1 │  │ Ch2 │  Ch7     │
+│  │NIC0 │  │NIC1 │  │Disk0│ Disk1   │
+│  └─────┘  └─────┘  └─────┘  ...     │
+│     ↓        ↓        ↓        ↓     │
+│  Queue0   Queue1   Queue2   Queue7  │
+│  (16 KB)  (16 KB)  (16 KB)  (16 KB) │
+└───────────────────────────────────────┘
+          ↓
+    Main Memory (via QPI/UMI interconnect)
+
+Each channel can:
+  - Accept new transfer requests while others run
+  - Execute independently (true parallelism)
+  - Share interconnect bandwidth fairly
+
+Benefit: 4× network (2 NICs) + 4× disk (4 SSDs) = 8 concurrent transfers!
+                </div>
+
+                <h4 style="margin-top: 15px;">Request Queuing & Scheduling</h4>
+                <table>
+                    <tr>
+                        <th>Queue Type</th>
+                        <th>Capacity</th>
+                        <th>Scheduling</th>
+                        <th>Fairness</th>
+                    </tr>
+                    <tr>
+                        <td>FIFO (First-In-First-Out)</td>
+                        <td>16-64 entries</td>
+                        <td>In-order</td>
+                        <td>Simple, but slow device blocks fast device</td>
+                    </tr>
+                    <tr>
+                        <td>Priority Queue</td>
+                        <td>64 entries (8 priority levels)</td>
+                        <td>High priority first</td>
+                        <td>Low priority may starve</td>
+                    </tr>
+                    <tr>
+                        <td>Fair Queuing</td>
+                        <td>64 entries (8 channels)</td>
+                        <td>Round-robin across channels</td>
+                        <td>Each channel gets 1/8 bandwidth</td>
+                    </tr>
+                    <tr>
+                        <td>Weighted Queuing</td>
+                        <td>64 entries (8 channels, weights)</td>
+                        <td>Weighted round-robin</td>
+                        <td>High-priority channels get more bandwidth</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Workload Scenarios</h2>
+            <div class="test-cases">
+                <h3>Workload 1: Sequential Disk Read (SSD)</h3>
+                <p><strong>Pattern:</strong> Read 10 GB from SSD sequentially (database table scan)</p>
+                <p><strong>I/O Characteristics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Block size: 4 KB</li>
+                    <li>Number of blocks: 2.5 million</li>
+                    <li>Disk latency: 100 μs (SSD seek/read)</li>
+                    <li>Disk throughput: 500 MB/s</li>
+                    <li>Transfer time: 20 seconds</li>
+                </ul>
+                <p><strong>DMA Efficiency:</strong> ~95% (few stalls, sequential access)</p>
+
+                <h3 style="margin-top: 20px;">Workload 2: Random Disk Reads (HDD)</h3>
+                <p><strong>Pattern:</strong> 10,000 random 4 KB reads from HDD (random access query)</p>
+                <p><strong>I/O Characteristics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Block size: 4 KB</li>
+                    <li>Number of blocks: 10,000</li>
+                    <li>Disk latency: 8 ms (HDD seek + rotational)</li>
+                    <li>Disk throughput: 100 MB/s</li>
+                    <li>Total time: 10,000 × 8 ms = 80 seconds (if serial!)</li>
+                </ul>
+                <p><strong>DMA Efficiency:</strong> ~30% (high latency variance, bottleneck is disk seeks, not transfer)</p>
+
+                <h3 style="margin-top: 20px;">Workload 3: Network I/O (10 Gbps NIC)</h3>
+                <p><strong>Pattern:</strong> Receive 100 Mbps sustained network traffic (distributed database replication)</p>
+                <p><strong>I/O Characteristics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Packet size: 1500 bytes (jumbo frame)</li>
+                    <li>Packets/second: 100 Mbps / 1500 bytes = 8,333 packets/sec</li>
+                    <li>Interrupt rate: 8,333 / sec</li>
+                    <li>CPU overhead: 8,333 × 4 μs = 33 ms CPU/sec (3.3%)</li>
+                    <li>NIC throughput: 100 Mbps = 12.5 MB/s</li>
+                </ul>
+                <p><strong>DMA Efficiency:</strong> ~90% (high interrupt coalescing helps)</p>
+
+                <h3 style="margin-top: 20px;">Workload 4: Mixed I/O (Disk + Network)</h3>
+                <p><strong>Pattern:</strong> Disk reads (50 GB/s) + Network writes (10 Gbps simultaneous)</p>
+                <p><strong>I/O Characteristics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Disk read: 500 MB/s (4 KB blocks every 8 μs)</li>
+                    <li>Network write: 1.25 GB/s (outgoing traffic)</li>
+                    <li>Memory bandwidth needed: 500 + 1250 = 1750 MB/s</li>
+                    <li>Available: 100 GB/s (plenty of headroom!)</li>
+                    <li>Interrupt rate: ~500 MB/s / 4 KB = 125,000 int/sec (with coalescing: 12,500)</li>
+                    <li>CPU overhead: 12,500 × 4 μs = 50 ms CPU/sec (5%)</li>
+                </ul>
+                <p><strong>DMA Efficiency:</strong> ~92% (good scheduling, no memory bottleneck)</p>
+
+                <h3 style="margin-top: 20px;">Workload 5: Burst I/O (Database Checkpoint)</h3>
+                <p><strong>Pattern:</strong> Write 100 GB to disk as fast as possible (database checkpoint/backup)</p>
+                <p><strong>I/O Characteristics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Block size: 64 KB (larger blocks for sequential write)</li>
+                    <li>Number of blocks: 1.6 million</li>
+                    <li>Disk throughput: 1 GB/s (SSD NVMe)</li>
+                    <li>Total time: 100 seconds</li>
+                    <li>Interrupt rate: 1 GB/s / 64 KB = 15,625 interrupts/sec (uncoa leced)</li>
+                    <li>With coalescing (10 blocks): 1,562 interrupts/sec × 4 μs = 6.2 ms CPU/sec (0.6%)</li>
+                </ul>
+                <p><strong>DMA Efficiency:</strong> ~99% (large blocks, high throughput, efficient)</p>
+
+                <h3 style="margin-top: 20px;">Workload 6: Interactive Query Mix (Realistic)</h3>
+                <p><strong>Pattern:</strong> Mixture of all above: 20% sequential read, 30% random read, 25% network, 15% disk write, 10% checkpoints</p>
+                <p><strong>Expected Metrics:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Effective I/O throughput: ~150 MB/s (blended)</li>
+                    <li>Average interrupt rate: ~8,000 /sec</li>
+                    <li>CPU overhead: ~4% (with coalescing)</li>
+                    <li>DMA efficiency: ~90% (realistic, accounting for stalls)</li>
+                    <li>Query latency: ~50 ms (P99, dominated by disk seek time)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Optimization Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>DMA Latency</td>
+                        <td>Time from request to data available in memory</td>
+                        <td>Disk latency + Transfer time + ISR latency</td>
+                        <td>&lt; 100 μs (SSD)</td>
+                    </tr>
+                    <tr>
+                        <td>I/O Throughput</td>
+                        <td>Bytes transferred per second</td>
+                        <td>Size / Time</td>
+                        <td>≥ 10 GB/s (saturate interconnect)</td>
+                    </tr>
+                    <tr>
+                        <td>Transfer Time</td>
+                        <td>Time to copy data disk → memory</td>
+                        <td>Size / Bandwidth</td>
+                        <td>&lt; 10 μs per 4 KB</td>
+                    </tr>
+                    <tr>
+                        <td>Interrupt Rate</td>
+                        <td>Interrupts per second</td>
+                        <td>Throughput / Block size</td>
+                        <td>&lt; 10K /sec (with coalescing)</td>
+                    </tr>
+                    <tr>
+                        <td>Interrupt Overhead</td>
+                        <td>% CPU time spent in ISRs</td>
+                        <td>(Interrupt rate × ISR time) / Time</td>
+                        <td>&lt; 5%</td>
+                    </tr>
+                    <tr>
+                        <td>DMA Efficiency</td>
+                        <td>% of time DMA is transferring (not idle)</td>
+                        <td>(Active transfer time / Total time)</td>
+                        <td>&gt; 90%</td>
+                    </tr>
+                    <tr>
+                        <td>Memory Bandwidth Utilization</td>
+                        <td>% of available memory bandwidth used</td>
+                        <td>(Actual throughput / Peak BW) × 100%</td>
+                        <td>&lt; 80% (headroom for CPU)</td>
+                    </tr>
+                    <tr>
+                        <td>Queue Depth</td>
+                        <td>Number of pending I/O requests</td>
+                        <td>Count of queued operations</td>
+                        <td>4-32 (balance latency vs throughput)</td>
+                    </tr>
+                    <tr>
+                        <td>Power Efficiency</td>
+                        <td>Power per unit throughput</td>
+                        <td>Power (W) / Throughput (GB/s)</td>
+                        <td>&lt; 2 mW per 100 MB/s</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand DMA advantages over PIO (1000× speedup in CPU utilization)</li>
+                <li>Model DMA transfer latency (disk latency + transfer time + interrupt)</li>
+                <li>Calculate interrupt overhead and coalescing benefits</li>
+                <li>Analyze memory bandwidth constraints & bottlenecks</li>
+                <li>Design multi-channel DMA for concurrent I/O</li>
+                <li>Understand cache coherency with DMA (IOMMU)</li>
+                <li>Measure DMA efficiency (transfer time vs idle time)</li>
+                <li>Optimize for different I/O patterns (sequential vs random)</li>
+                <li>Trade-offs: latency vs throughput vs CPU overhead</li>
+                <li>Real-world impact on database/server performance</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>
