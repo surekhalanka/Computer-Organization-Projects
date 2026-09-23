@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 9: Register File Design - Parallel Data Processing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #ff6b6b; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #ff6b6b; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #ff8787; padding-bottom: 10px; }
+        h3 { color: #d32f2f; margin-top: 15px; margin-bottom: 10px; }
+        .scenario-box { background: #ffebee; padding: 20px; border-left: 4px solid #ff6b6b; margin: 15px 0; }
+        .register-box { background: #ffe0e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .test-cases { background: #fff0f0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        .metrics { background: #fff9e0; padding: 20px; border-radius: 8px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #ff6b6b; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .register-file-diagram { background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 15px 0; font-family: monospace; }
+        .architecture-level { background: #fff8f0; padding: 15px; border: 2px solid #ff8787; border-radius: 4px; margin: 15px 0; }
+        .level { margin: 10px 0; padding: 10px; border-radius: 4px; border-left: 4px solid #ff6b6b; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Project 9: Register File Design</h1>
+            <p class="subtitle">Scenario: Parallel Data Processing for Scientific Computing</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Department of BSC - Information Technology & Computer Science</p>
+        </header>
+
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p>In this project, you'll design and optimize the CPU register file—the fastest on-chip storage that feeds data to execution units. You'll study how multiple read/write ports enable parallel processing, analyze forwarding logic to avoid data hazards, and measure performance on vectorized workloads. The goal is to understand the register file as the bottleneck in parallel execution and optimize its bandwidth, latency, and power.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Real-World Scenario</h2>
+            <div class="scenario-box">
+                <h3>CloudCompute Inc: Parallel Fluid Dynamics Simulation</h3>
+                <p><strong>Background:</strong> CloudCompute operates a high-performance computing (HPC) cluster solving 3D fluid dynamics (CFD) for automotive aerodynamics. Each simulation kernel processes 1,024 grid points in parallel, requiring 4 simultaneous data read operations and 2 simultaneous writes per cycle. The CPU's register file must deliver 4 read ports (64 bytes/cycle) and 2 write ports (64 bytes/cycle) at 3 GHz. With 256 registers × 64-bit, the register file is heavily contested—forwarding logic must resolve data hazards (RAW, WAW, WAR) in &lt;1 cycle or pipeline stalls.</p>
+                
+                <h3 style="margin-top: 20px;">Performance Requirements:</h3>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Read Ports:</strong> 4 simultaneous 64-bit reads per cycle (256 GB/s @ 3 GHz)</li>
+                    <li><strong>Write Ports:</strong> 2 simultaneous 64-bit writes per cycle</li>
+                    <li><strong>Register Count:</strong> 256 × 64-bit = 16 KB total</li>
+                    <li><strong>Hazard Detection:</strong> &lt; 1-cycle latency (forwarding must hide hazards)</li>
+                    <li><strong>Forwarding Accuracy:</strong> &gt; 99% correct data bypass</li>
+                    <li><strong>Pipeline Stall Rate:</strong> &lt; 5% (avoid bubble insertion)</li>
+                    <li><strong>Parallel Throughput:</strong> 4 FMA ops/cycle (256 GFLOPS @ 3 GHz)</li>
+                    <li><strong>Power Budget:</strong> Register file + forwarding &lt; 5W</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Register File Architecture</h2>
+            <div class="architecture-level">
+                <h3>Register File Organization</h3>
+                <p><strong>Capacity:</strong> 256 registers × 64 bits = 16 KB (all on-die, 0-cycle access)</p>
+                <p><strong>Port Configuration:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>4 Read Ports (R1, R2, R3, R4):</strong> Fetch 4 operands per cycle (e.g., Rs1, Rs2, Rs3, Rs4)</li>
+                    <li><strong>2 Write Ports (W1, W2):</strong> Write 2 results per cycle (e.g., ALU result, FMA result)</li>
+                    <li><strong>Access Latency:</strong> 0 cycles (combinational logic, no wait)</li>
+                    <li><strong>Read Latency:</strong> 1 cycle (from register selection to data out)</li>
+                    <li><strong>Write Latency:</strong> 1 cycle (from write enable to register update)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Register File Diagram</h3>
+                <div class="register-file-diagram">
+Address Inputs:           Rd1 Rd2 Rd3 Rd4 (Read addresses)
+                          |   |   |   |
+                   ┌──────┴───┴───┴───┴─────┐
+                   |    Register File       |
+                   |  256 × 64-bit SRAM    |
+                   |  (Fully Partitioned)  |
+                   └──────┬───┬───┬───┬─────┘
+Data Outputs:     Data1  Data2 Data3 Data4  (64-bit reads)
+
+Write Inputs:     Wr1 Wr2 (Write addresses)
+                  Wdata1 Wdata2 (Write data)
+                  |      |
+                   └──────┴────────────────┐
+                          |                |
+                   ┌──────┴───────────────┐│
+                   | Write Decoder/      │|
+                   | Forwarding Logic    ││
+                   └──────┬───────────────┘│
+                          ↓
+                   Updates R[Wr1], R[Wr2] (64 bits each)
+                </div>
+            </div>
+
+            <h3>Data Hazards in Pipeline</h3>
+            <div class="architecture-level">
+                <h4>RAW (Read-After-Write) Hazard</h4>
+                <p><strong>Problem:</strong> Instruction I+1 reads R1 that I just wrote</p>
+                <div class="register-file-diagram">
+Cycle 1: ADD R1, R2, R3     (Writes R1 @ end of cycle)
+Cycle 2: MUL R4, R1, R5     (Reads R1 @ start of cycle) ← R1 not updated yet!
+                </div>
+                <p><strong>Solution:</strong> Forwarding (bypass R1 from ALU output directly to MUL input)</p>
+                <p><strong>Cost:</strong> Extra mux, if forwarding fails → 1-cycle stall</p>
+
+                <h4 style="margin-top: 15px;">WAW (Write-After-Write) Hazard</h4>
+                <p><strong>Problem:</strong> Two instructions both write same register, out-of-order execution</p>
+                <div class="register-file-diagram">
+Cycle 1: ADD R1, R2, R3     (Will write R1)
+Cycle 2: SUB R1, R4, R5     (Writes R1) ← Which value wins?
+                </div>
+                <p><strong>Solution:</strong> In-order commit (track write order) or register rename</p>
+
+                <h4 style="margin-top: 15px;">WAR (Write-After-Read) Hazard</h4>
+                <p><strong>Problem:</strong> Instruction I+1 overwrites R1 that I still reading</p>
+                <div class="register-file-diagram">
+Cycle 1: MUL R4, R1, R2     (Reads R1)
+Cycle 2: ADD R1, R3, R4     (Writes R1) ← Overwrites R1 being used!
+                </div>
+                <p><strong>Solution:</strong> Register rename (allocate new physical register)</p>
+            </div>
+
+            <h3>Forwarding Network</h3>
+            <div class="architecture-level">
+                <h4>Bypass Logic (1-Cycle Forwarding)</h4>
+                <ul style="margin-left: 20px;">
+                    <li><strong>ALU→ALU Forwarding:</strong> ALU result (R1) → bypass to MUL input</li>
+                    <li><strong>ALU→FMA Forwarding:</strong> ALU result → FMA (floating-point multiply-add) input</li>
+                    <li><strong>FMA→ALU Forwarding:</strong> FMA result → ALU input (less common, extra latency)</li>
+                    <li><strong>Load→ALU Forwarding:</strong> Load result from L1 cache → ALU</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>Latency:</strong> Forwarding happens in 1 cycle (combinational), no pipeline stall</p>
+                <p><strong>Coverage:</strong> Target: > 99% of RAW hazards resolved by forwarding</p>
+
+                <h4 style="margin-top: 15px;">Hazard Detection Unit</h4>
+                <p><strong>Logic:</strong> Check if Rd_current matches Rw_previous (1 cycle back)</p>
+                <div class="register-file-diagram">
+IF: Decode reads Rd1, Rd2, Rd3, Rd4
+EX: Previous instruction wrote Rw
+    If Rd_i == Rw → Hazard! Stall or forward?
+    
+Forward if: - Result available from previous cycle (ALU/FMA latency = 1)
+            - Source is not memory (load latency = 3+ cycles)
+Stall if:   - Result comes from load (need L1 latency)
+            - Complex dependencies
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Parallel Data Processing Workloads</h2>
+            <div class="test-cases">
+                <h3>Test Case 1: Sequential Scalar Processing (Baseline)</h3>
+                <p><strong>Workload:</strong> Scalar operations (1 result per cycle)</p>
+                <p><strong>Example:</strong> FOR i=0 to 1000: R1 = R1 + R2 * R3</p>
+                <p><strong>Register Usage:</strong> R1, R2, R3 only (3 of 256 registers)</p>
+                <p><strong>Read Ports Used:</strong> 2 (R2, R3)</p>
+                <p><strong>Write Ports Used:</strong> 1 (R1)</p>
+                <p><strong>Hazards:</strong> RAW every cycle (R1 = ... R1)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Port Utilization: 50% (2/4 read, 1/2 write)</li>
+                    <li>Forwarding Coverage: 100% (R1→R1 always forwarded)</li>
+                    <li>Stall Rate: ~0% (forwarding catches all RAW hazards)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 2: Vectorized Parallel (SIMD)</h3>
+                <p><strong>Workload:</strong> 4× parallel FMA operations per cycle</p>
+                <p><strong>Example:</strong> [R1, R5, R9, R13] += [R2, R6, R10, R14] * [R3, R7, R11, R15]</p>
+                <p><strong>Register Usage:</strong> 12 registers (3 sets of 4)</p>
+                <p><strong>Read Ports Used:</strong> 4 (full bandwidth: R2, R3, R6, R7)</p>
+                <p><strong>Write Ports Used:</strong> 2 (R1, R5; R9, R13 queued)</p>
+                <p><strong>Hazards:</strong> Low (different registers, no conflicts)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Port Utilization: 100% (4/4 read, 2/2 write)</li>
+                    <li>Forwarding Coverage: 90% (only between adjacent FMAs)</li>
+                    <li>Stall Rate: ~2% (occasional WAW on write port contention)</li>
+                    <li>Throughput: 4 FMA ops/cycle = 256 GFLOPS @ 3 GHz</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 3: Mixed Integer + FP Operations</h3>
+                <p><strong>Workload:</strong> 2× ALU operations + 2× FMA operations per cycle</p>
+                <p><strong>Example:</strong> ALU: R1 = R2 + R3; ALU: R4 = R5 & R6; FMA: R7 = R8 * R9 + R10; FMA: R11 = R12 * R13 + R14</p>
+                <p><strong>Register Usage:</strong> 14 registers (diverse types)</p>
+                <p><strong>Read Ports Used:</strong> 4 (R2, R3, R5, R6 from ALU; R8, R9, R10, R12, R13, R14 from FMA—muxed)</p>
+                <p><strong>Write Ports Used:</strong> 2 (R1, R4 from ALU; R7, R11 from FMA—can't both write)</p>
+                <p><strong>Hazards:</strong> Moderate (ALU→FMA forwarding needed)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Port Utilization: 80% (write port contention between ALU/FMA)</li>
+                    <li>Forwarding Coverage: 85% (ALU→FMA slower due to pipeline depth)</li>
+                    <li>Stall Rate: ~5% (occasional wait for write port)</li>
+                    <li>Throughput: 3.8 ops/cycle (not quite 4 due to port contention)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 4: Load-Heavy Workload (Bandwidth Stress)</h3>
+                <p><strong>Workload:</strong> 4× load operations reading memory into 4 different registers</p>
+                <p><strong>Example:</strong> R1 = MEM[R17]; R2 = MEM[R18]; R3 = MEM[R19]; R4 = MEM[R20]</p>
+                <p><strong>Register Usage:</strong> 24 registers (4 destinations + 4 base pointers + other temps)</p>
+                <p><strong>Read Ports Used:</strong> 4 (R17, R18, R19, R20)</p>
+                <p><strong>Write Ports Used:</strong> 2 (R1, R2 from L1; R3, R4 queued next cycle)</p>
+                <p><strong>Hazards:</strong> Load→ALU dependencies (3-cycle load latency)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Port Utilization: 100% read, 50% write (loads don't need ALU)</li>
+                    <li>Forwarding Coverage: 50% (load latency > 1 cycle, can't bypass)</li>
+                    <li>Stall Rate: ~15% (wait for loads to complete from L1)</li>
+                    <li>Throughput: ~1.7 ops/cycle (limited by load latency, not register file)</li>
+                </ul>
+
+                <h3 style="margin-top: 20px;">Test Case 5: Complex Dependencies (Stress Test)</h3>
+                <p><strong>Workload:</strong> Chain of dependent operations with frequent forwarding</p>
+                <p><strong>Example:</strong> R1 = R2 + R3; R4 = R1 * R5; R6 = R4 - R1; R7 = R6 & R8 (each uses previous result)</p>
+                <p><strong>Register Usage:</strong> 8 registers (sequential dependencies)</p>
+                <p><strong>Read Ports Used:</strong> 2-4 per cycle (varying)</p>
+                <p><strong>Write Ports Used:</strong> 1-2 per cycle</p>
+                <p><strong>Hazards:</strong> HIGH (R1→R4→R6→R7 chains)</p>
+                <p><strong>Expected Results:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>Port Utilization: 30% (underutilized due to dependencies)</li>
+                    <li>Forwarding Coverage: 95% (most forwarded, some stalls)</li>
+                    <li>Stall Rate: ~20% (RAW hazards block execution)</li>
+                    <li>Throughput: 0.8 ops/cycle (highly serialized)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Performance & Design Metrics</h2>
+            <div class="metrics">
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Definition</th>
+                        <th>Formula</th>
+                        <th>Target</th>
+                    </tr>
+                    <tr>
+                        <td>Read Port Utilization (%)</td>
+                        <td>% of read ports active per cycle</td>
+                        <td>(Reads Used / Total Read Ports) × 100</td>
+                        <td>&gt; 75%</td>
+                    </tr>
+                    <tr>
+                        <td>Write Port Utilization (%)</td>
+                        <td>% of write ports active per cycle</td>
+                        <td>(Writes Used / Total Write Ports) × 100</td>
+                        <td>&gt; 50%</td>
+                    </tr>
+                    <tr>
+                        <td>Forwarding Coverage (%)</td>
+                        <td>% of RAW hazards resolved by bypass</td>
+                        <td>(Forwarded / Total RAW Hazards) × 100</td>
+                        <td>&gt; 99%</td>
+                    </tr>
+                    <tr>
+                        <td>Stall Rate (%)</td>
+                        <td>% of cycles pipeline stalls (no progress)</td>
+                        <td>(Stall Cycles / Total Cycles) × 100</td>
+                        <td>&lt; 5%</td>
+                    </tr>
+                    <tr>
+                        <td>Throughput (Ops/Cycle)</td>
+                        <td>Avg operations per cycle executed</td>
+                        <td>Total Ops / Total Cycles</td>
+                        <td>&gt; 3.5 (of 4.0 max)</td>
+                    </tr>
+                    <tr>
+                        <td>Register File Bandwidth (GB/s)</td>
+                        <td>Total data moved per second</td>
+                        <td>(Read_bytes + Write_bytes) × Clock_GHz</td>
+                        <td>&gt; 200 GB/s</td>
+                    </tr>
+                    <tr>
+                        <td>Register File Power (W)</td>
+                        <td>Power consumed by regfile + forwarding</td>
+                        <td>Dynamic + Leakage</td>
+                        <td>&lt; 5W</td>
+                    </tr>
+                    <tr>
+                        <td>Hazard Detection Latency (cy)</td>
+                        <td>Cycles to detect and resolve hazard</td>
+                        <td>Decode → Forwarding → Result</td>
+                        <td>&lt; 1 cy</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Learning Objectives</h2>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Understand register file organization (ports, access latency, capacity)</li>
+                <li>Recognize data hazards (RAW, WAW, WAR) and their effects</li>
+                <li>Design forwarding/bypass networks to hide latency</li>
+                <li>Analyze read/write port contention and bandwidth limits</li>
+                <li>Measure hazard detection latency and stall frequency</li>
+                <li>Optimize for parallel processing (vectorized workloads)</li>
+                <li>Estimate register file power consumption</li>
+                <li>Trade off port count vs area/power</li>
+                <li>Predict performance on mixed ALU/FMA/Load workloads</li>
+                <li>Apply knowledge to multi-threaded parallel programs</li>
+            </ul>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

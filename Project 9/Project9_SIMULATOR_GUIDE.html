@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 9: Register File Design - User Guide</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%); color: #333; line-height: 1.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #ff6b6b; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { color: #ff6b6b; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #ff8787; padding-bottom: 10px; }
+        h3 { color: #d32f2f; margin-top: 20px; margin-bottom: 10px; }
+        .guide-box { background: #fff5f5; padding: 15px; border-left: 4px solid #ff6b6b; border-radius: 4px; margin: 15px 0; }
+        .tip-box { background: #e8f5e9; padding: 15px; border-left: 4px solid #4caf50; border-radius: 4px; margin: 15px 0; }
+        .warning-box { background: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; border-radius: 4px; margin: 15px 0; }
+        .formula-box { background: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; border-radius: 4px; margin: 15px 0; font-family: 'Courier New', monospace; }
+        .example-box { background: #ffe0e0; padding: 15px; border-left: 4px solid #ff6b6b; border-radius: 4px; margin: 15px 0; }
+        .step-box { background: #fce4ec; padding: 15px; border-left: 4px solid #e91e63; border-radius: 4px; margin: 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #ff6b6b; color: white; }
+        tr:hover { background: #f5f5f5; }
+        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
+        .diagram { background: #f9f9f9; padding: 20px; border: 2px solid #ff6b6b; border-radius: 8px; margin: 15px 0; text-align: center; font-family: monospace; }
+        ul, ol { margin-left: 20px; }
+        li { margin: 10px 0; }
+        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .lab-section { background: #fff9c4; padding: 20px; border: 2px dashed #fbc02d; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 Project 9: Register File Design - User Guide</h1>
+            <p class="subtitle">Complete Instructions for Parallel Data Processing, Hazard Detection & Forwarding</p>
+            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="section">
+            <h2>🎯 Quick Start (5 Minutes)</h2>
+            <div class="step-box">
+                <h3>Step 1: Open the Simulator</h3>
+                <p>Open <code>Project9_Register_File_Simulator.html</code> in your web browser.</p>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 2: Configure Register File</h3>
+                <p>Set register file capacity and port count:</p>
+                <ul>
+                    <li><strong>Registers:</strong> 128, 256 (standard), or 512 × 64-bit</li>
+                    <li><strong>Read Ports:</strong> 2, 3, 4 (standard), or 6 simultaneous reads</li>
+                    <li><strong>Write Ports:</strong> 1, 2 (standard), or 4 simultaneous writes</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 3: Select a Workload</h3>
+                <p>Choose from 5 workloads:</p>
+                <ul>
+                    <li><strong>Workload 1:</strong> Sequential Scalar → 1 op/cycle, 2 reads, 1 write</li>
+                    <li><strong>Workload 2:</strong> Vectorized Parallel (SIMD) → 4 ops/cycle, 4 reads, 2 writes</li>
+                    <li><strong>Workload 3:</strong> Mixed Integer + FP → 3.8 ops/cycle, ALU + FMA</li>
+                    <li><strong>Workload 4:</strong> Load-Heavy → 4 loads/cycle, L1 latency stress</li>
+                    <li><strong>Workload 5:</strong> Complex Dependencies → Highly serialized, ~0.8 ops/cycle</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 4: Enable Features</h3>
+                <p>Configure execution behavior:</p>
+                <ul>
+                    <li><strong>Hardware Forwarding:</strong> Bypass results in 1 cycle (hide RAW hazards)</li>
+                    <li><strong>Hazard Detection:</strong> Detect RAW/WAW/WAR and decide forward or stall</li>
+                    <li><strong>Register Rename:</strong> Allocate new physical registers (reduce WAW hazards)</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h3>Step 5: Run & Analyze</h3>
+                <p>Click <strong>▶ Run Simulation</strong>. The simulator will analyze 1,000 cycles and report:</p>
+                <ul>
+                    <li>Read/write port utilization (%)</li>
+                    <li>Throughput (ops/cycle) and stall rate (%)</li>
+                    <li>Hazard counts (RAW, WAW, WAR) and forwarding coverage</li>
+                    <li>Power consumption breakdown</li>
+                    <li>Bandwidth utilization (GB/s)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📖 Core Concepts</h2>
+
+            <h3>1. Register File Architecture</h3>
+            <div class="guide-box">
+                <h4>Basics</h4>
+                <ul>
+                    <li><strong>Size:</strong> 256 × 64-bit = 16 KB (all on-die, fastest storage)</li>
+                    <li><strong>Access Latency:</strong> 0 cycles (combinational—no wait)</li>
+                    <li><strong>Read Latency:</strong> 1 cycle (address → output)</li>
+                    <li><strong>Write Latency:</strong> 1 cycle (write enable → register update)</li>
+                </ul>
+
+                <h4 style="margin-top: 15px;">Port Configuration</h4>
+                <p><strong>Read Ports:</strong> How many simultaneous 64-bit reads per cycle?</p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>2 ports:</strong> Dual-issue processor, limited parallelism</li>
+                    <li><strong>4 ports (standard):</strong> Quad-issue (e.g., 2 ALU + 2 FMA)</li>
+                    <li><strong>6 ports (aggressive):</strong> Superscalar—multiple fetch/execute</li>
+                </ul>
+
+                <p><strong>Write Ports:</strong> How many simultaneous 64-bit writes per cycle?</p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>1 port:</strong> Only one result committed per cycle (narrow)</li>
+                    <li><strong>2 ports (standard):</strong> ALU result + FMA result (balanced)</li>
+                    <li><strong>4 ports (aggressive):</strong> Multiple ALU/FMA results (wide)</li>
+                </ul>
+
+                <h4 style="margin-top: 15px;">Bandwidth Calculation</h4>
+                <div class="formula-box">
+Read Bandwidth = (Read Ports Used × 64 bits × Clock Rate)
+Example: 4 reads × 64 bits × 3 GHz = 768 Gbps = 96 GB/s
+
+Write Bandwidth = (Write Ports Used × 64 bits × Clock Rate)
+Example: 2 writes × 64 bits × 3 GHz = 384 Gbps = 48 GB/s
+
+Total BW = Read BW + Write BW
+Example: 96 + 48 = 144 GB/s
+                </div>
+            </div>
+
+            <h3>2. Data Hazards in the Pipeline</h3>
+            <div class="guide-box">
+                <h4>RAW (Read-After-Write) Hazard</h4>
+                <p><strong>Problem:</strong> Instruction I+1 reads register that I just wrote to</p>
+                <div class="diagram">
+Cycle 1: ADD R1, R2, R3     (Computes R1, writes to register @ end of cycle)
+Cycle 2: MUL R4, R1, R5     (Reads R1 @ start of cycle—TOO EARLY!)
+                        ↑ R1 not yet updated; gets stale value
+                </div>
+                <p><strong>Impact:</strong> Must stall 1 cycle OR use forwarding</p>
+                <p><strong>Solution:</strong> Forwarding (bypass ALU output directly to MUL without waiting for register write)</p>
+                <p><strong>Cost:</strong> 1-cycle latency hidden by bypass network</p>
+
+                <h4 style="margin-top: 15px;">WAW (Write-After-Write) Hazard</h4>
+                <p><strong>Problem:</strong> Two instructions write same register, order matters</p>
+                <div class="diagram">
+Cycle 1: ADD R1, R2, R3     (Schedules write to R1)
+Cycle 2: SUB R1, R4, R5     (Also writes R1)
+                        ↑ Out-of-order execution: which value should R1 have?
+                </div>
+                <p><strong>Impact:</strong> Incorrect final value if SUB completes before ADD writes</p>
+                <p><strong>Solution:</strong> In-order commit or register renaming (allocate R1' for SUB)</p>
+                <p><strong>Cost:</strong> Requires physical register pool (>256 registers needed)</p>
+
+                <h4 style="margin-top: 15px;">WAR (Write-After-Read) Hazard</h4>
+                <p><strong>Problem:</strong> Instruction I+1 overwrites register that I still needs</p>
+                <div class="diagram">
+Cycle 1: MUL R4, R1, R2     (Reads R1 in pipeline)
+Cycle 2: ADD R1, R3, R4     (Overwrites R1—destroys value I still needs!)
+                        ↑ R1 needed in cycle 3 by MUL, but ADD destroys it
+                </div>
+                <p><strong>Impact:</strong> Lost data; MUL gets wrong value</p>
+                <p><strong>Solution:</strong> Register rename (MUL reads R1_old, ADD writes R1_new)</p>
+                <p><strong>Cost:</strong> Rename table management, physical registers</p>
+            </div>
+
+            <h3>3. Forwarding (Bypass) Networks</h3>
+            <div class="guide-box">
+                <h4>What is Forwarding?</h4>
+                <p><strong>Idea:</strong> Instead of waiting for result to be written to register, send it directly to next instruction's input.</p>
+                <div class="diagram">
+Normal path (with stall):
+  ADD R1, R2, R3 → Write R1 to register (cycle end)
+                 → Stall 1 cycle
+  MUL R4, R1, R5 → Read R1 from register (cycle start)
+
+Forwarding path (no stall):
+  ADD R1, R2, R3 → Bypass result to MUL input (same cycle or next)
+  MUL R4, R1, R5 → Use forwarded value immediately
+                </div>
+
+                <h4 style="margin-top: 15px;">Forwarding Paths (Common)</h4>
+                <ul style="margin-left: 20px;">
+                    <li><strong>ALU→ALU:</strong> ADD result → next ADD input (1-cycle forward)</li>
+                    <li><strong>ALU→FMA:</strong> ADD result → FMA input (might be 2+ cycles due to depth)</li>
+                    <li><strong>FMA→ALU:</strong> FMA result → ALU input (rarely forwarded; high latency)</li>
+                    <li><strong>Load→ALU:</strong> Load result from L1 → ALU (3+ cycle latency, can't bypass)</li>
+                </ul>
+
+                <h4 style="margin-top: 15px;">Forwarding Coverage Metric</h4>
+                <div class="formula-box">
+Forwarding Coverage % = (Hazards Resolved by Forward / Total Hazards) × 100
+
+Example:
+  RAW hazards: 950
+  Forwarded: 950
+  Stalled: 0
+  Coverage = 950/950 = 100% (perfect!)
+
+Example 2:
+  RAW hazards: 1000
+  Forwarded: 800 (forward works)
+  Stalled: 200 (forward can't help, e.g., load latency)
+  Coverage = 800/1000 = 80%
+                </div>
+
+                <p><strong>Target Coverage:</strong> > 99% (minimize stalls)</p>
+            </div>
+
+            <h3>4. Hazard Detection Unit</h3>
+            <div class="guide-box">
+                <h4>Detection Logic</h4>
+                <div class="diagram">
+IF Stage:  Decode instruction, extract read registers Rd1, Rd2, Rd3, Rd4
+EX Stage:  Previous instruction wrote to register Rw
+
+Hazard detection:
+  For each Rd_i:
+    IF Rd_i == Rw → Hazard detected!
+      → Can forward if (result ready)
+      → Must stall if (result not ready, e.g., load, divide)
+                </div>
+
+                <h4 style="margin-top: 15px;">Latency of Hazard Detection</h4>
+                <p><strong>Target:</strong> &lt; 1 cycle (combinational logic)</p>
+                <p><strong>Delay path:</strong> Decode → Register address comparison → Forwarding mux → Result to ALU input</p>
+                <p><strong>Path length:</strong> ~200 ps (negligible at 3 GHz = 333 ps per cycle)</p>
+
+                <h4 style="margin-top: 15px;">Detection Statistics</h4>
+                <p><strong>What to measure:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>Hazards detected per cycle (average)</li>
+                    <li>Hazards resolved by forward vs stall</li>
+                    <li>Latency of forward path (cycles)</li>
+                </ul>
+            </div>
+
+            <h3>5. Port Utilization & Bottlenecks</h3>
+            <div class="guide-box">
+                <h4>Read Port Contention</h4>
+                <p><strong>Problem:</strong> Need 4 operands but only 4 read ports</p>
+                <div class="diagram">
+Ideal: R1 = R2 + R3;  R4 = R5 * R6;  R7 = R8 & R9;  R10 = R11 | R12  (all parallel)
+       Read ports needed: R2, R3, R5, R6, R8, R9, R11, R12 = 8 ports (NEED MORE!)
+       Actual ports: 4 → Can only read 4 of 8 → Must stall some operations
+                </div>
+                <p><strong>Metric:</strong> Read Port Utilization = (Reads Used / Total Ports) × 100%</p>
+                <p><strong>Target:</strong> > 75% (good utilization)</p>
+
+                <h4 style="margin-top: 15px;">Write Port Contention</h4>
+                <p><strong>Problem:</strong> Multiple results ready to write same cycle, limited ports</p>
+                <div class="diagram">
+Cycle N: 2 ALU results ready to write (R1, R2)
+         2 FMA results ready to write (R3, R4)
+         Total: 4 writes needed, but only 2 write ports
+         → 2 writes queued, executed next cycle
+                </div>
+                <p><strong>Metric:</strong> Write Port Utilization = (Writes Used / Total Ports) × 100%</p>
+                <p><strong>Target:</strong> > 50% (reasonable given fewer results than reads)</p>
+
+                <h4 style="margin-top: 15px;">Port Efficiency Calculation</h4>
+                <div class="formula-box">
+Read Port Efficiency = (Avg Reads / Max Ports) × 100
+Example: 2.5 avg / 4 max = 62.5%
+
+Write Port Efficiency = (Avg Writes / Max Ports) × 100
+Example: 1.2 avg / 2 max = 60%
+
+Total Bandwidth Efficiency = (Total Bytes / Max Bandwidth) × 100
+Max Bandwidth = (4 reads + 2 writes) × 8 bytes × Clock = 48 × 3 = 144 GB/s
+Used: 90 GB/s → Efficiency = 90/144 = 62.5%
+                </div>
+            </div>
+
+            <h3>6. Throughput & Stalls</h3>
+            <div class="guide-box">
+                <h4>Throughput Definition</h4>
+                <p><strong>Throughput (ops/cycle):</strong> How many operations complete per cycle?</p>
+                <div class="formula-box">
+Throughput = Total Operations / Total Cycles
+
+Example:
+  Total ops: 4000
+  Total cycles: 1200 (1000 ideal + 200 stalls)
+  Throughput = 4000 / 1200 = 3.33 ops/cycle (out of max 4.0)
+
+IPC = 3.33 instructions/cycle
+                </div>
+
+                <h4 style="margin-top: 15px;">Stall Analysis</h4>
+                <p><strong>Stall Rate %:</strong> Fraction of cycles pipeline makes no progress</p>
+                <div class="formula-box">
+Stall Rate = (Stall Cycles / Total Cycles) × 100
+
+Sources of stalls:
+  1. RAW hazard (forwarding can't reach in time)
+  2. WAW hazard (can't write same register twice/cycle)
+  3. Load latency (L1 miss, waiting for data)
+  4. Write port contention (too many results, limited ports)
+  5. Branch misprediction (recovery pipeline)
+
+Example: 1000 total cycles, 150 stall cycles
+Stall Rate = 150/1000 = 15%
+Performance Loss = 15% of 4 ops/cycle = 0.6 ops lost/cycle
+                </div>
+
+                <p><strong>Target Stall Rate:</strong> &lt; 5% (most instructions make progress)</p>
+            </div>
+
+            <h3>7. Register Renaming (Advanced)</h3>
+            <div class="guide-box">
+                <h4>Problem Without Renaming</h4>
+                <div class="diagram">
+Architectural registers: R0-R255 (limited, WAW hazards)
+
+Code:
+  ADD R1, R2, R3    (I1 writes R1)
+  SUB R1, R4, R5    (I2 writes R1, possible WAW)
+  MUL R6, R1, R7    (I3 reads R1—should get I2's value, not I1's)
+                </div>
+
+                <h4 style="margin-top: 15px;">Solution: Physical Registers</h4>
+                <p><strong>Idea:</strong> Map architectural R1 to different physical registers per instruction</p>
+                <div class="diagram">
+Architectural: ADD R1, R2, R3  → Physical: ADD P1, P2, P3  (P1 = physical register)
+               SUB R1, R4, R5  → Physical: SUB P17, P4, P5  (P17 ≠ P1, new allocation)
+               MUL R6, R1, R7  → Physical: MUL P18, P17, P7  (P18=result, P17=R1's latest)
+
+Rename table: R1 → P17 (latest physical register for R1)
+                </div>
+
+                <p><strong>Cost:</strong> More registers needed (e.g., 256 architectural → 512 physical)</p>
+                <p><strong>Benefit:</strong> No WAW hazards, eliminates some stalls</p>
+                <p><strong>When to use:</strong> Out-of-order execution, speculation</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Lab Experiments (Hands-On)</h2>
+
+            <div class="lab-section">
+                <h3>Experiment 1: Impact of Read Ports on Vectorization</h3>
+                <p><strong>Objective:</strong> Understand how port count limits parallelism.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 2: Vectorized Parallel (SIMD)</strong></li>
+                    <li>Set Read Ports = 2 → Run → Record throughput (ops/cycle)</li>
+                    <li>Increase to Read Ports = 4 → Run → Record throughput</li>
+                    <li>Increase to Read Ports = 6 → Run → Record throughput</li>
+                    <li>Plot: Read Ports (x-axis) vs Throughput (y-axis)</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Throughput improves with more ports (knee point at 4 ports for SIMD-4)</p>
+                <p><strong>Analysis:</strong> Beyond 4 ports, diminishing returns. Why?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 2: Write Port Contention</h3>
+                <p><strong>Objective:</strong> Measure impact of write port bottleneck.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 3: Mixed Integer + FP Operations</strong></li>
+                    <li>Set Write Ports = 1 → Run → Record throughput & stall rate</li>
+                    <li>Increase to Write Ports = 2 → Run → Record throughput & stall rate</li>
+                    <li>Increase to Write Ports = 4 → Run → Record throughput & stall rate</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Throughput increases, stall rate decreases with more write ports</p>
+                <p><strong>Analysis:</strong> How much performance gain per additional write port?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 3: Forwarding vs Stalling</h3>
+                <p><strong>Objective:</strong> Quantify benefit of hardware forwarding.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 1: Sequential Scalar Processing</strong></li>
+                    <li>Disable "Hardware Forwarding" → Run → Record stall rate, throughput</li>
+                    <li>Enable "Hardware Forwarding" → Run → Record stall rate, throughput</li>
+                    <li>Calculate: Stall reduction = (Stall_no - Stall_yes) / Stall_no × 100%</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Stall rate drops from ~100% to ~0% (forwarding hides RAW hazards)</p>
+                <p><strong>Analysis:</strong> Why is forwarding so effective for scalar workloads?</p>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 4: Workload Comparison</h3>
+                <p><strong>Objective:</strong> Understand how workload characteristics affect register file pressure.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Use default config (4 read, 2 write ports)</li>
+                    <li>Run each workload (1-5) and record:
+                        <ul style="margin-left: 20px;">
+                            <li>Read port utilization %</li>
+                            <li>Write port utilization %</li>
+                            <li>Stall rate %</li>
+                            <li>Throughput (ops/cycle)</li>
+                        </ul>
+                    </li>
+                    <li>Create comparison table</li>
+                </ol>
+                <p><strong>Expected Result:</strong></p>
+                <table style="margin-top: 10px;">
+                    <tr><th>Workload</th><th>Read Util %</th><th>Write Util %</th><th>Stall %</th><th>Throughput</th></tr>
+                    <tr><td>Scalar</td><td>50%</td><td>50%</td><td>~0%</td><td>1.0</td></tr>
+                    <tr><td>Vectorized</td><td>100%</td><td>100%</td><td>~2%</td><td>4.0</td></tr>
+                    <tr><td>Mixed</td><td>80%</td><td>80%</td><td>~5%</td><td>3.8</td></tr>
+                    <tr><td>Load-Heavy</td><td>100%</td><td>50%</td><td>~15%</td><td>1.7</td></tr>
+                    <tr><td>Complex Deps</td><td>30%</td><td>40%</td><td>~20%</td><td>0.8</td></tr>
+                </table>
+            </div>
+
+            <div class="lab-section">
+                <h3>Experiment 5: Power vs Throughput Tradeoff</h3>
+                <p><strong>Objective:</strong> Find optimal register file configuration.</p>
+                <p><strong>Procedure:</strong></p>
+                <ol>
+                    <li>Select <strong>Workload 2: Vectorized Parallel</strong> (demanding workload)</li>
+                    <li>Test 6 configurations:
+                        <ul style="margin-left: 20px;">
+                            <li>Config A: 4R + 2W (standard)</li>
+                            <li>Config B: 6R + 2W (more read ports)</li>
+                            <li>Config C: 4R + 4W (more write ports)</li>
+                            <li>Config D: 6R + 4W (aggressive)</li>
+                            <li>Config E: 2R + 1W (minimal)</li>
+                            <li>Config F: 8R + 2W (extreme read)</li>
+                        </ul>
+                    </li>
+                    <li>For each: Record throughput & power consumption</li>
+                    <li>Calculate: Power efficiency = throughput / power (ops/W)</li>
+                    <li>Plot: Throughput (x) vs Power (y), label each config</li>
+                </ol>
+                <p><strong>Expected Result:</strong> Pareto frontier—some configs dominate others. Config A or B likely best balance.</p>
+                <p><strong>Analysis:</strong> Which config gives best performance/watt? Which is realistic?</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Understanding Simulator Output</h2>
+
+            <h3>Port Utilization</h3>
+            <div class="guide-box">
+                <p><strong>Read Port Utilization: 100%</strong> → All 4 read ports used every cycle (maximum pressure)</p>
+                <p><strong>Read Port Utilization: 75%</strong> → Average 3 of 4 ports active (good usage)</p>
+                <p><strong>Read Port Utilization: 25%</strong> → Average 1 of 4 ports active (underutilized)</p>
+                <p style="margin-top: 10px;"><strong>Interpretation:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>High utilization = well-parallelized code, register file is bottleneck</li>
+                    <li>Low utilization = insufficient parallelism or dependency chains</li>
+                </ul>
+            </div>
+
+            <h3>Forwarding Coverage</h3>
+            <div class="guide-box">
+                <p><strong>Forwarding Coverage: 100%</strong> → All RAW hazards resolved by bypass (no stalls from RAW)</p>
+                <p><strong>Forwarding Coverage: 80%</strong> → 80% of RAW resolved, 20% require stall</p>
+                <p><strong>Forwarding Coverage: 50%</strong> → Many hazards unresolvable (e.g., load latency)</p>
+                <p style="margin-top: 10px;"><strong>Interpretation:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>High coverage (>95%) = forwarding network effective</li>
+                    <li>Low coverage (<70%) = workload has unpredictable latencies (loads, divides)</li>
+                </ul>
+            </div>
+
+            <h3>Stall Rate & Throughput</h3>
+            <div class="guide-box">
+                <p><strong>Stall Rate 0%, Throughput 4.0 ops/cycle:</strong> Perfect execution (all 4 ops/cycle)</p>
+                <p><strong>Stall Rate 5%, Throughput 3.8 ops/cycle:</strong> Occasional hiccups (good performance)</p>
+                <p><strong>Stall Rate 20%, Throughput 2.4 ops/cycle:</strong> Significant dependencies (needs optimization)</p>
+                <p style="margin-top: 10px;"><strong>Formula:</strong> Throughput = (Total Ops) / (Ideal Cycles + Stall Cycles)</p>
+            </div>
+
+            <h3>Hazard Counts</h3>
+            <div class="guide-box">
+                <table>
+                    <tr>
+                        <th>Hazard Type</th>
+                        <th>Example</th>
+                        <th>Impact (No Forwarding)</th>
+                    </tr>
+                    <tr>
+                        <td><strong>RAW</strong> (Read-After-Write)</td>
+                        <td>ADD R1; MUL R1</td>
+                        <td>1 stall cycle (load use)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>WAW</strong> (Write-After-Write)</td>
+                        <td>ADD R1; SUB R1</td>
+                        <td>Order violation, wrong result</td>
+                    </tr>
+                    <tr>
+                        <td><strong>WAR</strong> (Write-After-Read)</td>
+                        <td>MUL R4,R1; ADD R1</td>
+                        <td>Data lost, wrong computation</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Power Analysis</h3>
+            <div class="guide-box">
+                <p><strong>Register File Power:</strong> Dynamic power (accesses) + Leakage</p>
+                <p><strong>Baseline:</strong> ~1-3 W for typical 256×64-bit register file</p>
+                <p><strong>High Utilization:</strong> Power increases with read/write frequency</p>
+                <p><strong>Efficiency (Ops/Watt):</strong> Higher = better (more work per joule)</p>
+                <p style="margin-top: 10px;"><strong>Example:</strong></p>
+                <ul style="margin-left: 20px;">
+                    <li>4000 ops, 2.5 W power → 1,600 ops/watt (efficient)</li>
+                    <li>2000 ops, 3.0 W power → 667 ops/watt (wasteful)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Tips & Troubleshooting</h2>
+
+            <div class="tip-box">
+                <h3>Maximizing Parallelism (High Throughput)</h3>
+                <ul>
+                    <li>Unroll loops (expose more independent operations)</li>
+                    <li>Increase register file read ports (4 → 6)</li>
+                    <li>Vectorize code (SIMD: 1 op/cycle → 4 ops/cycle)</li>
+                    <li>Reduce data dependencies (reorder operations)</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Reducing Stalls</h3>
+                <ul>
+                    <li>Enable hardware forwarding (catches most RAW hazards)</li>
+                    <li>Prefetch data to hide load latency (3 cycles → 1 cycle effective)</li>
+                    <li>Schedule independent operations between dependent ones (ILP)</li>
+                    <li>Avoid back-to-back loads (L1 cache misses compound)</li>
+                </ul>
+            </div>
+
+            <div class="warning-box">
+                <h3>Common Mistakes</h3>
+                <ul>
+                    <li><strong>Ignoring write port contention:</strong> 4 results ready but only 2 write ports—causes queuing!</li>
+                    <li><strong>Assuming forwarding is free:</strong> Forwarding adds combinational delay; might not meet timing at high GHz.</li>
+                    <li><strong>Over-engineering register file:</strong> 6R + 4W is expensive (area, power). 4R + 2W usually sufficient.</li>
+                    <li><strong>Forgetting about load latency:</strong> L1 miss = 3+ cycles; can't forward → must stall or prefetch.</li>
+                </ul>
+            </div>
+
+            <div class="tip-box">
+                <h3>Real-World Optimization (CloudCompute CFD)</h3>
+                <p><strong>Problem:</strong> Vectorized workload only achieving 2.5 ops/cycle (target: 4.0)</p>
+                <p><strong>Diagnosis:</strong> Write port contention (4 FMA results, 2 write ports)</p>
+                <p><strong>Solution Steps:</strong></p>
+                <ol>
+                    <li>Increase write ports from 2 → 4 (extra area 15%)</li>
+                    <li>Throughput jumps to 3.8 ops/cycle</li>
+                    <li>Power increases by 0.8 W (acceptable)</li>
+                    <li>Performance gain: +52% (2.5 → 3.8)</li>
+                    <li>New design achieves 256 GFLOPS @ 3 GHz target ✓</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Assignment Questions</h2>
+            <p>Use the simulator to answer:</p>
+            <ol>
+                <li><strong>Port Count Design:</strong> What's the minimum read/write ports needed for Workload 2 to achieve 3.5 ops/cycle?</li>
+                <li><strong>Forwarding Analysis:</strong> In Workload 4, why is forwarding coverage only 50%? What operations can't be forwarded?</li>
+                <li><strong>Hazard Classification:</strong> Run Workload 5. Break down total hazards as: % RAW, % WAW, % WAR.</li>
+                <li><strong>Power Efficiency:</strong> Compare 4R+2W vs 6R+4W configurations on Workload 2. Which is more power-efficient (ops/W)?</li>
+                <li><strong>Throughput Prediction:</strong> Given 256 registers, 4 read ports, 2 write ports, predict throughput for a new "mixed scan" workload (explain reasoning).</li>
+                <li><strong>Register Rename Benefit:</strong> Enable register rename on Workload 3. How much does stall rate improve? Why?</li>
+                <li><strong>Bandwidth Limits:</strong> Calculate maximum achievable throughput given register file bandwidth limit of 144 GB/s (advanced).</li>
+            </ol>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+</body>
+</html>

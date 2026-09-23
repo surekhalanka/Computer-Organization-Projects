@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Dr. Surekha Lanka">
+    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
+    <title>Project 9: Register File Design Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #ff6b6b 0%, #ff8787 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #ff6b6b; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-panel { background: #fff5f5; padding: 20px; border-radius: 8px; border: 2px solid #ff6b6b; }
+        h2 { color: #ff6b6b; margin-bottom: 15px; font-size: 1.2em; }
+        h3 { color: #d32f2f; margin-top: 15px; margin-bottom: 10px; font-size: 1em; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; margin: 5px 5px 5px 0; }
+        button { background: #ff6b6b; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; }
+        button:hover { background: #d32f2f; }
+        button.secondary { background: #999; }
+        button.secondary:hover { background: #666; }
+        .results-box { background: #ffe8e8; padding: 15px; border-left: 4px solid #ff6b6b; border-radius: 4px; margin: 10px 0; }
+        .stat { background: #f5f5f5; padding: 12px; border-radius: 4px; text-align: center; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #ff6b6b; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .workload-description { background: #fff8e1; padding: 15px; border-left: 4px solid #ffc107; border-radius: 4px; margin: 10px 0; }
+        .hazard-tracking { background: #f3e5f5; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #9c27b0; }
+        .forwarding-stats { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #4caf50; }
+        .port-stats { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .power-stats { background: #ffe0e0; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #f44336; }
+        .metric { display: inline-block; margin: 5px 15px 5px 0; }
+        .metric-value { font-weight: bold; color: #ff6b6b; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #ff6b6b; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .pipeline-viz { background: #f9f9f9; padding: 15px; border: 2px solid #ff6b6b; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 0.9em; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
+        .toggle-group { margin: 15px 0; }
+        .toggle-group label { display: inline-block; margin-right: 15px; }
+        input[type="checkbox"] { margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Project 9: Register File Design Simulator</h1>
+            <p class="subtitle">Parallel Data Processing - Hazard Detection & Forwarding Analysis</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+        </header>
+
+        <div class="grid">
+            <div class="card control-panel">
+                <h2>🎮 Configuration & Control</h2>
+                
+                <h3>Register File Configuration</h3>
+                <div>
+                    <label>Total Registers:</label>
+                    <select id="regCount">
+                        <option value="128">128 × 64-bit</option>
+                        <option value="256" selected>256 × 64-bit (Standard)</option>
+                        <option value="512">512 × 64-bit</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Read Ports:</label>
+                    <select id="readPorts">
+                        <option value="2">2 Read Ports</option>
+                        <option value="3">3 Read Ports</option>
+                        <option value="4" selected>4 Read Ports (Standard)</option>
+                        <option value="6">6 Read Ports (Aggressive)</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Write Ports:</label>
+                    <select id="writePorts">
+                        <option value="1">1 Write Port</option>
+                        <option value="2" selected>2 Write Ports (Standard)</option>
+                        <option value="4">4 Write Ports</option>
+                    </select>
+                </div>
+
+                <h3>Select Workload</h3>
+                <select id="workload">
+                    <option value="scalar">Workload 1: Sequential Scalar Processing</option>
+                    <option value="vectorized">Workload 2: Vectorized Parallel (SIMD)</option>
+                    <option value="mixed">Workload 3: Mixed Integer + FP Operations</option>
+                    <option value="load">Workload 4: Load-Heavy (Bandwidth Stress)</option>
+                    <option value="complex">Workload 5: Complex Dependencies (Stress Test)</option>
+                </select>
+
+                <h3>Options</h3>
+                <div class="toggle-group">
+                    <label><input type="checkbox" id="forwardingEnable" checked> Hardware Forwarding</label><br>
+                    <label><input type="checkbox" id="hazardDetectEnable" checked> Hazard Detection</label><br>
+                    <label><input type="checkbox" id="renameEnable"> Register Rename (Advanced)</label>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="runSimulation()">▶ Run Simulation</button>
+                    <button class="secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
+
+                <div id="workloadDescription" class="workload-description" style="display:none;"></div>
+            </div>
+
+            <div class="card" id="workloadInfo">
+                <h2>📋 Workload Information</h2>
+                <p id="workloadText" style="line-height: 1.8;">Select a workload to see details...</p>
+            </div>
+        </div>
+
+        <div class="card grid-full">
+            <h2>⚙️ Register File Bandwidth Summary</h2>
+            <div class="port-stats">
+                <div class="metric">
+                    <strong>Read Bandwidth:</strong> <span class="metric-value" id="readBandwidth">-- GB/s</span>
+                </div>
+                <div class="metric">
+                    <strong>Write Bandwidth:</strong> <span class="metric-value" id="writeBandwidth">-- GB/s</span>
+                </div>
+                <div class="metric">
+                    <strong>Total Bandwidth:</strong> <span class="metric-value" id="totalBandwidth">-- GB/s</span>
+                </div>
+                <div class="metric">
+                    <strong>Register Count:</strong> <span class="metric-value" id="regCountDisplay">256 × 64-bit</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📊 Read Port Utilization</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="readUtil">--</div>
+                        <div class="stat-label">Utilization %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="readPortsUsed">--</div>
+                        <div class="stat-label">Avg Ports Used</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="readConflicts">--</div>
+                        <div class="stat-label">Read Conflicts</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="readLatency">1 cy</div>
+                        <div class="stat-label">Latency</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Total Read Ports</td>
+                        <td id="totalReadPorts">4</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Simultaneous Reads</td>
+                        <td id="avgReads">--</td>
+                    </tr>
+                    <tr>
+                        <td>Peak Reads/Cycle</td>
+                        <td id="peakReads">--</td>
+                    </tr>
+                    <tr>
+                        <td>Read Port Efficiency</td>
+                        <td id="readEfficiency">--</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>✍️ Write Port Utilization</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="writeUtil">--</div>
+                        <div class="stat-label">Utilization %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="writePortsUsed">--</div>
+                        <div class="stat-label">Avg Ports Used</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="writeConflicts">--</div>
+                        <div class="stat-label">Write Conflicts</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="writeLatency">1 cy</div>
+                        <div class="stat-label">Latency</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Total Write Ports</td>
+                        <td id="totalWritePorts">2</td>
+                    </tr>
+                    <tr>
+                        <td>Avg Simultaneous Writes</td>
+                        <td id="avgWrites">--</td>
+                    </tr>
+                    <tr>
+                        <td>Peak Writes/Cycle</td>
+                        <td id="peakWrites">--</td>
+                    </tr>
+                    <tr>
+                        <td>Write Port Efficiency</td>
+                        <td id="writeEfficiency">--</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Execution Performance</h2>
+                <div class="stats-grid">
+                    <div class="stat">
+                        <div class="stat-value" id="throughput">--</div>
+                        <div class="stat-label">Ops/Cycle</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="stallRate">--</div>
+                        <div class="stat-label">Stall %</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="totalCycles">--</div>
+                        <div class="stat-label">Total Cycles</div>
+                    </tr>
+                    <div class="stat">
+                        <div class="stat-value" id="totalOps">--</div>
+                        <div class="stat-label">Total Ops</div>
+                    </div>
+                </div>
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                    <tr>
+                        <td>Ideal Cycles (No Stall)</td>
+                        <td id="idealCycles">--</td>
+                    </tr>
+                    <tr>
+                        <td>Actual Cycles</td>
+                        <td id="actualCycles">--</td>
+                    </tr>
+                    <tr>
+                        <td>Stall Cycles</td>
+                        <td id="stallCycles">--</td>
+                    </tr>
+                    <tr>
+                        <td>Performance Loss</td>
+                        <td id="perfLoss">--</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>🎯 Hazard & Forwarding Stats</h2>
+                <div class="forwarding-stats">
+                    <div class="metric">
+                        <strong>Total Hazards:</strong> <span class="metric-value" id="totalHazards">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>RAW Hazards:</strong> <span class="metric-value" id="rawHazards">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>WAW Hazards:</strong> <span class="metric-value" id="wawHazards">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>WAR Hazards:</strong> <span class="metric-value" id="warHazards">--</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card grid-full">
+                <h2>📈 Forwarding Coverage</h2>
+                <div class="forwarding-stats">
+                    <div class="metric">
+                        <strong>Forwarded (1-cy):</strong> <span class="metric-value" id="forwarded">--</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Stalled (≥2 cy):</strong> <span class="metric-value" id="stalled">--</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Forwarding Accuracy:</strong> <span class="metric-value" id="forwardingAccuracy">--</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Hazard Detection Latency:</strong> <span class="metric-value" id="hazardLatency">&lt; 1 cy</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>📊 Port Utilization Over Time</h2>
+                <div class="chart-container">
+                    <canvas id="portUtilChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔄 Hazard Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="hazardChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>⚙️ Power Consumption Analysis</h2>
+                <div class="power-stats">
+                    <div class="metric">
+                        <strong>Register File Dynamic:</strong> <span class="metric-value" id="rfPower">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Forwarding/Hazard Logic:</strong> <span class="metric-value" id="hazardPower">-- W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Leakage Power:</strong> <span class="metric-value" id="leakagePower">-- W</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Total Register System Power:</strong> <span class="metric-value" id="totalRFPower">-- W</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Power Efficiency</h2>
+                <div class="power-stats">
+                    <div class="metric">
+                        <strong>Power per Op:</strong> <span class="metric-value" id="powerPerOp">-- mW/Op</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Ops per Watt:</strong> <span class="metric-value" id="opsPerWatt">-- Ops/W</span>
+                    </div>
+                    <div class="metric">
+                        <strong>Energy per 1000 Ops:</strong> <span class="metric-value" id="energyPer1kOps">-- nJ</span>
+                    </div><br>
+                </div>
+            </div>
+        </div>
+
+        <div class="copyright">
+            © 2026 Dr. Surekha Lanka<br>
+            Director, Department of BSC - Information Technology & Computer Science<br>
+            All Rights Reserved | Educational Use Only
+        </div>
+    </div>
+
+    <script>
+        const workloadDescriptions = {
+            scalar: {
+                title: "Workload 1: Sequential Scalar Processing",
+                desc: "Single scalar operation per cycle (e.g., R1 = R1 + R2 * R3). Port utilization 50% (2 read, 1 write). Forwarding coverage 100% (R1 always forwarded). Stall rate ~0%.",
+                pattern: "1 result/cycle, high data reuse"
+            },
+            vectorized: {
+                title: "Workload 2: Vectorized Parallel (SIMD)",
+                desc: "4× parallel FMA operations (e.g., [R1,R5,R9,R13] += [R2,R6,R10,R14] * [R3,R7,R11,R15]). Port utilization 100% read, 100% write. Forwarding 90%. Stall ~2%. Throughput 4 ops/cycle = 256 GFLOPS.",
+                pattern: "4 parallel ops/cycle, minimal conflicts"
+            },
+            mixed: {
+                title: "Workload 3: Mixed Integer + FP Operations",
+                desc: "2× ALU + 2× FMA ops/cycle. Port utilization 80% (write port contention). Forwarding 85% (ALU→FMA slower). Stall ~5%. Throughput 3.8 ops/cycle.",
+                pattern: "Mixed ALU/FMA with bypassing"
+            },
+            load: {
+                title: "Workload 4: Load-Heavy (Bandwidth Stress)",
+                desc: "4× load operations reading memory. Read port 100%, write port 50% (load results queued). Forwarding 50% (3-cycle load latency). Stall ~15%. Throughput 1.7 ops/cycle.",
+                pattern: "4 loads/cycle, limited by L1 latency"
+            },
+            complex: {
+                title: "Workload 5: Complex Dependencies (Stress Test)",
+                desc: "Chain of dependent operations (R1→R4→R6→R7, each uses previous result). Port utilization 30%. Forwarding 95%. Stall ~20% (RAW chains). Throughput 0.8 ops/cycle.",
+                pattern: "Sequential dependencies, highly serialized"
+            }
+        };
+
+        let simulationState = {
+            readPorts: 4,
+            writePorts: 2,
+            regCount: 256,
+            totalCycles: 1000,
+            totalOps: 2500,
+            stallCycles: 0,
+            readPortsUsed: 0,
+            writePortsUsed: 0,
+            hazards: { raw: 0, waw: 0, war: 0 },
+            forwarded: 0,
+            stalled: 0
+        };
+
+        document.getElementById('workload').addEventListener('change', function() {
+            const wld = workloadDescriptions[this.value];
+            document.getElementById('workloadText').innerHTML = `
+                <strong>${wld.title}</strong><br><br>
+                ${wld.desc}<br><br>
+                <strong>Pattern:</strong> ${wld.pattern}
+            `;
+        });
+
+        function runSimulation() {
+            const workload = document.getElementById('workload').value;
+            const readPorts = parseInt(document.getElementById('readPorts').value);
+            const writePorts = parseInt(document.getElementById('writePorts').value);
+            const regCount = parseInt(document.getElementById('regCount').value);
+            const forwardingEnabled = document.getElementById('forwardingEnable').checked;
+            const renameEnabled = document.getElementById('renameEnable').checked;
+
+            simulationState = {
+                readPorts: readPorts,
+                writePorts: writePorts,
+                regCount: regCount,
+                totalCycles: 1000,
+                totalOps: 0,
+                stallCycles: 0,
+                readPortsUsed: 0,
+                writePortsUsed: 0,
+                hazards: { raw: 0, waw: 0, war: 0 },
+                forwarded: 0,
+                stalled: 0
+            };
+
+            // Simulate workload-specific behavior
+            switch(workload) {
+                case 'scalar':
+                    simulationState.totalOps = 1000;
+                    simulationState.readPortsUsed = 2;
+                    simulationState.writePortsUsed = 1;
+                    simulationState.stallCycles = 0;
+                    simulationState.hazards = { raw: 950, waw: 0, war: 0 };
+                    simulationState.forwarded = forwardingEnabled ? 950 : 0;
+                    simulationState.stalled = forwardingEnabled ? 0 : 950;
+                    break;
+                
+                case 'vectorized':
+                    simulationState.totalOps = 4000;
+                    simulationState.readPortsUsed = 4;
+                    simulationState.writePortsUsed = 2;
+                    simulationState.stallCycles = Math.floor(1000 * 0.02);
+                    simulationState.hazards = { raw: 100, waw: 50, war: 0 };
+                    simulationState.forwarded = forwardingEnabled ? 90 : 0;
+                    simulationState.stalled = forwardingEnabled ? 60 : 150;
+                    break;
+                
+                case 'mixed':
+                    simulationState.totalOps = 3800;
+                    simulationState.readPortsUsed = 3.2;
+                    simulationState.writePortsUsed = 1.6;
+                    simulationState.stallCycles = Math.floor(1000 * 0.05);
+                    simulationState.hazards = { raw: 180, waw: 80, war: 40 };
+                    simulationState.forwarded = forwardingEnabled ? 150 : 0;
+                    simulationState.stalled = forwardingEnabled ? 150 : 300;
+                    break;
+                
+                case 'load':
+                    simulationState.totalOps = 1700;
+                    simulationState.readPortsUsed = 4;
+                    simulationState.writePortsUsed = 1;
+                    simulationState.stallCycles = Math.floor(1000 * 0.15);
+                    simulationState.hazards = { raw: 500, waw: 0, war: 300 };
+                    simulationState.forwarded = forwardingEnabled ? 250 : 0;
+                    simulationState.stalled = forwardingEnabled ? 550 : 800;
+                    break;
+                
+                case 'complex':
+                    simulationState.totalOps = 800;
+                    simulationState.readPortsUsed = 1.2;
+                    simulationState.writePortsUsed = 0.8;
+                    simulationState.stallCycles = Math.floor(1000 * 0.20);
+                    simulationState.hazards = { raw: 400, waw: 100, war: 50 };
+                    simulationState.forwarded = forwardingEnabled ? 380 : 0;
+                    simulationState.stalled = forwardingEnabled ? 170 : 550;
+                    break;
+            }
+
+            // Apply register rename effect (reduces WAW)
+            if(renameEnabled) {
+                simulationState.hazards.waw = Math.floor(simulationState.hazards.waw * 0.3);
+            }
+
+            updateDisplay();
+            updateCharts();
+        }
+
+        function updateDisplay() {
+            const rp = simulationState.readPorts;
+            const wp = simulationState.writePorts;
+            const rc = simulationState.regCount;
+
+            // Update configuration display
+            document.getElementById('regCountDisplay').textContent = rc + ' × 64-bit';
+            document.getElementById('totalReadPorts').textContent = rp;
+            document.getElementById('totalWritePorts').textContent = wp;
+
+            // Bandwidth calculation (bytes per cycle at 3 GHz)
+            const readBW = (simulationState.readPortsUsed * 8 * 3).toFixed(1);
+            const writeBW = (simulationState.writePortsUsed * 8 * 3).toFixed(1);
+            const totalBW = (parseFloat(readBW) + parseFloat(writeBW)).toFixed(1);
+            
+            document.getElementById('readBandwidth').textContent = readBW + ' GB/s';
+            document.getElementById('writeBandwidth').textContent = writeBW + ' GB/s';
+            document.getElementById('totalBandwidth').textContent = totalBW + ' GB/s';
+
+            // Read port stats
+            const readUtil = ((simulationState.readPortsUsed / rp) * 100).toFixed(1);
+            document.getElementById('readUtil').textContent = readUtil + '%';
+            document.getElementById('readPortsUsed').textContent = simulationState.readPortsUsed.toFixed(1);
+            document.getElementById('readConflicts').textContent = Math.floor(simulationState.totalCycles * 0.02);
+            document.getElementById('avgReads').textContent = simulationState.readPortsUsed.toFixed(1);
+            document.getElementById('peakReads').textContent = rp;
+            document.getElementById('readEfficiency').textContent = readUtil + '%';
+
+            // Write port stats
+            const writeUtil = ((simulationState.writePortsUsed / wp) * 100).toFixed(1);
+            document.getElementById('writeUtil').textContent = writeUtil + '%';
+            document.getElementById('writePortsUsed').textContent = simulationState.writePortsUsed.toFixed(1);
+            document.getElementById('writeConflicts').textContent = Math.floor(simulationState.totalCycles * 0.01);
+            document.getElementById('avgWrites').textContent = simulationState.writePortsUsed.toFixed(1);
+            document.getElementById('peakWrites').textContent = wp;
+            document.getElementById('writeEfficiency').textContent = writeUtil + '%';
+
+            // Execution performance
+            const idealCycles = Math.ceil(simulationState.totalOps / 4);
+            const actualCycles = idealCycles + simulationState.stallCycles;
+            const throughput = (simulationState.totalOps / actualCycles).toFixed(2);
+            const stallPct = ((simulationState.stallCycles / actualCycles) * 100).toFixed(1);
+
+            document.getElementById('throughput').textContent = throughput;
+            document.getElementById('stallRate').textContent = stallPct + '%';
+            document.getElementById('totalCycles').textContent = actualCycles;
+            document.getElementById('totalOps').textContent = simulationState.totalOps;
+            document.getElementById('idealCycles').textContent = idealCycles;
+            document.getElementById('actualCycles').textContent = actualCycles;
+            document.getElementById('stallCycles').textContent = simulationState.stallCycles;
+            document.getElementById('perfLoss').textContent = (((actualCycles - idealCycles) / idealCycles * 100).toFixed(1)) + '%';
+
+            // Hazard stats
+            const totalHazards = simulationState.hazards.raw + simulationState.hazards.waw + simulationState.hazards.war;
+            document.getElementById('totalHazards').textContent = totalHazards;
+            document.getElementById('rawHazards').textContent = simulationState.hazards.raw;
+            document.getElementById('wawHazards').textContent = simulationState.hazards.waw;
+            document.getElementById('warHazards').textContent = simulationState.hazards.war;
+
+            // Forwarding stats
+            const forwardingAccuracy = totalHazards > 0 ? ((simulationState.forwarded / totalHazards) * 100).toFixed(1) : 0;
+            document.getElementById('forwarded').textContent = simulationState.forwarded;
+            document.getElementById('stalled').textContent = simulationState.stalled;
+            document.getElementById('forwardingAccuracy').textContent = forwardingAccuracy + '%';
+
+            // Power consumption
+            const rfPower = (0.5 + (simulationState.readPortsUsed + simulationState.writePortsUsed) * 0.2).toFixed(2);
+            const hazardPower = (0.3 + (totalHazards / 1000) * 0.5).toFixed(2);
+            const leakagePower = (0.2 + rc / 1000 * 0.1).toFixed(2);
+            const totalRFPower = (parseFloat(rfPower) + parseFloat(hazardPower) + parseFloat(leakagePower)).toFixed(2);
+
+            document.getElementById('rfPower').textContent = rfPower + ' W';
+            document.getElementById('hazardPower').textContent = hazardPower + ' W';
+            document.getElementById('leakagePower').textContent = leakagePower + ' W';
+            document.getElementById('totalRFPower').textContent = totalRFPower + ' W';
+
+            // Power efficiency
+            const powerPerOp = ((parseFloat(totalRFPower) / simulationState.totalOps) * 1000).toFixed(2);
+            const opsPerWatt = (simulationState.totalOps / parseFloat(totalRFPower)).toFixed(0);
+            const energyPer1kOps = ((parseFloat(totalRFPower) / simulationState.totalOps) * 1e9).toFixed(0);
+
+            document.getElementById('powerPerOp').textContent = powerPerOp + ' mW/Op';
+            document.getElementById('opsPerWatt').textContent = opsPerWatt + ' Ops/W';
+            document.getElementById('energyPer1kOps').textContent = energyPer1kOps + ' nJ';
+        }
+
+        let charts = {};
+
+        function updateCharts() {
+            // Port Utilization Chart
+            const puCtx = document.getElementById('portUtilChart').getContext('2d');
+            if(charts.portUtil) charts.portUtil.destroy();
+            charts.portUtil = new Chart(puCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Read Ports', 'Write Ports'],
+                    datasets: [{
+                        label: 'Utilization %',
+                        data: [
+                            ((simulationState.readPortsUsed / simulationState.readPorts) * 100).toFixed(1),
+                            ((simulationState.writePortsUsed / simulationState.writePorts) * 100).toFixed(1)
+                        ],
+                        backgroundColor: ['#ff6b6b', '#ff8787'],
+                        borderColor: ['#d32f2f', '#b71c1c'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: false } }, scales: { y: { max: 100 } } }
+            });
+
+            // Hazard Distribution Chart
+            const hzCtx = document.getElementById('hazardChart').getContext('2d');
+            if(charts.hazard) charts.hazard.destroy();
+            charts.hazard = new Chart(hzCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['RAW', 'WAW', 'WAR'],
+                    datasets: [{
+                        data: [
+                            simulationState.hazards.raw,
+                            simulationState.hazards.waw,
+                            simulationState.hazards.war
+                        ],
+                        backgroundColor: ['#ff6b6b', '#ff8787', '#ffb3b3'],
+                        borderColor: ['#d32f2f', '#b71c1c', '#8b0000'],
+                        borderWidth: 2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function resetSimulation() {
+            location.reload();
+        }
+
+        // Initialize
+        document.getElementById('workload').dispatchEvent(new Event('change'));
+    </script>
+</body>
+</html>
