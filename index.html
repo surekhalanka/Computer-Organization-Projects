@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Organization - Individual Project Instructions</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 5px;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .project-selector {
+            text-align: center;
+            background: linear-gradient(135deg, #1a3a5c, #1a5c3a);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px solid #00ff00;
+        }
+        
+        .selector-label {
+            color: #ffff00;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        #projectSelect {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px;
+            font-size: 1.1em;
+            background: #1a1a1a;
+            color: #00ffff;
+            border: 2px solid #0088ff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        #projectSelect:hover {
+            background: #2a2a2a;
+            border-color: #00ffff;
+        }
+        
+        #projectSelect:focus {
+            outline: none;
+            background: #2a2a2a;
+            border-color: #ffff00;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.5);
+        }
+        
+        #projectSelect option {
+            background: #1a1a1a;
+            color: #00ffff;
+            padding: 10px;
+        }
+
+        .project-banner {
+            text-align: center;
+            background: linear-gradient(135deg, #1a3a5c, #1a5c3a);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px solid #00ff00;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .project-title { 
+            color: #00ffff; 
+            font-size: 2em; 
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .project-number {
+            color: #ffaa00;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .project-scenario { 
+            color: #ffff00; 
+            font-size: 1.2em; 
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .scenario-label {
+            color: #00ff00;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .subtitle { text-align: center; color: #888; margin-bottom: 20px; font-size: 1em; }
+        
+        .section {
+            background: #222;
+            border-left: 4px solid #00ff00;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        .section h2 { color: #00ffff; margin-bottom: 15px; font-size: 1.5em; border-bottom: 2px solid #0088ff; padding-bottom: 10px; }
+        .section h3 { color: #ffff00; margin-top: 15px; margin-bottom: 10px; font-size: 1.1em; }
+        .section p { margin-bottom: 10px; line-height: 1.7; }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table th {
+            background: #333;
+            color: #00ffff;
+            padding: 12px;
+            border: 1px solid #0088ff;
+            text-align: left;
+            font-weight: bold;
+        }
+        table td {
+            padding: 12px;
+            border: 1px solid #333;
+        }
+        table tr:nth-child(even) { background: #1a1a1a; }
+        
+        .timeline {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .week-box {
+            background: #2a2a2a;
+            border-left: 4px solid #0088ff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+        .week-title { color: #ffff00; font-weight: bold; margin-bottom: 10px; }
+        .day-item { color: #ccc; margin-left: 20px; margin-bottom: 8px; }
+        .day-item strong { color: #00ff00; }
+        
+        .requirement-box {
+            background: #1a3a5c;
+            border: 1px solid #0088ff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .req-title { color: #00ffff; font-weight: bold; margin-bottom: 10px; font-size: 1.05em; }
+        .req-content { color: #ccc; }
+        .req-points { color: #00ff00; font-weight: bold; float: right; }
+        
+        .rubric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .rubric-cell {
+            background: #1a3a5c;
+            border: 1px solid #0088ff;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .rubric-level { color: #ffff00; font-weight: bold; margin-bottom: 10px; }
+        .rubric-points { color: #00ff00; font-size: 1.3em; font-weight: bold; }
+        .rubric-desc { color: #ccc; font-size: 0.9em; margin-top: 10px; }
+        
+        .checklist { margin-left: 20px; }
+        .checklist li { margin-bottom: 10px; color: #ccc; }
+        .checklist strong { color: #00ffff; }
+        
+        .highlight-box {
+            background: #1a4a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .highlight-box h3 { color: #00ff00; margin-bottom: 10px; }
+        
+        .warning-box {
+            background: #4a3a1a;
+            border: 2px solid #ffaa00;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .warning-box h3 { color: #ffaa00; margin-bottom: 10px; }
+        
+        .info-box {
+            background: #1a3a5c;
+            border: 2px solid #00aaff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .info-box h3 { color: #00aaff; margin-bottom: 10px; }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            color: #666;
+        }
+        
+        .assignment-stamp {
+            display: inline-block;
+            background: #ff6600;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .project-title { font-size: 1.5em; }
+            .project-scenario { font-size: 1em; }
+            #projectSelect { font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ COMPUTER ORGANIZATION</h1>
+        <p class="subtitle">Individual Project Instructions (One Project Per Student)</p>
+
+        <!-- PROJECT SELECTION DROPDOWN -->
+        <div class="project-selector">
+            <div class="selector-label">📌 SELECT YOUR ASSIGNED PROJECT:</div>
+            <select id="projectSelect" onchange="updateProjectDisplay()">
+                <option value="">-- Choose Your Project --</option>
+                <option value="1">Project 1: CPU Instruction Execution (Image Brightness Processing)</option>
+                <option value="2">Project 2: Register & Memory Changes (File Data Encryption)</option>
+                <option value="3">Project 3: ALU Operations Analysis (Audio Signal Processing)</option>
+                <option value="4">Project 4: 4-Bit ALU Construction (Digital Logic Verification)</option>
+                <option value="5">Project 5: Cache Architecture Comparison (Web Server Cache Optimization)</option>
+                <option value="6">Project 6: Cache Size Impact (Video Streaming Caching)</option>
+                <option value="7">Project 7: Cache Block Size Effect (Large File Download)</option>
+                <option value="8">Project 8: Memory Hierarchy Study (Real-Time Stock Market Data)</option>
+                <option value="9">Project 9: Register File Design (Parallel Data Processing)</option>
+                <option value="10">Project 10: Multiplexers & Data Selection (Network Switch Routing)</option>
+                <option value="11">Project 11: CPU Performance - CPI Analysis (Multi-Task Scheduling)</option>
+                <option value="12">Project 12: Direct Memory Access - DMA (Disk I/O Operations)</option>
+            </select>
+        </div>
+
+        <!-- PROJECT DISPLAY BANNER -->
+        <div id="projectBanner" class="project-banner" style="display: none;">
+            <div class="project-number" id="projectNum"></div>
+            <div class="project-title" id="projectTitle"></div>
+            <div class="scenario-label">Scenario:</div>
+            <div class="project-scenario" id="projectScenario"></div>
+        </div>
+
+        <!-- PLACEHOLDER BANNER -->
+        <div id="placeholderBanner" class="project-banner">
+            <div style="color: #888; font-size: 1.1em;">
+                👆 Select your project from the dropdown above to see detailed instructions
+            </div>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="section">
+            <h2>📋 PROJECT OVERVIEW</h2>
+            <p>You have been assigned <strong>ONE individual project</strong> from a suite of 12 Computer Organization projects. This project provides hands-on learning through interactive simulation with a focus on real-world applications.</p>
+            
+            <h3>Key Information:</h3>
+            <table>
+                <tr>
+                    <th>Aspect</th>
+                    <th>Details</th>
+                </tr>
+                <tr>
+                    <td><strong>Project Type</strong></td>
+                    <td>Interactive simulation & analysis (no programming required)</td>
+                </tr>
+                <tr>
+                    <td><strong>Duration</strong></td>
+                    <td>2 weeks (10 working days)</td>
+                </tr>
+                <tr>
+                    <td><strong>Daily Commitment</strong></td>
+                    <td>5 hours per day</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Hours</strong></td>
+                    <td>50 hours</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Points</strong></td>
+                    <td>100 points</td>
+                </tr>
+                <tr>
+                    <td><strong>Format</strong></td>
+                    <td>Web-based HTML simulator (no installation needed)</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- GETTING STARTED -->
+        <div class="section">
+            <h2>🚀 Getting Started (Today)</h2>
+            
+            <div class="highlight-box">
+                <h3>✨ 5 Quick Steps to Begin</h3>
+                <ol style="margin-left: 20px;">
+                    <li><strong>Select Your Project:</strong> Use the dropdown at the top to choose your assigned project</li>
+                    <li><strong>Understand Your Scenario:</strong> Read the scenario description carefully</li>
+                    <li><strong>Open the Simulator:</strong> Click on the provided HTML simulator link</li>
+                    <li><strong>Explore the Interface:</strong> Spend 30 minutes getting familiar with the simulator controls</li>
+                    <li><strong>Plan Your Schedule:</strong> Allocate 5 hours/day across 10 days (you can spread across 2 weeks)</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- 2-WEEK SCHEDULE -->
+        <div class="section">
+            <h2>📅 2-Week Project Schedule</h2>
+            
+            <div class="timeline">
+                <div class="week-box">
+                    <div class="week-title">🔵 WEEK 1: LEARNING & EXPLORATION (25 hours)</div>
+                    <div class="day-item"><strong>Days 1-2 (10 hours):</strong> Understand scenario, explore simulator, run basic experiments (5-6 tests)</div>
+                    <div class="day-item"><strong>Days 3-4 (10 hours):</strong> Systematic testing with varied inputs, begin data collection</div>
+                    <div class="day-item"><strong>Day 5 (5 hours):</strong> Complete core experiments, organize results, identify patterns</div>
+                </div>
+
+                <div class="week-box">
+                    <div class="week-title">🔵 WEEK 2: ANALYSIS & REPORTING (25 hours)</div>
+                    <div class="day-item"><strong>Days 6-7 (10 hours):</strong> Deep analysis, run advanced tests, prepare report outline</div>
+                    <div class="day-item"><strong>Days 8-9 (10 hours):</strong> Write analysis report, create visualizations, document trade-offs</div>
+                    <div class="day-item"><strong>Day 10 (5 hours):</strong> Final review, proofread, prepare recommendations, submit</div>
+                </div>
+            </div>
+
+            <h3>Daily Time Allocation (5 hours/day):</h3>
+            <ul style="margin-left: 20px;">
+                <li><strong>1 hour:</strong> Read scenario details, understand context</li>
+                <li><strong>3 hours:</strong> Run simulator, conduct experiments, collect data</li>
+                <li><strong>1 hour:</strong> Document results, take screenshots, organize data</li>
+            </ul>
+        </div>
+
+        <!-- PROJECT REQUIREMENTS -->
+        <div class="section">
+            <h2>✅ Project Requirements</h2>
+            
+            <p>For your assigned project, you must deliver the following:</p>
+
+            <div class="requirement-box">
+                <div class="req-title">1. Simulator Experiments & Screenshots <span class="req-points">20 pts</span></div>
+                <div class="req-content">
+                    <strong>Requirement:</strong> Conduct 5-10 different experiments with varying inputs and configurations<br>
+                    <strong>Deliverable:</strong> Screenshot evidence of each experiment showing different results<br>
+                    <strong>Scope:</strong> Test edge cases, normal ranges, and boundary conditions<br>
+                    <strong>Documentation:</strong> Brief caption for each screenshot explaining what's being tested
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">2. Performance Data Collection <span class="req-points">10 pts</span></div>
+                <div class="req-content">
+                    <strong>Requirement:</strong> Record all metrics displayed by the simulator<br>
+                    <strong>Deliverable:</strong> Excel spreadsheet or table with measurements<br>
+                    <strong>Metrics to Collect:</strong> Cycles, hit rates, access times, bandwidth, delays, efficiency percentages, etc.<br>
+                    <strong>Format:</strong> Organized table with clear column headers and row labels
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">3. Analysis Report <span class="req-points">40 pts</span></div>
+                <div class="req-content">
+                    <strong>Requirement:</strong> Write comprehensive analysis of findings<br>
+                    <strong>Length:</strong> 3-5 pages (excluding screenshots)<br>
+                    <strong>Format:</strong> Word/PDF, 12pt font, 1-inch margins, 1.5 spacing<br>
+                    <strong>Components:</strong><br>
+                    • Executive summary (1 paragraph)<br>
+                    • Methodology (how you conducted experiments)<br>
+                    • Findings (what you discovered)<br>
+                    • Analysis (why these results matter)<br>
+                    • Graphs/visualizations with captions
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">4. Trade-Off Analysis <span class="req-points">20 pts</span></div>
+                <div class="req-content">
+                    <strong>Requirement:</strong> Identify and explain performance trade-offs<br>
+                    <strong>Deliverable:</strong> Document or section in report comparing choices<br>
+                    <strong>Analysis:</strong> Speed vs accuracy, size vs performance, latency vs throughput, etc.<br>
+                    <strong>Support:</strong> Use your experimental data to justify conclusions
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">5. Recommendations & Conclusions <span class="req-points">10 pts</span></div>
+                <div class="req-content">
+                    <strong>Requirement:</strong> Provide optimization suggestions based on results<br>
+                    <strong>Deliverable:</strong> 1-2 page recommendations document<br>
+                    <strong>Content:</strong> Optimal configurations, suggested improvements, real-world applications<br>
+                    <strong>Justification:</strong> All recommendations must be supported by experimental data
+                </div>
+            </div>
+        </div>
+
+        <!-- GRADING RUBRIC -->
+        <div class="section">
+            <h2>📊 Grading Rubric (100 Points Total)</h2>
+            
+            <table>
+                <tr>
+                    <th>Category</th>
+                    <th>Excellent (90-100%)</th>
+                    <th>Good (80-89%)</th>
+                    <th>Satisfactory (70-79%)</th>
+                    <th>Needs Improvement (&lt;70%)</th>
+                </tr>
+                <tr>
+                    <td><strong>Simulator Usage (20 pts)</strong></td>
+                    <td>10+ varied experiments, comprehensive data, excellent variety in test cases</td>
+                    <td>7-9 experiments, most test cases covered, good variety</td>
+                    <td>5-6 experiments, basic variety in testing</td>
+                    <td>&lt;5 experiments, limited variety</td>
+                </tr>
+                <tr>
+                    <td><strong>Data Collection (10 pts)</strong></td>
+                    <td>All metrics documented, well-organized, complete dataset</td>
+                    <td>Most metrics documented, organized clearly</td>
+                    <td>Basic metrics collected, some organization</td>
+                    <td>Incomplete data collection</td>
+                </tr>
+                <tr>
+                    <td><strong>Analysis Quality (40 pts)</strong></td>
+                    <td>Deep insights, clear patterns identified, excellent interpretation, well-supported conclusions</td>
+                    <td>Good analysis, most patterns identified, solid interpretation</td>
+                    <td>Basic analysis, some patterns found, adequate interpretation</td>
+                    <td>Minimal analysis, limited insights</td>
+                </tr>
+                <tr>
+                    <td><strong>Trade-Off Analysis (20 pts)</strong></td>
+                    <td>Clear identification of trade-offs, excellent explanations, strong data support</td>
+                    <td>Good identification of trade-offs, clear explanations, data support</td>
+                    <td>Identifies some trade-offs, basic explanation</td>
+                    <td>Minimal trade-off analysis</td>
+                </tr>
+                <tr>
+                    <td><strong>Presentation (10 pts)</strong></td>
+                    <td>Professional, well-organized, excellent writing, proper formatting throughout</td>
+                    <td>Well-organized, good writing, proper formatting</td>
+                    <td>Organized, acceptable writing, basic formatting</td>
+                    <td>Poorly organized, unclear writing</td>
+                </tr>
+            </table>
+
+            <h3 style="margin-top: 20px;">Scoring Guidelines:</h3>
+            <ul style="margin-left: 20px;">
+                <li><strong>Partial Credit:</strong> Partial credit allowed for incomplete work (minimum 50% of points per category)</li>
+                <li><strong>Show Your Work:</strong> All conclusions must be supported by data and screenshots</li>
+                <li><strong>Explanation Required:</strong> Simply showing numbers is insufficient - explain what they mean</li>
+                <li><strong>Depth Over Length:</strong> Quality of analysis matters more than page count</li>
+                <li><strong>Citations:</strong> If using external sources, cite in APA format</li>
+            </ul>
+        </div>
+
+        <!-- SUBMISSION DETAILS -->
+        <div class="section">
+            <h2>📤 Submission Details</h2>
+            
+            <h3>File Organization:</h3>
+            <pre style="background: #1a1a1a; padding: 15px; border-radius: 5px; overflow-x: auto;">
+[YourName]_[ProjectNumber]_[ProjectName]/
+├── Screenshots/
+│   ├── Experiment_01.png
+│   ├── Experiment_02.png
+│   ├── ... (5-10 total)
+│   └── Experiment_10.png
+├── Data_Collection.xlsx
+├── Analysis_Report.docx
+├── Trade_Offs_Analysis.docx
+├── Recommendations.docx
+└── README.txt
+            </pre>
+
+            <h3>Report Format Requirements:</h3>
+            <ul style="margin-left: 20px;">
+                <li><strong>Word Processor:</strong> Microsoft Word or PDF</li>
+                <li><strong>Font:</strong> Times New Roman or Calibri, 12pt</li>
+                <li><strong>Spacing:</strong> 1.5 or double-spaced</li>
+                <li><strong>Margins:</strong> 1 inch on all sides</li>
+                <li><strong>Header:</strong> Project title, your name, date, student ID</li>
+                <li><strong>Figures:</strong> All screenshots must have numbered captions and be referenced in text</li>
+                <li><strong>Page Numbers:</strong> Number all pages at bottom</li>
+            </ul>
+
+            <h3>Submission Process:</h3>
+            <ul style="margin-left: 20px;">
+                <li>Submit all files as a single ZIP folder to [Course Platform]</li>
+                <li>Due date: Within 24 hours after completing your 10th day</li>
+                <li>Late submissions: Penalty of 5% per day after deadline</li>
+                <li>Confirmation email will be sent upon receipt</li>
+            </ul>
+        </div>
+
+        <!-- SUCCESS TIPS -->
+        <div class="highlight-box">
+            <h3>✨ Tips for Success</h3>
+            <ul class="checklist">
+                <li><strong>Start Early:</strong> Don't wait until day 9 to begin - spread work evenly</li>
+                <li><strong>Experiment Systematically:</strong> Test one variable at a time, keep others constant</li>
+                <li><strong>Document Everything:</strong> Screenshot every significant result immediately</li>
+                <li><strong>Look for Patterns:</strong> Analyze trends across experiments, not just individual numbers</li>
+                <li><strong>Compare Configurations:</strong> Test at least 3-4 different setups and compare results</li>
+                <li><strong>Explain Your Thinking:</strong> Document why you're testing what you're testing</li>
+                <li><strong>Use Data to Support Claims:</strong> Every statement in your report must reference data</li>
+                <li><strong>Professional Presentation:</strong> Treat reports as if submitting to a manager</li>
+                <li><strong>Proofread Carefully:</strong> Check for grammar, spelling, and formatting errors</li>
+            </ul>
+        </div>
+
+        <!-- COMMON MISTAKES -->
+        <div class="warning-box">
+            <h3>⚠️ Common Mistakes to Avoid</h3>
+            <ul style="margin-left: 20px;">
+                <li>❌ <strong>Too Few Experiments:</strong> Only testing 1-2 configurations (need 5-10 minimum)</li>
+                <li>❌ <strong>Missing Screenshots:</strong> Submitting without visual evidence of experiments</li>
+                <li>❌ <strong>Incomplete Data:</strong> Missing key metrics or statistics from simulator</li>
+                <li>❌ <strong>Surface-Level Analysis:</strong> Just stating what happened without explaining why</li>
+                <li>❌ <strong>No Trade-Off Discussion:</strong> Failing to compare speed vs accuracy, size vs performance</li>
+                <li>❌ <strong>Poor Organization:</strong> Messy file structure or disorganized report</li>
+                <li>❌ <strong>Unsupported Conclusions:</strong> Making claims without data backing</li>
+                <li>❌ <strong>Late Submission:</strong> Missing deadline without prior communication</li>
+                <li>❌ <strong>Plagiarism:</strong> Copying text or ideas without citation</li>
+            </ul>
+        </div>
+
+        <!-- EXTRA CREDIT -->
+        <div class="section">
+            <h2>🌟 Extra Credit Opportunities (Up to 15 bonus points)</h2>
+
+            <div class="requirement-box">
+                <div class="req-title">1. Performance Optimization Challenge (+5 points)</div>
+                <div class="req-content">
+                    Find the optimal configuration to maximize performance while meeting constraints. Document your optimization process, iterations, and final results. Include comparative analysis showing improvement.
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">2. Comparative Analysis Across Scenarios (+5 points)</div>
+                <div class="req-content">
+                    Compare results across multiple different simulator scenarios or use cases. Create a comprehensive comparison matrix showing which configuration works best for different situations.
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">3. Real-World Application Study (+5 points)</div>
+                <div class="req-content">
+                    Apply simulator findings to a real-world system (your own computer, actual server, etc.). Document and compare actual performance vs simulated performance. Explain differences.
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">4. Academic Research Integration (+5-10 points)</div>
+                <div class="req-content">
+                    Research and cite 3+ peer-reviewed academic papers on the project topic. Connect findings from papers to your simulator results. Demonstrate understanding of academic literature in the field.
+                </div>
+            </div>
+
+            <div class="requirement-box">
+                <div class="req-title">5. Creative Data Visualization (+5 points)</div>
+                <div class="req-content">
+                    Create custom charts, infographics, or visual diagrams that enhance understanding of your results beyond standard screenshots. Include explanatory text with each visualization.
+                </div>
+            </div>
+        </div>
+
+        <!-- RESOURCES & SUPPORT -->
+        <div class="info-box">
+            <h3>📚 Resources & Support Available</h3>
+            <p><strong>Getting Help:</strong></p>
+            <ul style="margin-left: 20px;">
+                <li>📧 Email instructor for technical questions</li>
+                <li>💬 Post to discussion board for peer support</li>
+                <li>🕐 Office hours: [Schedule] for one-on-one help</li>
+                <li>📖 Project documentation: Included with simulator package</li>
+                <li>🎥 Video tutorials: Available on course website (if applicable)</li>
+            </ul>
+        </div>
+
+        <!-- ACADEMIC INTEGRITY -->
+        <div class="warning-box">
+            <h3>⚠️ Academic Integrity Policy</h3>
+            <p><strong>Your work must be original.</strong></p>
+            <p><strong>You may:</strong></p>
+            <ul style="margin-left: 20px;">
+                <li>✓ Discuss simulator with classmates</li>
+                <li>✓ Compare methodologies and approaches</li>
+                <li>✓ Ask instructors for clarification</li>
+                <li>✓ Consult academic papers and textbooks</li>
+            </ul>
+            <p><strong>You may NOT:</strong></p>
+            <ul style="margin-left: 20px;">
+                <li>✗ Submit someone else's report</li>
+                <li>✗ Copy text without proper citation</li>
+                <li>✗ Use AI-generated analysis as your own</li>
+                <li>✗ Share your completed work with others</li>
+            </ul>
+            <p style="margin-top: 15px; color: #ffaa00;"><strong>Violations result in:</strong> 0 points for the project and possible course failure</p>
+        </div>
+
+        <!-- FINAL CHECKLIST -->
+        <div class="section">
+            <h2>📋 Pre-Submission Checklist</h2>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Requirement</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Experiments</td>
+                    <td>5-10 varied tests with screenshots</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>Data Collection</td>
+                    <td>Organized spreadsheet with all metrics</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>Analysis Report</td>
+                    <td>3-5 pages with findings and visualization</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>Trade-Off Analysis</td>
+                    <td>Identified and explained with data support</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>Recommendations</td>
+                    <td>1-2 pages with optimization suggestions</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>Proofreading</td>
+                    <td>All documents checked for errors</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td>File Organization</td>
+                    <td>Files organized in folder with clear names</td>
+                    <td>☐ Complete</td>
+                </tr>
+                <tr>
+                    <td style="background: #1a4a1a;"><strong>SUBMISSION</strong></td>
+                    <td style="background: #1a4a1a;"><strong>All files ready to upload</strong></td>
+                    <td style="background: #1a4a1a;">☐ Ready</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- FINAL NOTES -->
+        <div class="highlight-box">
+            <h3>📌 Final Important Notes</h3>
+            <ul style="margin-left: 20px;">
+                <li><strong>No Programming Required:</strong> This is simulation and analysis - no coding involved</li>
+                <li><strong>Real-World Focus:</strong> Your scenario is based on actual systems and real applications</li>
+                <li><strong>Individual Work:</strong> This is your own project - your analysis should reflect your thinking</li>
+                <li><strong>Flexible Timeline:</strong> Spread 50 hours across 2 weeks (or adjust with instructor approval)</li>
+                <li><strong>Learning Focus:</strong> Prioritize understanding concepts over simply completing tasks</li>
+                <li><strong>Ask Questions:</strong> Don't hesitate to reach out if anything is unclear</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p><strong>Computer Organization Course - Individual Project Instructions</strong></p>
+            <p>Questions? Contact your instructor via email or course discussion board</p>
+            <p>Good luck with your project! You've got this! 🚀</p>
+        </footer>
+    </div>
+
+    <script>
+        // Project data
+        const projects = {
+            1: {
+                title: "CPU Instruction Execution",
+                scenario: "Image Brightness Processing"
+            },
+            2: {
+                title: "Register & Memory Changes",
+                scenario: "File Data Encryption"
+            },
+            3: {
+                title: "ALU Operations Analysis",
+                scenario: "Audio Signal Processing"
+            },
+            4: {
+                title: "4-Bit ALU Construction",
+                scenario: "Digital Logic Verification"
+            },
+            5: {
+                title: "Cache Architecture Comparison",
+                scenario: "Web Server Cache Optimization"
+            },
+            6: {
+                title: "Cache Size Impact",
+                scenario: "Video Streaming Caching"
+            },
+            7: {
+                title: "Cache Block Size Effect",
+                scenario: "Large File Download"
+            },
+            8: {
+                title: "Memory Hierarchy Study",
+                scenario: "Real-Time Stock Market Data"
+            },
+            9: {
+                title: "Register File Design",
+                scenario: "Parallel Data Processing"
+            },
+            10: {
+                title: "Multiplexers & Data Selection",
+                scenario: "Network Switch Routing"
+            },
+            11: {
+                title: "CPU Performance - CPI Analysis",
+                scenario: "Multi-Task Scheduling"
+            },
+            12: {
+                title: "Direct Memory Access - DMA",
+                scenario: "Disk I/O Operations"
+            }
+        };
+
+        function updateProjectDisplay() {
+            const select = document.getElementById('projectSelect');
+            const selectedValue = select.value;
+            const banner = document.getElementById('projectBanner');
+            const placeholder = document.getElementById('placeholderBanner');
+
+            if (selectedValue && projects[selectedValue]) {
+                const project = projects[selectedValue];
+                document.getElementById('projectNum').textContent = `Project ${selectedValue}`;
+                document.getElementById('projectTitle').textContent = project.title;
+                document.getElementById('projectScenario').textContent = project.scenario;
+                
+                banner.style.display = 'flex';
+                placeholder.style.display = 'none';
+                
+                // Smooth scroll to banner
+                banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                banner.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            updateProjectDisplay();
+        });
+    </script>
+</body>
+</html>
