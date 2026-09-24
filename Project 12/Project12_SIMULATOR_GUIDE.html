@@ -5,629 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Dr. Surekha Lanka">
     <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
-    <title>Project 12: DMA and Disk I/O - User Guide</title>
+    <title>Project 12: DMA and Disk I/O Operations Simulator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: #333; line-height: 1.6; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        header { background: #fff; padding: 30px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        h1 { color: #2196f3; margin-bottom: 10px; }
-        .subtitle { color: #666; font-size: 1.1em; }
-        .section { background: #fff; padding: 25px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { color: #2196f3; margin-top: 20px; margin-bottom: 15px; border-bottom: 2px solid #42a5f5; padding-bottom: 10px; }
-        h3 { color: #1976d2; margin-top: 20px; margin-bottom: 10px; }
-        .guide-box { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; border-radius: 4px; margin: 15px 0; }
-        .tip-box { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; border-radius: 4px; margin: 15px 0; }
-        .warning-box { background: #fff3e0; padding: 15px; border-left: 4px solid #ff9800; border-radius: 4px; margin: 15px 0; }
-        .formula-box { background: #f3e5f5; padding: 15px; border-left: 4px solid #9c27b0; border-radius: 4px; margin: 15px 0; font-family: 'Courier New', monospace; }
-        .diagram { background: #f9f9f9; padding: 15px; border: 2px solid #2196f3; border-radius: 4px; margin: 15px 0; font-family: monospace; font-size: 0.85em; }
-        .step-box { background: #c8e6c9; padding: 15px; border-left: 4px solid #2196f3; border-radius: 4px; margin: 15px 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%); color: #333; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        h1 { color: #2196f3; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
+        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .control-panel { background: #e3f2fd; padding: 20px; border-radius: 8px; border: 2px solid #2196f3; }
+        h2 { color: #2196f3; margin-bottom: 15px; font-size: 1.2em; }
+        h3 { color: #1976d2; margin-top: 15px; margin-bottom: 10px; font-size: 1em; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; margin: 5px 5px 5px 0; }
+        button { background: #2196f3; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; }
+        button:hover { background: #1976d2; }
+        button.secondary { background: #999; }
+        button.secondary:hover { background: #666; }
+        .results-box { background: #e3f2fd; padding: 15px; border-left: 4px solid #2196f3; border-radius: 4px; margin: 10px 0; }
+        .stat { background: #f5f5f5; padding: 12px; border-radius: 4px; text-align: center; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #2196f3; }
+        .stat-label { font-size: 0.85em; color: #666; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .chart-container { position: relative; height: 300px; margin: 20px 0; }
+        .performance-breakdown { background: #e8f5e9; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .io-stats { background: #e3f2fd; padding: 15px; border-radius: 4px; margin: 15px 0; border-left: 4px solid #2196f3; }
+        .metric { display: inline-block; margin: 5px 15px 5px 0; }
+        .metric-value { font-weight: bold; color: #2196f3; }
         table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background: #2196f3; color: white; }
         tr:hover { background: #f5f5f5; }
-        code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; }
-        ul, ol { margin-left: 20px; }
-        li { margin: 10px 0; }
-        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; }
-        .lab-section { background: #e3f2fd; padding: 20px; border: 2px dashed #2196f3; border-radius: 8px; margin: 20px 0; }
+        .slider-container { margin: 15px 0; }
+        .slider-label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #ddd; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
+        .timeline { background: #f9f9f9; padding: 15px; border: 2px solid #2196f3; border-radius: 4px; margin: 15px 0; font-family: monospace; font-size: 0.85em; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📚 Project 12: DMA and Disk I/O Operations - User Guide</h1>
-            <p class="subtitle">Complete Instructions for Analyzing Direct Memory Access Transfers & Interrupt Handling</p>
-            <p style="color: #999; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
+            <h1>💾 Project 12: DMA and Disk I/O Operations Simulator</h1>
+            <p class="subtitle">Analyze Direct Memory Access transfers, interrupt handling, and I/O bottlenecks</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
         </header>
 
-        <div class="section">
-            <h2>🎯 Quick Start (5 Minutes)</h2>
-            <div class="step-box">
-                <h3>Step 1: Open the Simulator</h3>
-                <p>Open <code>Project12_DMA_Simulator.html</code> in your web browser.</p>
+        <div class="grid">
+            <div class="card control-panel">
+                <h2>🎮 Configuration & Control</h2>
+                
+                <h3>I/O Configuration</h3>
+                <div>
+                    <label>Workload:</label>
+                    <select id="workload">
+                        <option value="seq_ssd">Workload 1: Sequential SSD Read</option>
+                        <option value="random_hdd">Workload 2: Random HDD Read</option>
+                        <option value="network">Workload 3: Network I/O (10 Gbps)</option>
+                        <option value="mixed">Workload 4: Mixed Disk + Network</option>
+                        <option value="burst">Workload 5: Burst Write (Checkpoint)</option>
+                        <option value="interactive" selected>Workload 6: Interactive Query Mix</option>
+                    </select>
+                </div>
+
+                <h3>DMA Controller Setup</h3>
+                <div>
+                    <label>DMA Channels:</label>
+                    <select id="dmaChannels">
+                        <option value="1">1 channel</option>
+                        <option value="2">2 channels</option>
+                        <option value="4" selected>4 channels</option>
+                        <option value="8">8 channels</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Queue Depth per Channel:</label>
+                    <select id="queueDepth">
+                        <option value="4">4 entries</option>
+                        <option value="8" selected>8 entries</option>
+                        <option value="16">16 entries</option>
+                        <option value="32">32 entries</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Block Size:</label>
+                    <select id="blockSize">
+                        <option value="4">4 KB</option>
+                        <option value="16" selected>16 KB</option>
+                        <option value="64">64 KB</option>
+                        <option value="256">256 KB</option>
+                    </select>
+                </div>
+
+                <h3>Interrupt Handling</h3>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Coalescing Factor: <strong id="coalescingLabel">10</strong></span>
+                    </div>
+                    <input type="range" id="coalescing" min="1" max="100" value="10" class="slider">
+                </div>
+                <div>
+                    <label>ISR Latency (μs):</label>
+                    <input type="number" id="isrLatency" value="4" min="1" max="20" step="1" style="width: 80px;">
+                </div>
+
+                <h3>System Parameters</h3>
+                <div>
+                    <label>Disk Latency (μs):</label>
+                    <input type="number" id="diskLatency" value="100" min="10" max="10000" step="10" style="width: 100px;">
+                </div>
+                <div>
+                    <label>Disk Throughput (MB/s):</label>
+                    <input type="number" id="diskThroughput" value="500" min="50" max="5000" step="50" style="width: 100px;">
+                </div>
+                <div>
+                    <label>Memory Bandwidth (GB/s):</label>
+                    <input type="number" id="memBandwidth" value="100" min="10" max="500" step="10" style="width: 100px;">
+                </div>
+                <div>
+                    <label>Transfer Size (MB):</label>
+                    <select id="transferSize">
+                        <option value="1">1 MB</option>
+                        <option value="10" selected>10 MB</option>
+                        <option value="100">100 MB</option>
+                        <option value="1000">1 GB</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button onclick="runSimulation()">▶ Run Simulation</button>
+                    <button class="secondary" onclick="resetSimulation()">🔄 Reset</button>
+                </div>
             </div>
 
-            <div class="step-box">
-                <h3>Step 2: Configure Workload</h3>
-                <p>Select a workload from the dropdown:</p>
-                <ul>
-                    <li><strong>Workload 1:</strong> Sequential SSD Read (high throughput, low latency)</li>
-                    <li><strong>Workload 2:</strong> Random HDD Read (high latency variance, random access)</li>
-                    <li><strong>Workload 3:</strong> Network I/O (bursty, interrupt-heavy)</li>
-                    <li><strong>Workload 4:</strong> Mixed I/O (simultaneous disk + network)</li>
-                    <li><strong>Workload 5:</strong> Burst Write (checkpoint, sequential write)</li>
-                    <li><strong>Workload 6:</strong> Interactive Query (realistic mix)</li>
-                </ul>
-            </div>
-
-            <div class="step-box">
-                <h3>Step 3: Configure DMA Controller</h3>
-                <ul>
-                    <li><strong>DMA Channels:</strong> 1-8 (number of independent transfer channels)</li>
-                    <li><strong>Queue Depth:</strong> 4-32 (pending requests per channel)</li>
-                    <li><strong>Block Size:</strong> 4 KB - 256 KB (DMA transfer granularity)</li>
-                </ul>
-            </div>
-
-            <div class="step-box">
-                <h3>Step 4: Adjust I/O Parameters</h3>
-                <ul>
-                    <li><strong>Interrupt Coalescing:</strong> 1-100 (blocks per interrupt)</li>
-                    <li><strong>Disk Latency:</strong> 50-10,000 μs (seek + read time)</li>
-                    <li><strong>Disk Throughput:</strong> 50-5,000 MB/s</li>
-                </ul>
-            </div>
-
-            <div class="step-box">
-                <h3>Step 5: Run & Analyze</h3>
-                <p>Click <strong>▶ Run Simulation</strong>. The simulator calculates:</p>
-                <ul>
-                    <li><strong>Total Transfer Time:</strong> Wall-clock time for I/O</li>
-                    <li><strong>Effective Throughput:</strong> MB/s achieved</li>
-                    <li><strong>DMA Efficiency:</strong> % time actually transferring vs waiting</li>
-                    <li><strong>CPU Overhead:</strong> % CPU spent in interrupt handling</li>
-                    <li><strong>Interrupt Rate:</strong> Interrupts/sec (coalesced vs raw)</li>
-                    <li><strong>Memory Bandwidth Utilization:</strong> % of available interconnect</li>
-                    <li><strong>Bottleneck Identification:</strong> What limits performance</li>
-                </ul>
+            <div class="card" id="workloadInfo">
+                <h2>📋 Workload Details</h2>
+                <p id="workloadText" style="line-height: 1.8;">Select a workload to see details...</p>
             </div>
         </div>
 
-        <div class="section">
-            <h2>📖 Core Concepts</h2>
-
-            <h3>1. Programmed I/O (PIO) vs Direct Memory Access (DMA)</h3>
-            <div class="guide-box">
-                <h4>PIO: The Old Way (Slow!)</h4>
-                <div class="diagram">
-CPU does ALL data transfer work:
-
-int pio_read(int disk_addr, void *mem_addr, int size) {
-  write_to_disk_controller(CMD_READ, disk_addr);  // Tell disk to read
-  wait_for_disk_ready();                           // Poll or interrupt
-  
-  for (int i = 0; i < size; i++) {
-    char byte = read_from_disk_data_port();        // Read byte-by-byte
-    memory[mem_addr + i] = byte;                   // Write to memory
-  }
-  return size;
-}
-
-Problems:
-  - CPU BLOCKED during entire transfer
-  - Must read every single byte from disk port
-  - Must write every single byte to memory
-  - Terrible for modern speeds (disk ~500 MB/s, CPU can do ~50 GB/s!)
-
-Example: Read 1 GB with PIO @ 3.5 GHz
-  Time = 1,000,000,000 bytes × 10 cycles/byte ÷ 3.5 × 10^9 cycles/sec
-       = 2.86 seconds of CPU doing NOTHING but I/O!
-  CPU Utilization: 100% (not for computation, for data copying!)
+        <div class="card grid-full">
+            <h2>⚡ Performance Results</h2>
+            <div class="stats-grid">
+                <div class="stat">
+                    <div class="stat-value" id="totalTime">--</div>
+                    <div class="stat-label">Total Transfer Time</div>
                 </div>
-
-                <h4 style="margin-top: 20px;">DMA: The Smart Way (Fast!)</h4>
-                <div class="diagram">
-CPU initiates transfer, hardware does work:
-
-int dma_read(int disk_addr, void *mem_addr, int size) {
-  dma_descriptor_t desc = {
-    .src = disk_addr,
-    .dst = mem_addr,
-    .count = size
-  };
-  write_dma_descriptor(&desc);  // Tell DMA what to do (~1 μs CPU time)
-  return size;                   // CPU RETURNS IMMEDIATELY!
-  
-  // ... CPU does other work (compute, serve queries) ...
-  // ... Later, DMA sends interrupt when done ...
-}
-
-DMA controller handles:
-  - Sending read command to disk
-  - Waiting for disk latency
-  - Reading data from disk buffer
-  - Writing data to memory (via interconnect)
-  - Sending completion interrupt
-
-Benefits:
-  - CPU FREE for ~1-10 ms of transfer
-  - Only ~1-5 μs CPU time per transfer (ISR)
-  - CPU Utilization: <5% for I/O (95% available for queries!)
-
-Example: Read 1 GB with DMA @ 3.5 GHz
-  DMA transfer: 1 GB ÷ 500 MB/s = 2 seconds
-  Interrupts: 2 seconds ÷ 4 KB = 500,000 interrupts
-  With coalescing (10 blocks/int): 50,000 interrupts
-  CPU time: 50,000 × 4 μs = 200 ms = 0.2 seconds (0.6% CPU!)
-  
-Speedup: 2.86 s (PIO) → 2.2 s (DMA) = 30% faster overall
-         CPU freed: 2.86 s (PIO) → 0.2 s (DMA) = 93% CPU saved!
+                <div class="stat">
+                    <div class="stat-value" id="throughput">-- MB/s</div>
+                    <div class="stat-label">Effective Throughput</div>
                 </div>
-
-                <h4 style="margin-top: 15px;">Why DMA Matters</h4>
-                <table>
-                    <tr>
-                        <th>Aspect</th>
-                        <th>PIO</th>
-                        <th>DMA</th>
-                    </tr>
-                    <tr>
-                        <td>CPU Utilization (1 GB read)</td>
-                        <td>100% blocked for 2.86 seconds</td>
-                        <td>&lt; 1% for 2 seconds</td>
-                    </tr>
-                    <tr>
-                        <td>CPU Parallelism</td>
-                        <td>0 (no computation)</td>
-                        <td>Near 100% (full compute power)</td>
-                    </tr>
-                    <tr>
-                        <td>Queries Served (100 queries/sec)</td>
-                        <td>~0 queries during I/O</td>
-                        <td>~200 queries (minimal stall)</td>
-                    </tr>
-                    <tr>
-                        <td>Throughput (CPU + I/O)</td>
-                        <td>~350 MB/s (CPU limits)</td>
-                        <td>~500 MB/s (I/O throughput)</td>
-                    </tr>
-                    <tr>
-                        <td>Implementation Complexity</td>
-                        <td>Simple (~10 lines)</td>
-                        <td>Moderate (DMA controller + interrupts)</td>
-                    </tr>
-                </table>
+                <div class="stat">
+                    <div class="stat-value" id="dmaEfficiency">--</div>
+                    <div class="stat-label">DMA Efficiency</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="cpuOverhead">--</div>
+                    <div class="stat-label">CPU Overhead</div>
+                </div>
             </div>
+        </div>
 
-            <h3>2. DMA Architecture & Data Path</h3>
-            <div class="guide-box">
-                <h4>DMA Transfer Process (Step-by-Step)</h4>
-                <div class="formula-box">
-DMA Transfer: 4 KB from SSD to Memory
-
-Step 1: CPU Setup (1-5 μs)
-  - CPU writes DMA descriptor to DMA controller
-  - Descriptor contains: source address, dest address, byte count
-  - Example: read from SSD (sector 12345) to memory (0x80000000)
-
-Step 2: DMA Controller Queuing (< 1 μs)
-  - DMA controller enqueues request in queue
-  - If DMA busy, request waits (queue depth limits pending requests)
-
-Step 3: Disk Access (100-8000 μs depending on disk)
-  - DMA sends read command to disk controller
-  - CPU is FREE during this time! (Can process queries, etc.)
-  - SSD: ~100 μs (fast, already positioned)
-  - HDD: ~8000 μs (slow, need seek + rotational latency)
-
-Step 4: Data Transfer (~ 8-80 μs for 4 KB)
-  - Disk controller receives data from media
-  - DMA controller reads from disk buffer
-  - DMA writes directly to main memory (via memory interconnect)
-  - Size ÷ Bandwidth = Time
-    4 KB ÷ 500 MB/s = 8 μs (SSD)
-    4 KB ÷ 100 MB/s = 40 μs (HDD)
-
-Step 5: Completion Interrupt (1-10 μs)
-  - DMA sends single interrupt to CPU (NOT per-byte!)
-  - CPU wakes up, runs Interrupt Service Routine
-
-Step 6: ISR (Interrupt Service Routine) (1-5 μs CPU time)
-  - CPU marks buffer as ready
-  - Queues callback/wakeup event
-  - Returns to previous task
-
-Total Time: 100-8000 μs (mostly disk latency, CPU free!)
-CPU Time: ~5 μs (just for setup + ISR)
-CPU Efficiency: 5 μs ÷ 8000 μs = 0.06% CPU (excellent!)
-                </formula-box>
-
-                <h4 style="margin-top: 15px;">Multi-Channel DMA</h4>
-                <p><strong>Key Advantage:</strong> Multiple independent transfers simultaneously</p>
-                <div class="diagram">
-8-Channel DMA Example (realistic modern system):
-
-Channels 0-3: Network NICs (2 × 10 Gbps) + Disk (NVMe)
-Channels 4-7: Additional Disks + Reserved
-
-Timeline (concurrent transfers):
-  0 μs:     CPU initiates:
-            - Channel 0: Read 10 MB from Disk 0 to buffer A
-            - Channel 1: Write 5 MB from buffer B to Disk 1
-            - Channel 2: Receive 2 MB packet from NIC
-            (All 3 happen in PARALLEL!)
-
-  100 μs:   Channel 2 completes packet (fast network)
-            └─ Sends interrupt, CPU processes network data
-            └─ Meanwhile, channels 0 & 1 still transferring!
-
-  10 ms:    Channel 0 completes disk read
-            └─ Sends interrupt
-            └─ Channel 1 still writing (overlapped!)
-
-  15 ms:    Channel 1 completes disk write
-            └─ All transfers done
-
-Sequential (without DMA):
-  0-100 μs:   Receive network (NIC)
-  100-10100:  Read disk 0 (waits for network done)
-  10100-15100: Write disk 1 (waits for disk 0 done)
-  Total: 15 ms (everything BLOCKED on each other!)
-
-With DMA:
-  Total: max(100, 10000, 15000) = 15 ms
-  BUT! CPU free the ENTIRE time!
-  AND! Better with fewer large blocks (Disk 0 + 1 can be concurrent too)
+        <div class="grid">
+            <div class="card">
+                <h2>📊 I/O Timeline & Breakdown</h2>
+                <div class="performance-breakdown">
+                    <table>
+                        <tr>
+                            <th>Component</th>
+                            <th>Time (μs)</th>
+                            <th>% of Total</th>
+                        </tr>
+                        <tr>
+                            <td>Disk Latency (seek/read)</td>
+                            <td id="diskLatTime">--</td>
+                            <td id="diskLatPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>DMA Transfer Time</td>
+                            <td id="transferTime">--</td>
+                            <td id="transferPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>Interrupt Handling</td>
+                            <td id="interruptTime">--</td>
+                            <td id="interruptPct">--</td>
+                        </tr>
+                        <tr>
+                            <td>Queue Waiting</td>
+                            <td id="queueTime">--</td>
+                            <td id="queuePct">--</td>
+                        </tr>
+                        <tr style="font-weight: bold; background: #e3f2fd;">
+                            <td>Total Time</td>
+                            <td id="totalTimeTable">--</td>
+                            <td id="totalPct">100%</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
 
-            <h3>3. Interrupt Handling & Overhead</h3>
-            <div class="guide-box">
-                <h4>Interrupt Service Routine (ISR) Latency Breakdown</h4>
-                <table>
-                    <tr>
-                        <th>Phase</th>
-                        <th>Time (μs)</th>
-                        <th>Why This Happens</th>
-                    </tr>
-                    <tr>
-                        <td>1. Interrupt Signal</td>
-                        <td>~0.1-0.5</td>
-                        <td>DMA → CPU signaling (electrical delay)</td>
-                    </tr>
-                    <tr>
-                        <td>2. Pipeline Flush</td>
-                        <td>~0.5-2.0</td>
-                        <td>CPU stops current work, drains 14-20 stage pipeline</td>
-                    </tr>
-                    <tr>
-                        <td>3. Context Save (registers)</td>
-                        <td>~0.5-1.0</td>
-                        <td>Push IP, flags, RAX, RBX, etc. to stack</td>
-                    </tr>
-                    <tr>
-                        <td>4. ISR Dispatch</td>
-                        <td>~0.1-0.2</td>
-                        <td>Lookup interrupt handler, jump to code</td>
-                    </tr>
-                    <tr>
-                        <td>5. ISR Execution</td>
-                        <td>~0.5-2.0</td>
-                        <td>Mark buffer, queue callbacks (actual work)</td>
-                    </tr>
-                    <tr>
-                        <td>6. Context Restore</td>
-                        <td>~0.5-1.0</td>
-                        <td>Pop registers, return to interrupted task</td>
-                    </tr>
-                    <tr style="background: #e3f2fd; font-weight: bold;">
-                        <td>TOTAL ISR LATENCY</td>
-                        <td>~3-7 (typically 4)</td>
-                        <td>All phases combined</td>
-                    </tr>
-                </table>
+            <div class="card">
+                <h2>🔀 Interrupt Analysis</h2>
+                <div class="io-stats">
+                    <div class="metric">
+                        <strong>Total Blocks:</strong> <span class="metric-value" id="totalBlocks">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Interrupt Rate (uncoa leced):</strong> <span class="metric-value" id="intRateRaw">--</span> /sec
+                    </div><br>
+                    <div class="metric">
+                        <strong>Coalescing Factor:</strong> <span class="metric-value" id="coalesceFactor">10</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Actual Interrupt Rate:</strong> <span class="metric-value" id="intRateCoal">--</span> /sec
+                    </div><br>
+                    <div class="metric">
+                        <strong>Interrupt Overhead:</strong> <span class="metric-value" id="intOverhead">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Avg Queue Depth:</strong> <span class="metric-value" id="avgQueue">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                <h4 style="margin-top: 15px;">Interrupt Coalescing (Crucial Optimization!)</h4>
-                <div class="guide-box">
-                    <h5>Problem: Too Many Interrupts!</h5>
-                    <div class="formula-box">
-Example: 10 Gbps network @ 1500-byte frames
-
-Frames/sec = 10 Gbps ÷ (1500 bytes × 8 bits/byte)
-           = 10,000,000,000 ÷ 12,000 = 833,333 frames/sec
-
-If 1 interrupt per frame:
-  CPU overhead = 833,333 frames/sec × 4 μs/interrupt
-               = 3,333 ms/sec = 333% (!!)
-  
-  CPU: Can't handle this many interrupts!
-  Result: Packet loss, network stalls, system collapse
-
-Solution: Coalesce multiple completions into 1 interrupt
-
-With Coalescing Factor = 10:
-  Actual interrupts = 833,333 ÷ 10 = 83,333 /sec
-  CPU overhead = 83,333 × 4 μs = 333 ms/sec = 33%
-  
-  Still high, increase to 100:
-  Actual interrupts = 8,333 /sec
-  CPU overhead = 8,333 × 4 μs = 33 ms/sec = 3.3%
-  
-  This is acceptable!
-
-Trade-off:
-  - No coalescing: Lower latency (each transfer notified immediately)
-  - Coalesce 10:   Latency +40 μs, CPU -300%
-  - Coalesce 100:  Latency +400 μs, CPU -330%
-  
-Best practice: Coalesce 10-50 blocks (balance latency vs CPU)
+        <div class="grid">
+            <div class="card">
+                <h2>💾 Memory & Bandwidth</h2>
+                <div class="io-stats">
+                    <div class="metric">
+                        <strong>Peak Memory BW Required:</strong> <span class="metric-value" id="peakMemBw">-- GB/s</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Available Memory BW:</strong> <span class="metric-value" id="availMemBw">-- GB/s</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>BW Utilization:</strong> <span class="metric-value" id="bwUtil">--</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Memory Bottleneck:</strong> <span class="metric-value" id="memBottleneck">None</span>
+                    </div><br>
+                    <div class="metric">
+                        <strong>Cache Line Flushes:</strong> <span class="metric-value" id="cacheFlushes">--</span>
                     </div>
                 </div>
             </div>
 
-            <h3>4. DMA Efficiency Metrics</h3>
-            <div class="guide-box">
-                <h4>Key Performance Indicators</h4>
-                <table>
-                    <tr>
-                        <th>Metric</th>
-                        <th>Definition</th>
-                        <th>Formula</th>
-                        <th>Good vs Bad</th>
-                    </tr>
-                    <tr>
-                        <td>DMA Efficiency</td>
-                        <td>% of time actually transferring</td>
-                        <td>Transfer time ÷ Total time × 100%</td>
-                        <td>>90% good, <70% investigate</td>
-                    </tr>
-                    <tr>
-                        <td>Transfer Latency</td>
-                        <td>Time from request to data ready</td>
-                        <td>Disk latency + Transfer time + ISR</td>
-                        <td><100 μs excellent, >1 ms poor</td>
-                    </tr>
-                    <tr>
-                        <td>Interrupt Overhead</td>
-                        <td>% CPU time in ISR</td>
-                        <td>(Interrupts/sec × ISR time) × 100%</td>
-                        <td><5% good, >20% bottleneck</td>
-                    </tr>
-                    <tr>
-                        <td>Memory BW Utilization</td>
-                        <td>% of available interconnect used</td>
-                        <td>(Actual MB/s ÷ Peak MB/s) × 100%</td>
-                        <td><80% good (headroom), >90% saturated</td>
-                    </tr>
-                    <tr>
-                        <td>Queue Depth</td>
-                        <td>Avg pending I/O requests</td>
-                        <td>Total requests in flight</td>
-                        <td>4-16 balanced, <2 underutilized, >32 risky</td>
-                    </tr>
-                </table>
+            <div class="card">
+                <h2>🎯 Optimization Recommendations</h2>
+                <div class="performance-breakdown" id="recommendations">
+                    <p>Run a simulation to see recommendations...</p>
+                </div>
+            </div>
+        </div>
 
-                <h4 style="margin-top: 15px;">Calculating DMA Efficiency</h4>
-                <div class="formula-box">
-Example: 100 MB transfer from 500 MB/s SSD
-
-Transfer time = 100 MB ÷ 500 MB/s = 200 ms (actual data movement)
-Disk latency = 100 μs (seek + read head position)
-Interrupt overhead (coalescing 10, 100 MB ÷ 4 KB = 25,000 blocks):
-  Interrupts = 25,000 ÷ 10 = 2,500
-  Interrupt time = 2,500 × 4 μs = 10 ms
-Queue wait = ~5 ms (if other DMA requests active)
-
-Total time = 100 μs + 200 ms + 10 ms + 5 ms = 215 ms
-
-DMA Efficiency = 200 ms ÷ 215 ms × 100% = 93%
-
-Interpretation:
-  - 93% of time is actual data transfer (good!)
-  - 5% waiting in queue
-  - 2% other overheads
-  
-To improve:
-  - Increase coalescing factor (reduce interrupt overhead)
-  - Use multi-channel DMA (reduce queue wait)
-  - Or, transfer is not bottleneck - check disk/network instead
+        <div class="grid">
+            <div class="card">
+                <h2>📈 DMA Efficiency vs Transfer Size</h2>
+                <div class="chart-container">
+                    <canvas id="efficiencyChart"></canvas>
                 </div>
             </div>
 
-            <h3>5. Bottleneck Analysis</h3>
-            <div class="guide-box">
-                <h4>Finding What Limits Performance</h4>
-                <table>
-                    <tr>
-                        <th>Bottleneck</th>
-                        <th>Symptoms</th>
-                        <th>Solution</th>
-                    </tr>
-                    <tr>
-                        <td>Disk Latency</td>
-                        <td>Disk latency time > 50% of total time</td>
-                        <td>Use faster storage (SSD vs HDD), prefetch, caching</td>
-                    </tr>
-                    <tr>
-                        <td>Interrupt Overhead</td>
-                        <td>CPU overhead > 10%, many small transfers</td>
-                        <td>Increase coalescing factor, larger blocks</td>
-                    </tr>
-                    <tr>
-                        <td>Memory Bandwidth</td>
-                        <td>BW utilization > 90%, other traffic on system</td>
-                        <td>Add memory channels, reduce other I/O, prioritize</td>
-                    </tr>
-                    <tr>
-                        <td>Queue Saturation</td>
-                        <td>Avg queue depth near max, requests delayed</td>
-                        <td>Add DMA channels, increase queue depth, prioritize</td>
-                    </tr>
-                    <tr>
-                        <td>CPU Stalls (Context Switch)</td>
-                        <td>ISR interrupts processing frequently</td>
-                        <td>Use threaded ISR, defer interrupt processing</td>
-                    </tr>
-                </table>
+            <div class="card">
+                <h2>⏱️ Time Breakdown Components</h2>
+                <div class="chart-container">
+                    <canvas id="timeBreakdownChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>🧪 Lab Experiments (Hands-On)</h2>
-
-            <div class="lab-section">
-                <h3>Experiment 1: PIO vs DMA Performance</h3>
-                <p><strong>Objective:</strong> Quantify the speedup from using DMA.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run <strong>Workload 1: Sequential SSD Read</strong> (100 MB)</li>
-                    <li>Note CPU overhead % and throughput</li>
-                    <li>Manually calculate PIO time: 100 MB × 10 cycles/byte ÷ 3.5 GHz</li>
-                    <li>Compare: PIO time vs DMA time</li>
-                </ol>
-                <p><strong>Expected Result:</strong> DMA is ~10-30× faster in CPU utilization (0.1% vs 3%)</p>
+        <div class="grid">
+            <div class="card grid-full">
+                <h2>📊 I/O Transfer Timeline (Single Block View)</h2>
+                <div class="timeline" id="timeline"></div>
             </div>
-
-            <div class="lab-section">
-                <h3>Experiment 2: Interrupt Coalescing Impact</h3>
-                <p><strong>Objective:</strong> Measure CPU overhead reduction with coalescing.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run <strong>Workload 3: Network I/O</strong></li>
-                    <li>Set coalescing to 1. Record CPU overhead %</li>
-                    <li>Increase to 10, then 50, then 100. Record each</li>
-                    <li>Plot: Coalescing factor (x) vs CPU overhead (y)</li>
-                </ol>
-                <p><strong>Expected Result:</strong> CPU overhead drops ~90% when going 1→100 coalescing</p>
-            </div>
-
-            <div class="lab-section">
-                <h3>Experiment 3: DMA Channels vs Throughput</h3>
-                <p><strong>Objective:</strong> Understand multi-channel parallelism.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run <strong>Workload 4: Mixed Disk + Network</strong></li>
-                    <li>Set DMA channels to 1. Record throughput, queue depth</li>
-                    <li>Increase to 2, 4, 8. Record metrics each time</li>
-                    <li>Calculate: Throughput scaling efficiency</li>
-                </ol>
-                <p><strong>Expected Result:</strong> Throughput should scale ~linearly up to 4-8 channels</p>
-            </div>
-
-            <div class="lab-section">
-                <h3>Experiment 4: Block Size Effect on Efficiency</h3>
-                <p><strong>Objective:</strong> Optimize block size for DMA transfers.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run <strong>Workload 1: Sequential SSD</strong></li>
-                    <li>Set block size to 4 KB. Record efficiency, interrupt rate</li>
-                    <li>Increase to 16 KB, 64 KB, 256 KB. Record each</li>
-                    <li>Find optimal block size</li>
-                </ol>
-                <p><strong>Expected Result:</strong> Efficiency improves (fewer interrupts) with larger blocks, but latency increases</p>
-            </div>
-
-            <div class="lab-section">
-                <h3>Experiment 5: Sequential vs Random I/O</h3>
-                <p><strong>Objective:</strong> Compare DMA efficiency for different access patterns.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run <strong>Workload 1: Sequential SSD</strong>. Record: latency, throughput, efficiency</li>
-                    <li>Run <strong>Workload 2: Random HDD</strong>. Record same metrics</li>
-                    <li>Compare: How does disk latency affect overall performance?</li>
-                </ol>
-                <p><strong>Expected Result:</strong> Random access has much higher latency (8000 vs 100 μs), but DMA still helps (CPU free!)</p>
-            </div>
-
-            <div class="lab-section">
-                <h3>Experiment 6: Memory Bandwidth Saturation</h3>
-                <p><strong>Objective:</strong> Understand interconnect limits.</p>
-                <p><strong>Procedure:</strong></p>
-                <ol>
-                    <li>Run any workload (Workload 5: Burst Write is good)</li>
-                    <li>Record memory BW utilization %</li>
-                    <li>Lower available memory BW in settings (from 100 GB/s to 50 GB/s)</li>
-                    <li>Re-run. How much does throughput drop?</li>
-                </ol>
-                <p><strong>Expected Result:</strong> Throughput stays same (disk throughput is limit), but utilization % rises; if BW really is limit, throughput drops</p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>💡 Tips & Troubleshooting</h2>
-
-            <div class="tip-box">
-                <h3>Understanding DMA Efficiency</h3>
-                <ul>
-                    <li>High disk latency (HDD) → Efficiency appears low, but CPU is FREE! Not necessarily bad.</li>
-                    <li>High interrupt rate → Reduce block size or increase coalescing</li>
-                    <li>Memory bandwidth bottleneck → Consider NVMe over HDD, or prioritize critical transfers</li>
-                    <li>Low queue depth → More DMA channels or concurrent transfers needed</li>
-                </ul>
-            </div>
-
-            <div class="tip-box">
-                <h3>Real-World Optimization Checklist</h3>
-                <ul>
-                    <li>✓ Enable DMA (never use PIO for bulk transfers)</li>
-                    <li>✓ Set appropriate coalescing (10-50 blocks typical)</li>
-                    <li>✓ Use large blocks when possible (64 KB+ reduces interrupts)</li>
-                    <li>✓ Multiple DMA channels (at least 4 for modern systems)</li>
-                    <li>✓ Queue depth ≥ 8 (prevent stalls)</li>
-                    <li>✓ Monitor memory bandwidth (should be <80% utilized)</li>
-                    <li>✓ Test with realistic workloads (mixed sequential + random)</li>
-                </ul>
-            </div>
-
-            <div class="warning-box">
-                <h3>Common Mistakes</h3>
-                <ul>
-                    <li><strong>Confusing efficiency with speed:</strong> Low efficiency (30%) with HDD just means disk is slow. DMA still freed CPU!</li>
-                    <li><strong>No coalescing:</strong> Leads to 1000+ interrupts/sec, CPU spends more time in ISR than transferring</li>
-                    <li><strong>Block size too small:</strong> 512 B blocks on 10 Gbps network = 20,000 interrupts/sec!</li>
-                    <li><strong>Ignoring memory bandwidth:</strong> Multiple DMA channels compete for interconnect; can saturate at >90%</li>
-                    <li><strong>Assuming DMA has no overhead:</strong> Interrupt handling is not free (~5 μs per interrupt)</li>
-                </ul>
-            </div>
-
-            <div class="tip-box">
-                <h3>Real-World Example: StorageFlow Optimization</h3>
-                <p><strong>Problem:</strong> Database server with 10 Gbps network, but only 2 GIPS throughput (20% of potential)</p>
-                <p><strong>Root Cause (Investigation):</strong></p>
-                <ol>
-                    <li>Run simulation with: Sequential SSD read, 100 MB, default settings</li>
-                    <li>Discover: CPU overhead 8%, interrupt rate 125,000/sec (too high!)</li>
-                    <li>Secondary: Memory BW only 50% utilized (headroom available)</li>
-                </ol>
-                <p><strong>Optimization Path:</strong></p>
-                <ol>
-                    <li><strong>Increase coalescing:</strong> 1 → 10
-                        <ul><li>Result: CPU overhead 8% → 1.2%, interrupt rate 12,500/sec</li></ul>
-                    </li>
-                    <li><strong>Larger block size:</strong> 4 KB → 64 KB
-                        <ul><li>Result: CPU overhead 1.2% → 0.3%, throughput +15%</li></ul>
-                    </li>
-                    <li><strong>More DMA channels:</strong> 2 → 8
-                        <ul><li>Result: Throughput +40% (parallel transfers)</li></ul>
-                    </li>
-                </ol>
-                <p><strong>Final Result:</strong> CPU overhead 8% → 0.3%, Throughput 2 GIPS → 3.5 GIPS (1.75× speedup!)</p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>📝 Assignment Questions</h2>
-            <p>Use the simulator to answer (show calculations):</p>
-            <ol>
-                <li><strong>DMA Latency Breakdown:</strong> Run Workload 1. Break down total time into components. Which dominates: disk latency, transfer time, or interrupt overhead?</li>
-                <li><strong>Coalescing Trade-off:</strong> For Workload 3 (network), measure CPU overhead at coalescing factors 1, 10, 100. Quantify: How much latency increase for 10× CPU reduction?</li>
-                <li><strong>Multi-Channel Benefit:</strong> Run Workload 4 (mixed) with 1, 2, 4, 8 DMA channels. Plot throughput vs channels. Is scaling linear? Why or why not?</li>
-                <li><strong>Memory Bandwidth Bottleneck:</strong> At what disk throughput does memory BW become the limiting factor? (Hint: Available BW is ~100 GB/s). Calculate threshold.</li>
-                <li><strong>PIO vs DMA Analysis:</strong> For 1 GB read, calculate: (a) Time with PIO (assume 10 cycles/byte), (b) Time with DMA (disk 500 MB/s, coalescing 10). CPU savings in seconds and percentage?</li>
-                <li><strong>Optimal Block Size:</strong> Run experiments with 4 KB, 16 KB, 64 KB, 256 KB blocks. Which is optimal for: (a) throughput, (b) latency, (c) efficiency? Justify.</li>
-                <li><strong>Real-World Scenario:</strong> You're building a storage server. Requirements: 10 GB/s throughput, <50 ms latency, <5% CPU overhead. Design DMA system: how many channels? What coalescing? What block size? Show calculations.</li>
-            </ol>
         </div>
 
         <div class="copyright">
@@ -636,5 +294,412 @@ To improve:
             All Rights Reserved | Educational Use Only
         </div>
     </div>
+
+    <script>
+        const workloadData = {
+            seq_ssd: {
+                name: 'Sequential SSD Read',
+                desc: 'Read 10 GB from SSD sequentially. Pattern: database table scan. High throughput, predictable.',
+                size: 10 * 1024,
+                diskLatency: 100,
+                diskThroughput: 500,
+                blockSize: 4,
+                coalescing: 10,
+                pattern: 'sequential',
+                interruptPenalty: 1.0
+            },
+            random_hdd: {
+                name: 'Random HDD Read',
+                desc: '10,000 random 4 KB reads from HDD. Pattern: random access queries. High latency variance.',
+                size: 40,
+                diskLatency: 8000,
+                diskThroughput: 100,
+                blockSize: 4,
+                coalescing: 1,
+                pattern: 'random',
+                interruptPenalty: 2.0
+            },
+            network: {
+                name: 'Network I/O (10 Gbps)',
+                desc: 'Receive 100 Mbps sustained network traffic. Pattern: distributed replication.',
+                size: 100,
+                diskLatency: 10,
+                diskThroughput: 100,
+                blockSize: 1.5,
+                coalescing: 20,
+                pattern: 'burst',
+                interruptPenalty: 1.5
+            },
+            mixed: {
+                name: 'Mixed Disk + Network',
+                desc: 'Simultaneous disk reads (500 MB/s) + network writes (1.25 GB/s).',
+                size: 50,
+                diskLatency: 100,
+                diskThroughput: 500,
+                blockSize: 4,
+                coalescing: 15,
+                pattern: 'mixed',
+                interruptPenalty: 1.8
+            },
+            burst: {
+                name: 'Burst Write (Checkpoint)',
+                desc: 'Write 100 GB to disk as fast as possible. Pattern: database checkpoint.',
+                size: 100 * 1024,
+                diskLatency: 50,
+                diskThroughput: 1000,
+                blockSize: 64,
+                coalescing: 50,
+                pattern: 'sequential',
+                interruptPenalty: 0.8
+            },
+            interactive: {
+                name: 'Interactive Query Mix',
+                desc: 'Mixture: 20% seq read, 30% random, 25% network, 15% write, 10% checkpoint.',
+                size: 150,
+                diskLatency: 500,
+                diskThroughput: 300,
+                blockSize: 4,
+                coalescing: 10,
+                pattern: 'mixed',
+                interruptPenalty: 1.5
+            }
+        };
+
+        let simulationState = {
+            totalTime: 0,
+            throughput: 0,
+            efficiency: 0,
+            cpuOverhead: 0,
+            blockCount: 0,
+            diskLatency: 0,
+            transferTime: 0,
+            intTime: 0,
+            queueTime: 0,
+            intRateRaw: 0,
+            intRateCoal: 0,
+            isrLatency: 4,
+            peakMemBw: 0.5,
+            memBandwidth: 100,
+            bwUtil: 0,
+            dmaChannels: 4,
+            queueDepth: 8,
+            blockSize: 4,
+            coalescing: 10,
+            avgQueueDepth: 0
+        };
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            updateWorkloadDefaults();
+        });
+
+        document.getElementById('coalescing').addEventListener('input', function() {
+            document.getElementById('coalescingLabel').textContent = this.value;
+        });
+
+        document.getElementById('workload').addEventListener('change', function() {
+            const wld = workloadData[this.value];
+            document.getElementById('workloadText').innerHTML = `
+                <strong>${wld.name}</strong><br><br>
+                ${wld.desc}
+            `;
+            updateWorkloadDefaults();
+        });
+
+        function updateWorkloadDefaults() {
+            const workload = document.getElementById('workload').value;
+            const data = workloadData[workload];
+            
+            document.getElementById('diskLatency').value = data.diskLatency;
+            document.getElementById('diskThroughput').value = data.diskThroughput;
+            document.getElementById('blockSize').value = data.blockSize;
+            document.getElementById('coalescing').value = data.coalescing;
+            document.getElementById('coalescingLabel').textContent = data.coalescing;
+        }
+
+        function runSimulation() {
+            const workload = document.getElementById('workload').value;
+            const dmaChannels = parseInt(document.getElementById('dmaChannels').value);
+            const queueDepth = parseInt(document.getElementById('queueDepth').value);
+            const blockSizeMB = parseFloat(document.getElementById('blockSize').value);
+            const coalescing = parseInt(document.getElementById('coalescing').value);
+            const isrLatency = parseInt(document.getElementById('isrLatency').value);
+            const diskLatency = parseInt(document.getElementById('diskLatency').value);
+            const diskThroughput = parseInt(document.getElementById('diskThroughput').value);
+            const memBandwidth = parseInt(document.getElementById('memBandwidth').value);
+            const transferSize = parseInt(document.getElementById('transferSize').value);
+
+            const wldData = workloadData[workload];
+
+            // Calculations
+            const blockCount = Math.ceil((transferSize * 1024) / blockSizeMB);
+            const transferTimePerBlock = (blockSizeMB / diskThroughput) * 1000000; // Convert to microseconds
+            const totalDiskLatency = diskLatency;
+            const totalTransferTime = (transferSize * 1024) / diskThroughput * 1000000; // in microseconds
+            
+            // Interrupt calculations
+            const intRateRaw = diskThroughput * 1000 / blockSizeMB; // interrupts per second (uncoa leced)
+            const intRateCoalesced = Math.max(1, intRateRaw / coalescing);
+            const intTimePerTransfer = intRateCoalesced * (isrLatency * 1000); // total interrupt time in microseconds
+            
+            // Queue waiting time (simplified: assume balanced load)
+            const avgChannelLoad = blockCount / dmaChannels;
+            const queueWaitTime = Math.max(0, (avgChannelLoad - queueDepth) * transferTimePerBlock * 0.1);
+
+            // Total time
+            const totalTime = totalDiskLatency + totalTransferTime + intTimePerTransfer + queueWaitTime;
+
+            // Metrics
+            const throughput = (transferSize * 1024 * 1000000) / totalTime; // MB/s
+            const efficiency = (totalTransferTime / (totalTime - queueWaitTime)) * 100;
+            const cpuOverheadMs = intTimePerTransfer / 1000;
+            const cpuOverheadPct = (intTimePerTransfer / totalTime) * 100;
+
+            // Memory bandwidth
+            const peakMemBw = diskThroughput / 1024;
+            const bwUtil = (peakMemBw / memBandwidth) * 100;
+
+            simulationState = {
+                blockCount: blockCount,
+                diskLatency: totalDiskLatency,
+                transferTime: totalTransferTime,
+                intTime: intTimePerTransfer,
+                queueTime: queueWaitTime,
+                totalTime: totalTime,
+                throughput: throughput,
+                efficiency: efficiency,
+                cpuOverhead: cpuOverheadPct,
+                intRateRaw: intRateRaw,
+                intRateCoal: intRateCoalesced,
+                isrLatency: isrLatency,
+                peakMemBw: peakMemBw,
+                memBandwidth: memBandwidth,
+                bwUtil: bwUtil,
+                dmaChannels: dmaChannels,
+                queueDepth: queueDepth,
+                blockSize: blockSizeMB,
+                coalescing: coalescing,
+                avgQueueDepth: Math.min(queueDepth, avgChannelLoad / dmaChannels)
+            };
+
+            updateDisplay();
+            updateCharts();
+        }
+
+        function updateDisplay() {
+            const s = simulationState;
+
+            // Main stats
+            document.getElementById('totalTime').textContent = 
+                s.totalTime < 1000 ? s.totalTime.toFixed(1) + ' μs' : 
+                (s.totalTime / 1000).toFixed(2) + ' ms';
+            document.getElementById('throughput').textContent = s.throughput.toFixed(1);
+            document.getElementById('dmaEfficiency').textContent = s.efficiency.toFixed(1) + '%';
+            document.getElementById('cpuOverhead').textContent = s.cpuOverhead.toFixed(2) + '%';
+
+            // Breakdown table
+            const pcts = {
+                disk: (s.diskLatency / s.totalTime) * 100,
+                transfer: (s.transferTime / s.totalTime) * 100,
+                interrupt: (s.intTime / s.totalTime) * 100,
+                queue: (s.queueTime / s.totalTime) * 100
+            };
+
+            document.getElementById('diskLatTime').textContent = s.diskLatency.toFixed(1);
+            document.getElementById('diskLatPct').textContent = pcts.disk.toFixed(1) + '%';
+            document.getElementById('transferTime').textContent = s.transferTime.toFixed(1);
+            document.getElementById('transferPct').textContent = pcts.transfer.toFixed(1) + '%';
+            document.getElementById('interruptTime').textContent = (s.intTime / 1000).toFixed(3) + ' ms';
+            document.getElementById('interruptPct').textContent = pcts.interrupt.toFixed(2) + '%';
+            document.getElementById('queueTime').textContent = s.queueTime.toFixed(1);
+            document.getElementById('queuePct').textContent = pcts.queue.toFixed(1) + '%';
+            document.getElementById('totalTimeTable').textContent = s.totalTime.toFixed(1) + ' μs';
+
+            // Interrupt stats
+            document.getElementById('totalBlocks').textContent = s.blockCount;
+            document.getElementById('intRateRaw').textContent = s.intRateRaw.toFixed(0);
+            document.getElementById('coalesceFactor').textContent = s.coalescing;
+            document.getElementById('intRateCoal').textContent = s.intRateCoal.toFixed(0);
+            document.getElementById('intOverhead').textContent = s.cpuOverhead.toFixed(2) + '%';
+            document.getElementById('avgQueue').textContent = s.avgQueueDepth.toFixed(2);
+
+            // Memory bandwidth
+            document.getElementById('peakMemBw').textContent = s.peakMemBw.toFixed(2);
+            document.getElementById('availMemBw').textContent = s.memBandwidth;
+            document.getElementById('bwUtil').textContent = s.bwUtil.toFixed(1) + '%';
+            
+            const bottleneck = s.bwUtil > 90 ? 'Memory BW' : 
+                             s.diskLatency / s.totalTime > 0.5 ? 'Disk Latency' : 
+                             s.intRateRaw > 20000 ? 'Interrupt Rate' : 'None';
+            document.getElementById('memBottleneck').textContent = bottleneck;
+
+            const cacheFlushes = Math.ceil(s.blockCount / 64);
+            document.getElementById('cacheFlushes').textContent = cacheFlushes;
+
+            // Timeline
+            generateTimeline();
+
+            // Recommendations
+            generateRecommendations();
+        }
+
+        function generateTimeline() {
+            const s = simulationState;
+            const transferTimePerBlock = (s.blockSize / s.peakMemBw * 1000000);
+            const totalWithTransfer = s.diskLatency + transferTimePerBlock;
+            const totalWithInterrupt = totalWithTransfer + s.isrLatency;
+            const cpuUtil = ((s.isrLatency + 1) / (s.diskLatency + transferTimePerBlock)) * 100;
+            const avgCpuPerformance = (s.intRateRaw * s.isrLatency / (s.totalTime / 1000000) * 100);
+            
+            let timeline = `Single Block Transfer Timeline (${s.blockSize} MB block):
+
+Time    Event
+────────────────────────────────────────────
+0 μs    CPU initiates DMA transfer
+        └─ Sends command to DMA controller (1 μs CPU time)
+
+1 μs    DMA controller processes (queued if busy)
+
+${s.diskLatency} μs    Disk latency expires, data ready in controller
+
+${totalWithTransfer.toFixed(0)} μs    DMA transfer complete (data in memory)
+
+${totalWithTransfer.toFixed(0)} μs    DMA sends interrupt to CPU
+
+${totalWithInterrupt.toFixed(0)} μs    CPU handles interrupt (${s.isrLatency} μs ISR)
+        └─ Mark buffer ready, queue next request
+
+${(totalWithInterrupt + 1).toFixed(0)} μs    Done! Ready for next transfer
+
+Breakdown:
+  - Disk latency:        ${s.diskLatency.toFixed(0)} μs (CPU free)
+  - Transfer time:       ${transferTimePerBlock.toFixed(1)} μs (CPU free, DMA doing work)
+  - CPU time total:      ~${(s.isrLatency + 1).toFixed(0)} μs (ISR)
+  - CPU utilization:     ~${cpuUtil.toFixed(2)}% (excellent!)
+
+With Coalescing (${s.coalescing} blocks per interrupt):
+  - Interrupts/sec:      ${s.intRateCoal.toFixed(0)} (vs ${s.intRateRaw.toFixed(0)} without)
+  - CPU overhead:        ${s.cpuOverhead.toFixed(2)}% (vs ${avgCpuPerformance.toFixed(2)}% without)`;
+            
+            document.getElementById('timeline').textContent = timeline;
+        }
+
+        function generateRecommendations() {
+            const s = simulationState;
+            let recommendations = '<ul style="margin-left: 20px;">';
+
+            if (s.cpuOverhead > 10) {
+                recommendations += '<li><strong>Reduce Interrupt Overhead:</strong> CPU overhead ' + s.cpuOverhead.toFixed(1) + '% is high. Increase coalescing factor from ' + s.coalescing + ' to ' + (s.coalescing * 2) + '.</li>';
+            }
+
+            if (s.intRateRaw > 50000) {
+                recommendations += '<li><strong>Too Many Interrupts:</strong> ' + s.intRateRaw.toFixed(0) + ' int/sec risks losing interrupts. Reduce block size or increase coalescing.</li>';
+            }
+
+            if (s.bwUtil > 90) {
+                recommendations += '<li><strong>Memory Bandwidth Limited:</strong> Using ' + s.bwUtil.toFixed(1) + '% of available BW. Add more memory channels or use wider interconnect.</li>';
+            }
+
+            if (s.diskLatency / s.totalTime > 0.5) {
+                recommendations += '<li><strong>Disk Latency Dominates:</strong> ' + (s.diskLatency / s.totalTime * 100).toFixed(0) + '% of time is disk latency. Use faster storage (e.g., NVMe, better SSD) or prefetch data.</li>';
+            }
+
+            if (s.efficiency < 70) {
+                recommendations += '<li><strong>Low DMA Efficiency:</strong> ' + s.efficiency.toFixed(1) + '% efficiency. Increase transfer size or reduce context switching (queue depth).</li>';
+            }
+
+            if (s.avgQueueDepth < 2 && s.dmaChannels > 1) {
+                recommendations += '<li><strong>Underutilized Channels:</strong> Average queue ' + s.avgQueueDepth.toFixed(1) + ' < 2 means some DMA channels are idle. Increase concurrent I/O requests.</li>';
+            }
+
+            if (s.throughput < 100) {
+                recommendations += '<li><strong>Low Throughput:</strong> ' + s.throughput.toFixed(1) + ' MB/s is suboptimal. Check bottleneck: is it disk, memory, or interrupts?</li>';
+            }
+
+            if (s.cpuOverhead < 2) {
+                recommendations += '<li><strong>Excellent DMA Usage!</strong> CPU overhead only ' + s.cpuOverhead.toFixed(2) + '%. DMA is working well, freeing CPU for computation.</li>';
+            }
+
+            recommendations += '</ul>';
+            document.getElementById('recommendations').innerHTML = recommendations;
+        }
+
+        let charts = {};
+
+        function updateCharts() {
+            const s = simulationState;
+
+            // Efficiency vs transfer size
+            const sizes = [1, 10, 100, 1000];
+            const efficiencies = sizes.map(size => {
+                const blockCount = size * 1024 / s.blockSize;
+                const transferTime = (size * 1024) / simulationState.peakMemBw * 1000000;
+                const intTime = blockCount / s.coalescing * s.isrLatency * 1000;
+                const totalTime = s.diskLatency + transferTime + intTime;
+                return (transferTime / (totalTime - intTime)) * 100;
+            });
+
+            const effCtx = document.getElementById('efficiencyChart').getContext('2d');
+            if(charts.efficiency) charts.efficiency.destroy();
+            charts.efficiency = new Chart(effCtx, {
+                type: 'line',
+                data: {
+                    labels: sizes.map(s => s + ' MB'),
+                    datasets: [{
+                        label: 'DMA Efficiency %',
+                        data: efficiencies,
+                        borderColor: '#2196f3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: { y: { min: 0, max: 100 } }
+                }
+            });
+
+            // Time breakdown
+            const breakdownCtx = document.getElementById('timeBreakdownChart').getContext('2d');
+            if(charts.breakdown) charts.breakdown.destroy();
+            
+            const breakdownData = [
+                s.diskLatency,
+                s.transferTime,
+                s.intTime,
+                s.queueTime
+            ];
+
+            charts.breakdown = new Chart(breakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Disk Latency', 'DMA Transfer', 'Interrupts', 'Queue Wait'],
+                    datasets: [{
+                        data: breakdownData,
+                        backgroundColor: ['#ef5350', '#42a5f5', '#ffa726', '#66bb6a'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function resetSimulation() {
+            location.reload();
+        }
+
+        // Initialize
+        updateWorkloadDefaults();
+        document.getElementById('workload').dispatchEvent(new Event('change'));
+    </script>
 </body>
 </html>
