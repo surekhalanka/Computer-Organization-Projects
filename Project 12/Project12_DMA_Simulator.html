@@ -41,11 +41,8 @@
         tr:hover { background: #f5f5f5; }
         .slider-container { margin: 15px 0; }
         .slider-label { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px; }
-        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #ddd; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
-        input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #2196f3; cursor: pointer; }
+        input[type="range"] { width: 100%; height: 6px; border-radius: 3px; background: #ddd; }
         .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
-        .timeline { background: #f9f9f9; padding: 15px; border: 2px solid #2196f3; border-radius: 4px; margin: 15px 0; font-family: monospace; font-size: 0.85em; }
     </style>
 </head>
 <body>
@@ -67,9 +64,9 @@
                         <option value="seq_ssd">Workload 1: Sequential SSD Read</option>
                         <option value="random_hdd">Workload 2: Random HDD Read</option>
                         <option value="network">Workload 3: Network I/O (10 Gbps)</option>
-                        <option value="mixed">Workload 4: Mixed Disk + Network</option>
+                        <option value="mixed" selected>Workload 4: Mixed Disk + Network</option>
                         <option value="burst">Workload 5: Burst Write (Checkpoint)</option>
-                        <option value="interactive" selected>Workload 6: Interactive Query Mix</option>
+                        <option value="interactive">Workload 6: Interactive Query Mix</option>
                     </select>
                 </div>
 
@@ -84,7 +81,7 @@
                     </select>
                 </div>
                 <div>
-                    <label>Queue Depth per Channel:</label>
+                    <label>Queue Depth:</label>
                     <select id="queueDepth">
                         <option value="4">4 entries</option>
                         <option value="8" selected>8 entries</option>
@@ -217,7 +214,7 @@
                         <strong>Total Blocks:</strong> <span class="metric-value" id="totalBlocks">--</span>
                     </div><br>
                     <div class="metric">
-                        <strong>Interrupt Rate (uncoa leced):</strong> <span class="metric-value" id="intRateRaw">--</span> /sec
+                        <strong>Interrupt Rate (raw):</strong> <span class="metric-value" id="intRateRaw">--</span> /sec
                     </div><br>
                     <div class="metric">
                         <strong>Coalescing Factor:</strong> <span class="metric-value" id="coalesceFactor">10</span>
@@ -240,7 +237,7 @@
                 <h2>💾 Memory & Bandwidth</h2>
                 <div class="io-stats">
                     <div class="metric">
-                        <strong>Peak Memory BW Required:</strong> <span class="metric-value" id="peakMemBw">-- GB/s</span>
+                        <strong>Peak Memory BW:</strong> <span class="metric-value" id="peakMemBw">-- GB/s</span>
                     </div><br>
                     <div class="metric">
                         <strong>Available Memory BW:</strong> <span class="metric-value" id="availMemBw">-- GB/s</span>
@@ -250,9 +247,6 @@
                     </div><br>
                     <div class="metric">
                         <strong>Memory Bottleneck:</strong> <span class="metric-value" id="memBottleneck">None</span>
-                    </div><br>
-                    <div class="metric">
-                        <strong>Cache Line Flushes:</strong> <span class="metric-value" id="cacheFlushes">--</span>
                     </div>
                 </div>
             </div>
@@ -265,29 +259,6 @@
             </div>
         </div>
 
-        <div class="grid">
-            <div class="card">
-                <h2>📈 DMA Efficiency vs Transfer Size</h2>
-                <div class="chart-container">
-                    <canvas id="efficiencyChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>⏱️ Time Breakdown Components</h2>
-                <div class="chart-container">
-                    <canvas id="timeBreakdownChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid">
-            <div class="card grid-full">
-                <h2>📊 I/O Transfer Timeline (Single Block View)</h2>
-                <div class="timeline" id="timeline"></div>
-            </div>
-        </div>
-
         <div class="copyright">
             © 2026 Dr. Surekha Lanka<br>
             Director, Department of BSC - Information Technology & Computer Science<br>
@@ -297,98 +268,30 @@
 
     <script>
         const workloadData = {
-            seq_ssd: {
-                name: 'Sequential SSD Read',
-                desc: 'Read 10 GB from SSD sequentially. Pattern: database table scan. High throughput, predictable.',
-                size: 10 * 1024,
-                diskLatency: 100,
-                diskThroughput: 500,
-                blockSize: 4,
-                coalescing: 10,
-                pattern: 'sequential',
-                interruptPenalty: 1.0
-            },
-            random_hdd: {
-                name: 'Random HDD Read',
-                desc: '10,000 random 4 KB reads from HDD. Pattern: random access queries. High latency variance.',
-                size: 40,
-                diskLatency: 8000,
-                diskThroughput: 100,
-                blockSize: 4,
-                coalescing: 1,
-                pattern: 'random',
-                interruptPenalty: 2.0
-            },
-            network: {
-                name: 'Network I/O (10 Gbps)',
-                desc: 'Receive 100 Mbps sustained network traffic. Pattern: distributed replication.',
-                size: 100,
-                diskLatency: 10,
-                diskThroughput: 100,
-                blockSize: 1.5,
-                coalescing: 20,
-                pattern: 'burst',
-                interruptPenalty: 1.5
-            },
-            mixed: {
-                name: 'Mixed Disk + Network',
-                desc: 'Simultaneous disk reads (500 MB/s) + network writes (1.25 GB/s).',
-                size: 50,
-                diskLatency: 100,
-                diskThroughput: 500,
-                blockSize: 4,
-                coalescing: 15,
-                pattern: 'mixed',
-                interruptPenalty: 1.8
-            },
-            burst: {
-                name: 'Burst Write (Checkpoint)',
-                desc: 'Write 100 GB to disk as fast as possible. Pattern: database checkpoint.',
-                size: 100 * 1024,
-                diskLatency: 50,
-                diskThroughput: 1000,
-                blockSize: 64,
-                coalescing: 50,
-                pattern: 'sequential',
-                interruptPenalty: 0.8
-            },
-            interactive: {
-                name: 'Interactive Query Mix',
-                desc: 'Mixture: 20% seq read, 30% random, 25% network, 15% write, 10% checkpoint.',
-                size: 150,
-                diskLatency: 500,
-                diskThroughput: 300,
-                blockSize: 4,
-                coalescing: 10,
-                pattern: 'mixed',
-                interruptPenalty: 1.5
-            }
+            seq_ssd: { name: 'Sequential SSD Read', desc: 'Read 10 GB from SSD. Database table scan.', size: 10240, diskLatency: 100, diskThroughput: 500, blockSize: 4, coalescing: 10 },
+            random_hdd: { name: 'Random HDD Read', desc: '10,000 random reads from HDD.', size: 40, diskLatency: 8000, diskThroughput: 100, blockSize: 4, coalescing: 1 },
+            network: { name: 'Network I/O (10 Gbps)', desc: 'Receive 100 Mbps traffic.', size: 100, diskLatency: 10, diskThroughput: 100, blockSize: 1.5, coalescing: 20 },
+            mixed: { name: 'Mixed Disk + Network', desc: 'Simultaneous disk reads + network writes.', size: 50, diskLatency: 100, diskThroughput: 500, blockSize: 4, coalescing: 15 },
+            burst: { name: 'Burst Write (Checkpoint)', desc: 'Write 100 GB to disk.', size: 102400, diskLatency: 50, diskThroughput: 1000, blockSize: 64, coalescing: 50 },
+            interactive: { name: 'Interactive Query Mix', desc: 'Mixed: 20% seq, 30% random, 25% network.', size: 150, diskLatency: 500, diskThroughput: 300, blockSize: 4, coalescing: 10 }
         };
 
-        let simulationState = {
-            totalTime: 0,
-            throughput: 0,
-            efficiency: 0,
-            cpuOverhead: 0
-        };
+        let simulationState = {};
 
+        // Event listeners
         document.getElementById('coalescing').addEventListener('input', function() {
             document.getElementById('coalescingLabel').textContent = this.value;
         });
 
         document.getElementById('workload').addEventListener('change', function() {
             const wld = workloadData[this.value];
-            document.getElementById('workloadText').innerHTML = `
-                <strong>${wld.name}</strong><br><br>
-                ${wld.desc}
-            `;
+            document.getElementById('workloadText').innerHTML = '<strong>' + wld.name + '</strong><br><br>' + wld.desc;
             updateWorkloadDefaults();
         });
 
         function updateWorkloadDefaults() {
             const workload = document.getElementById('workload').value;
             const data = workloadData[workload];
-            
             document.getElementById('diskLatency').value = data.diskLatency;
             document.getElementById('diskThroughput').value = data.diskThroughput;
             document.getElementById('blockSize').value = data.blockSize;
@@ -397,7 +300,6 @@
         }
 
         function runSimulation() {
-            const workload = document.getElementById('workload').value;
             const dmaChannels = parseInt(document.getElementById('dmaChannels').value);
             const queueDepth = parseInt(document.getElementById('queueDepth').value);
             const blockSizeMB = parseFloat(document.getElementById('blockSize').value);
@@ -408,39 +310,24 @@
             const memBandwidth = parseInt(document.getElementById('memBandwidth').value);
             const transferSize = parseInt(document.getElementById('transferSize').value);
 
-            const wldData = workloadData[workload];
-
-            // Calculations
             const blockCount = Math.ceil((transferSize * 1024) / blockSizeMB);
-            const transferTimePerBlock = (blockSizeMB / diskThroughput) * 1000000; // Convert to microseconds
-            const totalDiskLatency = diskLatency;
-            const totalTransferTime = (transferSize * 1024) / diskThroughput * 1000000; // in microseconds
-            
-            // Interrupt calculations
-            const intRateRaw = diskThroughput * 1000 / blockSizeMB; // interrupts per second (uncoa leced)
+            const totalTransferTime = (transferSize * 1024) / diskThroughput * 1000000;
+            const intRateRaw = (diskThroughput * 1000) / blockSizeMB;
             const intRateCoalesced = Math.max(1, intRateRaw / coalescing);
-            const intTimePerTransfer = intRateCoalesced * (isrLatency * 1000); // total interrupt time in microseconds
-            
-            // Queue waiting time (simplified: assume balanced load)
+            const intTimePerTransfer = intRateCoalesced * (isrLatency * 1000);
             const avgChannelLoad = blockCount / dmaChannels;
-            const queueWaitTime = Math.max(0, (avgChannelLoad - queueDepth) * transferTimePerBlock * 0.1);
+            const queueWaitTime = Math.max(0, (avgChannelLoad - queueDepth) * (blockSizeMB / diskThroughput) * 1000000 * 0.1);
+            const totalTime = diskLatency + totalTransferTime + intTimePerTransfer + queueWaitTime;
 
-            // Total time
-            const totalTime = totalDiskLatency + totalTransferTime + intTimePerTransfer + queueWaitTime;
-
-            // Metrics
-            const throughput = (transferSize * 1024 * 1000000) / totalTime; // MB/s
+            const throughput = (transferSize * 1024 * 1000000) / totalTime;
             const efficiency = (totalTransferTime / (totalTime - queueWaitTime)) * 100;
-            const cpuOverheadMs = intTimePerTransfer / 1000;
             const cpuOverheadPct = (intTimePerTransfer / totalTime) * 100;
-
-            // Memory bandwidth
             const peakMemBw = diskThroughput / 1024;
             const bwUtil = (peakMemBw / memBandwidth) * 100;
 
             simulationState = {
                 blockCount: blockCount,
-                diskLatency: totalDiskLatency,
+                diskLatency: diskLatency,
                 transferTime: totalTransferTime,
                 intTime: intTimePerTransfer,
                 queueTime: queueWaitTime,
@@ -462,16 +349,13 @@
             };
 
             updateDisplay();
-            updateCharts();
         }
 
         function updateDisplay() {
             const s = simulationState;
-
+            
             // Main stats
-            document.getElementById('totalTime').textContent = 
-                s.totalTime < 1000 ? s.totalTime.toFixed(1) + ' μs' : 
-                (s.totalTime / 1000).toFixed(2) + ' ms';
+            document.getElementById('totalTime').textContent = s.totalTime < 1000 ? s.totalTime.toFixed(1) + ' μs' : (s.totalTime / 1000).toFixed(2) + ' ms';
             document.getElementById('throughput').textContent = s.throughput.toFixed(1);
             document.getElementById('dmaEfficiency').textContent = s.efficiency.toFixed(1) + '%';
             document.getElementById('cpuOverhead').textContent = s.cpuOverhead.toFixed(2) + '%';
@@ -507,164 +391,19 @@
             document.getElementById('availMemBw').textContent = s.memBandwidth;
             document.getElementById('bwUtil').textContent = s.bwUtil.toFixed(1) + '%';
             
-            const bottleneck = s.bwUtil > 90 ? 'Memory BW' : 
-                             s.diskLatency / s.totalTime > 0.5 ? 'Disk Latency' : 
-                             s.intRateRaw > 20000 ? 'Interrupt Rate' : 'None';
+            const bottleneck = s.bwUtil > 90 ? 'Memory BW' : s.diskLatency / s.totalTime > 0.5 ? 'Disk Latency' : s.intRateRaw > 20000 ? 'Interrupt Rate' : 'None';
             document.getElementById('memBottleneck').textContent = bottleneck;
 
-            const cacheFlushes = Math.ceil(s.blockCount / 64);
-            document.getElementById('cacheFlushes').textContent = cacheFlushes;
-
-            // Timeline
-            generateTimeline();
-
             // Recommendations
-            generateRecommendations();
-        }
-
-        function generateTimeline() {
-            const s = simulationState;
-            let timeline = `
-<strong>Single Block Transfer Timeline (${s.blockSize} MB block):</strong>
-
-Time    Event
-────────────────────────────────────────────
-0 μs    CPU initiates DMA transfer
-        └─ Sends command to DMA controller (1 μs CPU time)
-
-1 μs    DMA controller processes (queued if busy)
-
-${s.diskLatency} μs    Disk latency expires, data ready in controller
-
-${(s.diskLatency + (s.blockSize / simulationState.peakMemBw) * 1000000 / 1000).toFixed(0)} μs    DMA transfer complete (data in memory)
-
-${(s.diskLatency + (s.blockSize / simulationState.peakMemBw) * 1000000 / 1000).toFixed(0)} μs    DMA sends interrupt to CPU
-
-${(s.diskLatency + (s.blockSize / simulationState.peakMemBw) * 1000000 / 1000 + s.isrLatency).toFixed(0)} μs    CPU handles interrupt (${s.isrLatency} μs ISR)
-        └─ Mark buffer ready, queue next request
-
-${(s.diskLatency + (s.blockSize / simulationState.peakMemBw) * 1000000 / 1000 + s.isrLatency + 1).toFixed(0)} μs    Done! Ready for next transfer
-
-Breakdown:
-  - Disk latency:        ${s.diskLatency.toFixed(0)} μs (CPU free)
-  - Transfer time:       ${(s.blockSize / simulationState.peakMemBw * 1000000).toFixed(1)} μs (CPU free, DMA doing work)
-  - CPU time total:      ~${(s.isrLatency + 1).toFixed(0)} μs (ISR)
-  - CPU utilization:     ~${((s.isrLatency + 1) / (s.diskLatency + (s.blockSize / simulationState.peakMemBw) * 1000000)) * 100).toFixed(2)}% (excellent!)
-
-With Coalescing (${s.coalescing} blocks per interrupt):
-  - Interrupts/sec:      ${s.intRateCoal.toFixed(0)} (vs ${s.intRateRaw.toFixed(0)} without)
-  - CPU overhead:        ${s.cpuOverhead.toFixed(2)}% (vs ${(s.intRateRaw * s.isrLatency / (s.totalTime / 1000000) * 100).toFixed(2)}% without)
-            `;
-            document.getElementById('timeline').textContent = timeline;
-        }
-
-        function generateRecommendations() {
-            const s = simulationState;
-            let recommendations = '<ul style="margin-left: 20px;">';
-
-            if (s.cpuOverhead > 10) {
-                recommendations += '<li><strong>Reduce Interrupt Overhead:</strong> CPU overhead ' + s.cpuOverhead.toFixed(1) + '% is high. Increase coalescing factor from ' + s.coalescing + ' to ' + (s.coalescing * 2) + '.</li>';
-            }
-
-            if (s.intRateRaw > 50000) {
-                recommendations += '<li><strong>Too Many Interrupts:</strong> ' + s.intRateRaw.toFixed(0) + ' int/sec risks losing interrupts. Reduce block size or increase coalescing.</li>';
-            }
-
-            if (s.bwUtil > 90) {
-                recommendations += '<li><strong>Memory Bandwidth Limited:</strong> Using ' + s.bwUtil.toFixed(1) + '% of available BW. Add more memory channels or use wider interconnect.</li>';
-            }
-
-            if (s.diskLatency / s.totalTime > 0.5) {
-                recommendations += '<li><strong>Disk Latency Dominates:</strong> ' + (s.diskLatency / s.totalTime * 100).toFixed(0) + '% of time is disk latency. Use faster storage (e.g., NVMe, better SSD) or prefetch data.</li>';
-            }
-
-            if (s.efficiency < 70) {
-                recommendations += '<li><strong>Low DMA Efficiency:</strong> ' + s.efficiency.toFixed(1) + '% efficiency. Increase transfer size or reduce context switching (queue depth).</li>';
-            }
-
-            if (s.avgQueueDepth < 2 && s.dmaChannels > 1) {
-                recommendations += '<li><strong>Underutilized Channels:</strong> Average queue ' + s.avgQueueDepth.toFixed(1) + ' < 2 means some DMA channels are idle. Increase concurrent I/O requests.</li>';
-            }
-
-            if (s.throughput < 100) {
-                recommendations += '<li><strong>Low Throughput:</strong> ' + s.throughput.toFixed(1) + ' MB/s is suboptimal. Check bottleneck: is it disk, memory, or interrupts?</li>';
-            }
-
-            if (s.cpuOverhead < 2) {
-                recommendations += '<li><strong>Excellent DMA Usage!</strong> CPU overhead only ' + s.cpuOverhead.toFixed(2) + '%. DMA is working well, freeing CPU for computation.</li>';
-            }
-
-            recommendations += '</ul>';
-            document.getElementById('recommendations').innerHTML = recommendations;
-        }
-
-        let charts = {};
-
-        function updateCharts() {
-            const s = simulationState;
-
-            // Efficiency vs transfer size
-            const sizes = [1, 10, 100, 1000];
-            const efficiencies = sizes.map(size => {
-                const blockCount = size * 1024 / s.blockSize;
-                const transferTime = (size * 1024) / simulationState.peakMemBw * 1000000;
-                const intTime = blockCount / s.coalescing * s.isrLatency * 1000;
-                const totalTime = s.diskLatency + transferTime + intTime;
-                return (transferTime / (totalTime - intTime)) * 100;
-            });
-
-            const effCtx = document.getElementById('efficiencyChart').getContext('2d');
-            if(charts.efficiency) charts.efficiency.destroy();
-            charts.efficiency = new Chart(effCtx, {
-                type: 'line',
-                data: {
-                    labels: sizes.map(s => s + ' MB'),
-                    datasets: [{
-                        label: 'DMA Efficiency %',
-                        data: efficiencies,
-                        borderColor: '#2196f3',
-                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: true } },
-                    scales: { y: { min: 0, max: 100 } }
-                }
-            });
-
-            // Time breakdown
-            const breakdownCtx = document.getElementById('timeBreakdownChart').getContext('2d');
-            if(charts.breakdown) charts.breakdown.destroy();
-            
-            const breakdownData = [
-                s.diskLatency,
-                s.transferTime,
-                s.intTime,
-                s.queueTime
-            ];
-
-            charts.breakdown = new Chart(breakdownCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Disk Latency', 'DMA Transfer', 'Interrupts', 'Queue Wait'],
-                    datasets: [{
-                        data: breakdownData,
-                        backgroundColor: ['#ef5350', '#42a5f5', '#ffa726', '#66bb6a'],
-                        borderColor: '#fff',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
-                }
-            });
+            let recs = '<ul style="margin-left: 20px;">';
+            if (s.cpuOverhead > 10) recs += '<li><strong>Reduce Interrupt Overhead:</strong> CPU overhead ' + s.cpuOverhead.toFixed(1) + '% is high. Increase coalescing.</li>';
+            if (s.intRateRaw > 50000) recs += '<li><strong>Too Many Interrupts:</strong> ' + s.intRateRaw.toFixed(0) + ' int/sec. Reduce block size or increase coalescing.</li>';
+            if (s.bwUtil > 90) recs += '<li><strong>Memory Bandwidth Limited:</strong> Using ' + s.bwUtil.toFixed(1) + '% of available BW.</li>';
+            if (s.diskLatency / s.totalTime > 0.5) recs += '<li><strong>Disk Latency Dominates:</strong> ' + (s.diskLatency / s.totalTime * 100).toFixed(0) + '% of time is disk latency.</li>';
+            if (s.efficiency < 70) recs += '<li><strong>Low DMA Efficiency:</strong> ' + s.efficiency.toFixed(1) + '%. Increase transfer size.</li>';
+            if (s.cpuOverhead < 2) recs += '<li><strong>Excellent DMA Usage!</strong> CPU overhead only ' + s.cpuOverhead.toFixed(2) + '%.</li>';
+            recs += '</ul>';
+            document.getElementById('recommendations').innerHTML = recs;
         }
 
         function resetSimulation() {
