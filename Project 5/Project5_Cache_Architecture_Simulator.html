@@ -3,212 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="author" content="Dr. Surekha Lanka">
-    <meta name="copyright" content="© 2026 Dr. Surekha Lanka. All rights reserved.">
     <title>Project 5: Cache Architecture Comparison Simulator</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #333; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-        header { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #333; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { background: #fff; padding: 25px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         h1 { color: #fa709a; margin-bottom: 5px; }
+        .subtitle { color: #999; font-size: 0.95em; }
         .controls { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .control-group { display: inline-block; margin-right: 30px; margin-bottom: 15px; }
+        .control-row { margin-bottom: 15px; }
+        .control-group { display: inline-block; margin-right: 30px; }
         .control-group label { display: block; font-weight: bold; margin-bottom: 5px; color: #fa709a; }
-        .control-group select, .control-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 1em; }
-        .control-group button { padding: 10px 20px; background: #fa709a; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .control-group button:hover { background: #ee5a7a; }
+        select, input, button { padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 0.95em; }
+        button { background: #fa709a; color: white; cursor: pointer; border: none; padding: 10px 20px; font-weight: bold; margin-top: 10px; }
+        button:hover { background: #ee5a7a; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .grid-full { grid-column: 1 / -1; }
         .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .card h2 { color: #fee140; margin-bottom: 15px; border-bottom: 2px solid #fa709a; padding-bottom: 10px; }
-        .cache-visual { background: #fef5e7; padding: 15px; border-radius: 4px; margin: 10px 0; }
-        .cache-line { display: grid; grid-template-columns: 0.8fr 1.2fr 1fr 1fr; gap: 10px; margin: 8px 0; padding: 10px; background: #e8f4f8; border-radius: 4px; border-left: 4px solid #fa709a; }
-        .cache-line.hit { border-left-color: #2ecc71; background: #d5f4e6; }
-        .cache-line.miss { border-left-color: #e74c3c; background: #fadbd8; }
+        .card h2 { color: #fa709a; margin-bottom: 15px; border-bottom: 2px solid #fa709a; padding-bottom: 10px; }
         .stats-box { background: #f0ffe7; padding: 15px; border-radius: 4px; margin: 10px 0; }
         .metric { display: flex; justify-content: space-between; margin: 8px 0; padding: 8px; background: #fff; border-radius: 3px; }
         .metric-label { font-weight: bold; color: #333; }
         .metric-value { color: #fa709a; font-weight: bold; }
-        .trace-table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin: 10px 0; }
-        .trace-table th { background: #fa709a; color: white; padding: 10px; text-align: left; }
-        .trace-table td { padding: 8px; border-bottom: 1px solid #ddd; }
-        .trace-table tr:hover { background: #f5f5f5; }
-        .trace-table tr.hit-row { background: #d5f4e6; }
-        .trace-table tr.miss-row { background: #fadbd8; }
-        .workload-desc { color: #666; font-size: 0.9em; margin: 10px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #fee140; }
         .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-        .comparison-table th { background: #fa709a; color: white; padding: 10px; }
-        .comparison-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
-        .copyright { text-align: center; color: #666; font-size: 0.9em; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }
+        .comparison-table th { background: #fa709a; color: white; padding: 10px; text-align: left; }
+        .comparison-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .comparison-table tr:hover { background: #f5f5f5; }
+        .trace-table { width: 100%; border-collapse: collapse; font-size: 0.85em; margin: 10px 0; }
+        .trace-table th { background: #fa709a; color: white; padding: 8px; text-align: left; }
+        .trace-table td { padding: 6px; border-bottom: 1px solid #ddd; }
+        .trace-table tr.hit { background: #d5f4e6; }
+        .trace-table tr.miss { background: #fadbd8; }
+        .workload-desc { color: #666; font-size: 0.9em; margin: 10px 0; padding: 10px; background: #f9f9f9; border-left: 3px solid #fee140; }
+        .copyright { text-align: center; color: #999; font-size: 0.85em; margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.3); border-radius: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>💾 Project 5: Cache Architecture Comparison Simulator</h1>
-            <p style="color: #999;">Analyze Direct-Mapped, Set-Associative, and Fully-Associative Caches</p>
-            <p style="color: #999; font-size: 0.9em;">© 2026 Dr. Surekha Lanka</p>
+            <p class="subtitle">Analyze Direct-Mapped, Set-Associative, and Fully-Associative Caches</p>
+            <p style="color: #999; font-size: 0.9em; margin-top: 10px;">© 2026 Dr. Surekha Lanka | Computer Organization Course</p>
         </header>
 
         <div class="controls">
             <h2 style="color: #fa709a; margin-bottom: 15px;">Configuration & Controls</h2>
             
-            <div class="control-group">
-                <label for="cacheSize">Cache Size (KB):</label>
-                <select id="cacheSize">
-                    <option value="8">8 KB</option>
-                    <option value="16">16 KB</option>
-                    <option value="32" selected>32 KB</option>
-                    <option value="64">64 KB</option>
-                </select>
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="cacheSize">Cache Size (KB):</label>
+                    <select id="cacheSize">
+                        <option value="8">8 KB</option>
+                        <option value="16">16 KB</option>
+                        <option value="32" selected>32 KB</option>
+                        <option value="64">64 KB</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="lineSize">Cache Line Size (bytes):</label>
+                    <select id="lineSize">
+                        <option value="32">32</option>
+                        <option value="64" selected>64</option>
+                        <option value="128">128</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="workload">Workload Type:</label>
+                    <select id="workload">
+                        <option value="uniform">Uniform Random</option>
+                        <option value="temporal" selected>Temporal Locality (Hot Pages)</option>
+                        <option value="spatial">Spatial Locality (Sequential)</option>
+                        <option value="worst">Worst Case (Conflict Misses)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="numAccesses">Number of Accesses:</label>
+                    <select id="numAccesses">
+                        <option value="100">100</option>
+                        <option value="500">500</option>
+                        <option value="1000" selected>1000</option>
+                        <option value="5000">5000</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="control-group">
-                <label for="lineSize">Cache Line Size (bytes):</label>
-                <select id="lineSize">
-                    <option value="32">32</option>
-                    <option value="64" selected>64</option>
-                    <option value="128">128</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="workload">Workload Type:</label>
-                <select id="workload">
-                    <option value="uniform">Uniform Random (Baseline)</option>
-                    <option value="temporal" selected>Temporal Locality (Hot Pages)</option>
-                    <option value="spatial">Spatial Locality (Sequential)</option>
-                    <option value="worst">Worst Case (Conflict Misses)</option>
-                </select>
-            </div>
-
-            <div class="control-group">
-                <label for="numAccesses">Number of Accesses:</label>
-                <select id="numAccesses">
-                    <option value="100">100</option>
-                    <option value="500">500</option>
-                    <option value="1000" selected>1000</option>
-                    <option value="5000">5000</option>
-                </select>
-            </div>
-
-            <br>
-
-            <div class="control-group">
-                <button onclick="runSimulation()">▶ Run Simulation</button>
-            </div>
-
-            <div class="control-group">
-                <button onclick="resetSimulation()">↻ Reset</button>
-            </div>
-
-            <div class="control-group">
-                <button onclick="exportData()">📥 Export Results</button>
-            </div>
+            <button onclick="runSimulation()">▶ Run Simulation</button>
+            <button onclick="resetSim()" style="background: #999;">🔄 Reset</button>
         </div>
 
-        <div class="workload-desc" id="workloadDesc"></div>
+        <div id="workloadDesc" class="workload-desc" style="display:none;"></div>
 
         <div class="grid">
-            <!-- Direct-Mapped Cache -->
             <div class="card">
-                <h2>Direct-Mapped Cache (1-way)</h2>
-                <div class="cache-visual" id="directMappedVisual"></div>
+                <h2>1️⃣ Direct-Mapped Cache (1-way)</h2>
                 <div class="stats-box">
                     <div class="metric">
                         <span class="metric-label">Hit Rate:</span>
-                        <span class="metric-value" id="dmHitRate">0.0%</span>
+                        <span class="metric-value" id="DMHitRate">0.0%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Hits / Misses:</span>
-                        <span class="metric-value" id="dmHitMiss">0 / 0</span>
+                        <span class="metric-value" id="DMHitMiss">0 / 0</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Avg Access Time:</span>
-                        <span class="metric-value" id="dmAAT">0.0 cycles</span>
+                        <span class="metric-value" id="DMAAT">0.0 cycles</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Total Cycles:</span>
-                        <span class="metric-value" id="dmTotalCycles">0</span>
+                        <span class="metric-value" id="DMTotalCycles">0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 2-Way Set-Associative Cache -->
             <div class="card">
-                <h2>2-Way Set-Associative Cache</h2>
-                <div class="cache-visual" id="twoWayVisual"></div>
+                <h2>2️⃣ 2-Way Set-Associative Cache</h2>
                 <div class="stats-box">
                     <div class="metric">
                         <span class="metric-label">Hit Rate:</span>
-                        <span class="metric-value" id="twHitRate">0.0%</span>
+                        <span class="metric-value" id="TWHitRate">0.0%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Hits / Misses:</span>
-                        <span class="metric-value" id="twHitMiss">0 / 0</span>
+                        <span class="metric-value" id="TWHitMiss">0 / 0</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Avg Access Time:</span>
-                        <span class="metric-value" id="twAAT">0.0 cycles</span>
+                        <span class="metric-value" id="TWAAT">0.0 cycles</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Total Cycles:</span>
-                        <span class="metric-value" id="twTotalCycles">0</span>
+                        <span class="metric-value" id="TWTotalCycles">0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 4-Way Set-Associative Cache -->
             <div class="card">
-                <h2>4-Way Set-Associative Cache</h2>
-                <div class="cache-visual" id="fourWayVisual"></div>
+                <h2>4️⃣ 4-Way Set-Associative Cache</h2>
                 <div class="stats-box">
                     <div class="metric">
                         <span class="metric-label">Hit Rate:</span>
-                        <span class="metric-value" id="fwHitRate">0.0%</span>
+                        <span class="metric-value" id="FWHitRate">0.0%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Hits / Misses:</span>
-                        <span class="metric-value" id="fwHitMiss">0 / 0</span>
+                        <span class="metric-value" id="FWHitMiss">0 / 0</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Avg Access Time:</span>
-                        <span class="metric-value" id="fwAAT">0.0 cycles</span>
+                        <span class="metric-value" id="FWAAT">0.0 cycles</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Total Cycles:</span>
-                        <span class="metric-value" id="fwTotalCycles">0</span>
+                        <span class="metric-value" id="FWTotalCycles">0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Fully-Associative Cache -->
             <div class="card">
-                <h2>Fully-Associative Cache</h2>
-                <div class="cache-visual" id="fullyAssocVisual"></div>
+                <h2>∞ Fully-Associative Cache</h2>
                 <div class="stats-box">
                     <div class="metric">
                         <span class="metric-label">Hit Rate:</span>
-                        <span class="metric-value" id="faHitRate">0.0%</span>
+                        <span class="metric-value" id="FAHitRate">0.0%</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Hits / Misses:</span>
-                        <span class="metric-value" id="faHitMiss">0 / 0</span>
+                        <span class="metric-value" id="FAHitMiss">0 / 0</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Avg Access Time:</span>
-                        <span class="metric-value" id="faAAT">0.0 cycles</span>
+                        <span class="metric-value" id="FAAAT">0.0 cycles</span>
                     </div>
                     <div class="metric">
                         <span class="metric-label">Total Cycles:</span>
-                        <span class="metric-value" id="faTotalCycles">0</span>
+                        <span class="metric-value" id="FATotalCycles">0</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Comparison Table -->
-        <div class="card">
+        <div class="card grid-full">
             <h2>📊 Architecture Comparison Summary</h2>
             <table class="comparison-table">
                 <tr>
@@ -233,7 +212,7 @@
                     <td id="comp-fa-aat">0 cy</td>
                 </tr>
                 <tr>
-                    <td><strong>Tag Comparators</strong></td>
+                    <td><strong>Hardware Cost (Comparators)</strong></td>
                     <td>1</td>
                     <td>2</td>
                     <td>4</td>
@@ -246,27 +225,19 @@
                     <td>1.3x</td>
                     <td>3.5x</td>
                 </tr>
-                <tr>
-                    <td><strong>Hit Time</strong></td>
-                    <td>1 cy</td>
-                    <td>1 cy</td>
-                    <td>1 cy</td>
-                    <td>2-3 cy</td>
-                </tr>
             </table>
         </div>
 
-        <!-- Access Trace -->
-        <div class="card">
+        <div class="card grid-full">
             <h2>📝 Access Trace (First 50 accesses)</h2>
             <table class="trace-table" id="traceTable">
                 <tr>
                     <th>Seq</th>
                     <th>Address (0x)</th>
-                    <th>DM Hit</th>
-                    <th>2-Way Hit</th>
-                    <th>4-Way Hit</th>
-                    <th>FA Hit</th>
+                    <th>DM</th>
+                    <th>2-Way</th>
+                    <th>4-Way</th>
+                    <th>FA</th>
                 </tr>
             </table>
         </div>
@@ -282,42 +253,31 @@
 
         function generateWorkload(type, numAccesses, cacheSize) {
             let accesses = [];
-            const maxAddr = cacheSize * 1024 * 10; // 10x cache size
+            const maxAddr = cacheSize * 1024 * 10;
 
-            switch(type) {
-                case 'uniform':
-                    // Uniform random access
-                    for (let i = 0; i < numAccesses; i++) {
-                        accesses.push(Math.floor(Math.random() * maxAddr));
+            if (type === 'uniform') {
+                for (let i = 0; i < numAccesses; i++) {
+                    accesses.push(Math.floor(Math.random() * maxAddr));
+                }
+            } else if (type === 'temporal') {
+                const hotSize = Math.floor(maxAddr * 0.2);
+                for (let i = 0; i < numAccesses; i++) {
+                    if (Math.random() < 0.8) {
+                        accesses.push(Math.floor(Math.random() * hotSize));
+                    } else {
+                        accesses.push(hotSize + Math.floor(Math.random() * (maxAddr - hotSize)));
                     }
-                    break;
-                case 'temporal':
-                    // 80% to 20% of addresses (hot pages)
-                    const hotSize = Math.floor(maxAddr * 0.2);
-                    for (let i = 0; i < numAccesses; i++) {
-                        if (Math.random() < 0.8) {
-                            // Hot 20%
-                            accesses.push(Math.floor(Math.random() * hotSize));
-                        } else {
-                            // Cold 80%
-                            accesses.push(hotSize + Math.floor(Math.random() * (maxAddr - hotSize)));
-                        }
-                    }
-                    break;
-                case 'spatial':
-                    // Sequential access
-                    for (let i = 0; i < numAccesses; i++) {
-                        accesses.push((i * 64) % maxAddr);
-                    }
-                    break;
-                case 'worst':
-                    // Conflicting addresses for direct-mapped
-                    const lineSize = parseInt(document.getElementById('lineSize').value);
-                    const cacheLines = (cacheSize * 1024) / lineSize;
-                    for (let i = 0; i < numAccesses; i++) {
-                        accesses.push((i % cacheLines) * cacheLines * lineSize);
-                    }
-                    break;
+                }
+            } else if (type === 'spatial') {
+                for (let i = 0; i < numAccesses; i++) {
+                    accesses.push((i * 64) % maxAddr);
+                }
+            } else if (type === 'worst') {
+                const lineSize = parseInt(document.getElementById('lineSize').value);
+                const cacheLines = (cacheSize * 1024) / lineSize;
+                for (let i = 0; i < numAccesses; i++) {
+                    accesses.push((i % cacheLines) * cacheLines * lineSize);
+                }
             }
             return accesses;
         }
@@ -354,22 +314,22 @@
             for (let addr of accesses) {
                 const lineAddr = Math.floor(addr / lineSize) * lineSize;
                 const setIdx = Math.floor(lineAddr / lineSize) % numSets;
+                const key = setIdx;
+                
+                if (!cache.has(key)) cache.set(key, []);
+                
+                const set = cache.get(key);
+                const found = set.indexOf(lineAddr);
 
-                if (!cache.has(setIdx)) cache.set(setIdx, []);
-                const set = cache.get(setIdx);
-
-                const found = set.findIndex(l => l === lineAddr);
                 if (found !== -1) {
                     hits++;
-                    // Move to front (LRU)
                     set.splice(found, 1);
                     set.unshift(lineAddr);
                 } else {
                     misses++;
+                    if (set.length >= ways) set.pop();
                     set.unshift(lineAddr);
-                    if (set.length > ways) set.pop();
                 }
-
                 trace.push(found !== -1);
             }
 
@@ -386,7 +346,7 @@
 
             for (let addr of accesses) {
                 const lineAddr = Math.floor(addr / lineSize) * lineSize;
-                const found = cache.findIndex(l => l === lineAddr);
+                const found = cache.indexOf(lineAddr);
 
                 if (found !== -1) {
                     hits++;
@@ -394,14 +354,14 @@
                     cache.unshift(lineAddr);
                 } else {
                     misses++;
+                    if (cache.length >= maxLines) cache.pop();
                     cache.unshift(lineAddr);
-                    if (cache.length > maxLines) cache.pop();
                 }
                 trace.push(found !== -1);
             }
 
             const hitRate = hits / accesses.length;
-            const aat = 2 + (misses / accesses.length) * MISS_PENALTY; // FA hit time = 2 cycles
+            const aat = 2 + (misses / accesses.length) * MISS_PENALTY;
             return { hits, misses, hitRate, aat, totalCycles: hits * 2 + misses * MISS_PENALTY, trace };
         }
 
@@ -411,15 +371,6 @@
             const workload = document.getElementById('workload').value;
             const numAccesses = parseInt(document.getElementById('numAccesses').value);
 
-            // Update workload description
-            const descriptions = {
-                uniform: '🎲 Uniform Random: Every address accessed with equal probability. Tests baseline cache performance.',
-                temporal: '🔥 Temporal Locality: 80% of accesses to 20% of pages (hot set). Realistic web workload.',
-                spatial: '📊 Spatial Locality: Sequential access pattern. Good for prefetching.',
-                worst: '⚠️ Worst Case: Addresses cause maximum conflicts in direct-mapped. Highlights associativity benefits.'
-            };
-            document.getElementById('workloadDesc').textContent = descriptions[workload];
-
             const accesses = generateWorkload(workload, numAccesses, cacheSize);
 
             const dm = simulateDirectMapped(accesses, cacheSize, lineSize);
@@ -427,13 +378,11 @@
             const fw = simulateSetAssociative(accesses, cacheSize, lineSize, 4);
             const fa = simulateFullyAssociative(accesses, cacheSize, lineSize);
 
-            // Update UI
             updateCard('DM', dm);
             updateCard('TW', tw);
             updateCard('FW', fw);
             updateCard('FA', fa);
 
-            // Update comparison table
             document.getElementById('comp-dm-hr').textContent = (dm.hitRate * 100).toFixed(1) + '%';
             document.getElementById('comp-tw-hr').textContent = (tw.hitRate * 100).toFixed(1) + '%';
             document.getElementById('comp-fw-hr').textContent = (fw.hitRate * 100).toFixed(1) + '%';
@@ -444,7 +393,6 @@
             document.getElementById('comp-fw-aat').textContent = fw.aat.toFixed(1) + ' cy';
             document.getElementById('comp-fa-aat').textContent = fa.aat.toFixed(1) + ' cy';
 
-            // Update trace table
             updateTraceTable(accesses, [dm, tw, fw, fa]);
         }
 
@@ -458,7 +406,7 @@
         function updateTraceTable(accesses, results) {
             const table = document.getElementById('traceTable');
             const maxRows = Math.min(50, accesses.length);
-            let html = '<tr><th>Seq</th><th>Address (0x)</th><th>DM Hit</th><th>2-Way Hit</th><th>4-Way Hit</th><th>FA Hit</th></tr>';
+            let html = '<tr><th>Seq</th><th>Address (0x)</th><th>DM</th><th>2-Way</th><th>4-Way</th><th>FA</th></tr>';
 
             for (let i = 0; i < maxRows; i++) {
                 const addr = accesses[i];
@@ -466,32 +414,15 @@
                 const twHit = results[1].trace[i] ? '✓' : '✗';
                 const fwHit = results[2].trace[i] ? '✓' : '✗';
                 const faHit = results[3].trace[i] ? '✓' : '✗';
-                const rowClass = results[0].trace[i] ? 'hit-row' : 'miss-row';
+                const rowClass = results[0].trace[i] ? 'hit' : 'miss';
                 html += `<tr class="${rowClass}"><td>${i+1}</td><td>${addr.toString(16).padStart(8, '0')}</td><td>${dmHit}</td><td>${twHit}</td><td>${fwHit}</td><td>${faHit}</td></tr>`;
             }
 
             table.innerHTML = html;
         }
 
-        function resetSimulation() {
-            document.getElementById('cacheSize').value = '32';
-            document.getElementById('lineSize').value = '64';
-            document.getElementById('workload').value = 'temporal';
-            document.getElementById('numAccesses').value = '1000';
-            document.getElementById('workloadDesc').textContent = '';
-
-            ['DM', 'TW', 'FW', 'FA'].forEach(p => {
-                document.getElementById(p + 'HitRate').textContent = '0.0%';
-                document.getElementById(p + 'HitMiss').textContent = '0 / 0';
-                document.getElementById(p + 'AAT').textContent = '0.0 cycles';
-                document.getElementById(p + 'TotalCycles').textContent = '0';
-            });
-
-            document.getElementById('traceTable').innerHTML = '<tr><th>Seq</th><th>Address (0x)</th><th>DM Hit</th><th>2-Way Hit</th><th>4-Way Hit</th><th>FA Hit</th></tr>';
-        }
-
-        function exportData() {
-            alert('Export feature: Copy metrics above to CSV/Excel for reporting.');
+        function resetSim() {
+            location.reload();
         }
     </script>
 </body>
