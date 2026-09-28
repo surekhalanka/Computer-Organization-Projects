@@ -26,10 +26,6 @@
         .metric-label { font-weight: bold; color: #333; }
         .metric-value { color: #667eea; font-weight: bold; }
         .chart-container { background: #f9f9f9; padding: 15px; border-radius: 4px; margin: 15px 0; }
-        .bar-chart { width: 100%; height: 300px; position: relative; margin: 20px 0; }
-        .bar { display: inline-block; margin: 0 10px; text-align: center; }
-        .bar-fill { background: linear-gradient(180deg, #667eea 0%, #764ba2 100%); border-radius: 4px 4px 0 0; }
-        .bar-label { font-size: 0.85em; margin-top: 5px; }
         .comparison-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
         .comparison-table th { background: #667eea; color: white; padding: 10px; }
         .comparison-table td { padding: 10px; border-bottom: 1px solid #ddd; text-align: center; }
@@ -49,7 +45,7 @@
 
         <div class="controls">
             <h2 style="color: #667eea; margin-bottom: 15px;">Configuration & Controls</h2>
-            
+
             <div class="control-group">
                 <label for="workload">Workload Type:</label>
                 <select id="workload">
@@ -100,7 +96,7 @@
             </div>
         </div>
 
-        <div class="workload-desc" id="workloadDesc"></div>
+        <div class="workload-desc" id="workloadDesc">Ready to start</div>
 
         <!-- Cache Size vs Hit Rate Chart -->
         <div class="card">
@@ -108,7 +104,7 @@
             <div id="hitRateChart" class="chart-container">
                 <canvas id="hrCanvas" style="width: 100%; height: 300px;"></canvas>
             </div>
-            <div class="knee-point" id="kneePoint"></div>
+            <div class="knee-point" id="kneePoint">Knee point will appear after running simulation</div>
         </div>
 
         <!-- Cache Size vs AAT Chart -->
@@ -202,7 +198,7 @@
     <script>
         const HIT_TIME = 1;
         const MISS_PENALTY = 100;
-        
+
         const CACHE_CONFIGS = [
             { size: 4, area: 2.5, power: 0.5 },
             { size: 8, area: 4, power: 0.8 },
@@ -217,10 +213,9 @@
 
         function generateVideoWorkload(type, numAccesses, cacheSize) {
             let accesses = [];
-            
+
             switch(type) {
                 case 'single':
-                    // Single 4K stream: predictable buffer access
                     const bufferSize = Math.min(2.5 * 1024 * 1024, cacheSize * 1024 * 10);
                     const hotSet = Math.floor(bufferSize / 64);
                     for (let i = 0; i < numAccesses; i++) {
@@ -228,7 +223,6 @@
                     }
                     break;
                 case 'multi':
-                    // 16 concurrent streams
                     const streamBufferSize = Math.min(2.5 * 1024 * 1024, cacheSize * 1024);
                     const streamsHotSet = Math.floor(streamBufferSize / 64);
                     for (let i = 0; i < numAccesses; i++) {
@@ -238,16 +232,15 @@
                     }
                     break;
                 case 'adaptive':
-                    // Variable resolution: 1MB to 2.5MB buffers
                     for (let i = 0; i < numAccesses; i++) {
-                        const resolution = i % 3; // 0=360p, 1=1080p, 2=4K
-                        const bufSize = [1, 1.5, 2.5][resolution] * 1024 * 1024;
+                        const resolution = i % 3;
+                        const bufSizes = [1, 1.5, 2.5];
+                        const bufSize = bufSizes[resolution] * 1024 * 1024;
                         const frames = Math.floor(bufSize / 64);
                         accesses.push((i % frames) * 64);
                     }
                     break;
                 case 'worst':
-                    // Rapid resolution switches
                     for (let i = 0; i < numAccesses; i++) {
                         const switch_period = 100;
                         const bufSize = (i % switch_period < 50) ? 1.5 * 1024 * 1024 : 2.5 * 1024 * 1024;
@@ -285,7 +278,7 @@
 
             const hitRate = hits / accesses.length;
             const aat = HIT_TIME + (misses / accesses.length) * MISS_PENALTY;
-            return { hits, misses, hitRate, aat, totalCycles: hits * HIT_TIME + misses * MISS_PENALTY };
+            return { hits: hits, misses: misses, hitRate: hitRate, aat: aat, totalCycles: hits * HIT_TIME + misses * MISS_PENALTY };
         }
 
         function runSimulation() {
@@ -294,7 +287,6 @@
             const associativity = parseInt(document.getElementById('associativity').value);
             const numAccesses = parseInt(document.getElementById('numAccesses').value);
 
-            // Update workload description
             const descriptions = {
                 single: '📺 Single 4K Stream: One video buffer, highly predictable access pattern.',
                 multi: '🎬 16 Concurrent Streams: Multiple buffers interleaved, capacity misses dominant.',
@@ -303,7 +295,6 @@
             };
             document.getElementById('workloadDesc').textContent = descriptions[workload];
 
-            // Run simulation for all cache sizes
             const results = [];
             for (let config of CACHE_CONFIGS) {
                 const accesses = generateVideoWorkload(workload, numAccesses, config.size);
@@ -315,7 +306,7 @@
                     hitRate: sim.hitRate,
                     aat: sim.aat,
                     totalCycles: sim.totalCycles,
-                    energyPerAccess: config.power * sim.aat / 3.0 // nJ at 3GHz
+                    energyPerAccess: config.power * sim.aat / 3.0
                 });
             }
 
@@ -325,13 +316,20 @@
         }
 
         function updateCharts(results) {
-            const sizes = results.map(r => r.size + ' KB');
-            const hitRates = results.map(r => (r.hitRate * 100).toFixed(1));
-            const aats = results.map(r => r.aat.toFixed(2));
-            const perfs = results.map(r => (r.hitRate / r.area).toFixed(2));
-            const energies = results.map(r => r.energyPerAccess.toFixed(1));
+            const sizes = [];
+            const hitRates = [];
+            const aats = [];
+            const perfs = [];
+            const energies = [];
 
-            // Hit Rate Chart
+            for (let r of results) {
+                sizes.push(r.size + ' KB');
+                hitRates.push((r.hitRate * 100).toFixed(1));
+                aats.push(r.aat.toFixed(2));
+                perfs.push((r.hitRate / r.area).toFixed(2));
+                energies.push(r.energyPerAccess.toFixed(1));
+            }
+
             if (hrChart) hrChart.destroy();
             const hrCtx = document.getElementById('hrCanvas').getContext('2d');
             hrChart = new Chart(hrCtx, {
@@ -350,7 +348,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
             });
 
-            // AAT Chart
             if (aatChart) aatChart.destroy();
             const aatCtx = document.getElementById('aatCanvas').getContext('2d');
             aatChart = new Chart(aatCtx, {
@@ -369,7 +366,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
             });
 
-            // Performance/Area Chart
             if (rcChart) rcChart.destroy();
             const rcCtx = document.getElementById('rcCanvas').getContext('2d');
             rcChart = new Chart(rcCtx, {
@@ -382,10 +378,9 @@
                         backgroundColor: 'rgba(102, 126, 234, 0.7)'
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: true } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
             });
 
-            // Energy Chart
             if (ecChart) ecChart.destroy();
             const ecCtx = document.getElementById('ecCanvas').getContext('2d');
             ecChart = new Chart(ecCtx, {
@@ -398,11 +393,11 @@
                         backgroundColor: 'rgba(118, 75, 162, 0.7)'
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'x', plugins: { legend: { display: true } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true } } }
             });
 
-            // Find knee point
-            let maxGain = 0, kneeSize = 0;
+            let maxGain = 0;
+            let kneeSize = 0;
             for (let i = 1; i < results.length; i++) {
                 const gain = (results[i].hitRate - results[i-1].hitRate) / (results[i].area - results[i-1].area);
                 if (gain > maxGain) {
@@ -410,37 +405,42 @@
                     kneeSize = results[i].size;
                 }
             }
-            document.getElementById('kneePoint').textContent = `💡 Knee Point (diminishing returns): ${kneeSize} KB cache size`;
+            document.getElementById('kneePoint').textContent = '💡 Knee Point (diminishing returns): ' + kneeSize + ' KB cache size';
         }
 
         function updateComparisonTable(results) {
-            let html = '';
-            for (let r of results) {
-                html += `<tr>
-                    <td><strong>${r.size} KB</strong></td>
-                    <td>${(r.hitRate * 100).toFixed(1)}%</td>
-                    <td>${r.aat.toFixed(2)}</td>
-                    <td>${r.totalCycles}</td>
-                    <td>${r.area}</td>
-                    <td>${r.power}</td>
-                    <td>${(r.hitRate / r.area).toFixed(2)}</td>
-                    <td>${r.energyPerAccess.toFixed(1)}</td>
-                </tr>`;
-            }
-            document.getElementById('comparisonBody').innerHTML = html;
+            const tbody = document.getElementById('comparisonBody');
+            tbody.innerHTML = '';
 
-            // Update best values
+            for (let r of results) {
+                const tr = document.createElement('tr');
+                const hitRatePercent = (r.hitRate * 100).toFixed(1);
+                const aatFixed = r.aat.toFixed(2);
+                const perfAreaFixed = (r.hitRate / r.area).toFixed(2);
+                const energyFixed = r.energyPerAccess.toFixed(1);
+
+                tr.innerHTML = '<td><strong>' + r.size + ' KB</strong></td>' +
+                    '<td>' + hitRatePercent + '%</td>' +
+                    '<td>' + aatFixed + '</td>' +
+                    '<td>' + r.totalCycles + '</td>' +
+                    '<td>' + r.area + '</td>' +
+                    '<td>' + r.power + '</td>' +
+                    '<td>' + perfAreaFixed + '</td>' +
+                    '<td>' + energyFixed + '</td>';
+                tbody.appendChild(tr);
+            }
+
             const bestRatio = Math.max(...results.map(r => r.hitRate / r.area));
             const bestRatioResult = results.find(r => r.hitRate / r.area === bestRatio);
             document.getElementById('bestRatio').textContent = bestRatio.toFixed(2);
             document.getElementById('bestSize').textContent = bestRatioResult.size + ' KB';
-            document.getElementById('gainPerMM').textContent = ((bestRatio * 100).toFixed(1)) + '%';
+            document.getElementById('gainPerMM').textContent = (bestRatio * 100).toFixed(1) + '%';
 
             const bestEnergy = Math.min(...results.map(r => r.energyPerAccess));
             const bestEnergyResult = results.find(r => r.energyPerAccess === bestEnergy);
             document.getElementById('bestEnergy').textContent = bestEnergyResult.size + ' KB';
             document.getElementById('energyVal').textContent = bestEnergy.toFixed(1) + ' nJ';
-            document.getElementById('powerOverhead').textContent = (bestEnergyResult.power).toFixed(1) + ' W';
+            document.getElementById('powerOverhead').textContent = bestEnergyResult.power.toFixed(1) + ' W';
         }
 
         function updateRecommendations(results) {
@@ -448,19 +448,18 @@
             const target95 = results.find(r => r.hitRate >= 0.95);
             const ideal = results.find(r => r.aat < 10);
 
-            let rec = `
-                <h3 style="color: #667eea;">Analysis Results</h3>
-                <ul style="margin-left: 20px;">
-                    <li><strong>Optimal Cache Size (Perf/Area):</strong> ${best.size} KB (ratio: ${(best.hitRate / best.area).toFixed(2)})</li>
-                    <li><strong>Minimum for 95% Hit Rate:</strong> ${target95 ? target95.size + ' KB' : 'Exceeds analysis range'}</li>
-                    <li><strong>For AAT &lt; 10 cycles:</strong> ${ideal ? ideal.size + ' KB' : 'Exceeds analysis range'}</li>
-                    <li><strong>Best Energy Efficiency:</strong> ${results[0].size} KB (lowest absolute energy)</li>
-                    <li><strong>Power Overhead:</strong> ${(results[results.length-1].power).toFixed(1)}W vs ${(results[0].power).toFixed(1)}W (largest cache)</li>
-                </ul>
-                <h3 style="color: #667eea; margin-top: 15px;">Conclusion</h3>
-                <p>${best.size} KB cache provides optimal balance: ${(best.hitRate * 100).toFixed(1)}% hit rate with ${(best.area).toFixed(1)} mm² area.</p>
-            `;
-            document.getElementById('recommendations').innerHTML = rec;
+            let recHtml = '<h3 style="color: #667eea;">Analysis Results</h3>' +
+                '<ul style="margin-left: 20px;">' +
+                '<li><strong>Optimal Cache Size (Perf/Area):</strong> ' + best.size + ' KB (ratio: ' + (best.hitRate / best.area).toFixed(2) + ')</li>' +
+                '<li><strong>Minimum for 95% Hit Rate:</strong> ' + (target95 ? target95.size + ' KB' : 'Exceeds analysis range') + '</li>' +
+                '<li><strong>For AAT < 10 cycles:</strong> ' + (ideal ? ideal.size + ' KB' : 'Exceeds analysis range') + '</li>' +
+                '<li><strong>Best Energy Efficiency:</strong> ' + results[0].size + ' KB (lowest absolute energy)</li>' +
+                '<li><strong>Power Overhead:</strong> ' + results[results.length-1].power.toFixed(1) + 'W vs ' + results[0].power.toFixed(1) + 'W (largest cache)</li>' +
+                '</ul>' +
+                '<h3 style="color: #667eea; margin-top: 15px;">Conclusion</h3>' +
+                '<p>' + best.size + ' KB cache provides optimal balance: ' + (best.hitRate * 100).toFixed(1) + '% hit rate with ' + best.area.toFixed(1) + ' mm² area.</p>';
+
+            document.getElementById('recommendations').innerHTML = recHtml;
         }
 
         function resetSimulation() {
@@ -468,9 +467,13 @@
             document.getElementById('lineSize').value = '64';
             document.getElementById('associativity').value = '4';
             document.getElementById('numAccesses').value = '5000';
-            document.getElementById('workloadDesc').textContent = '';
+            document.getElementById('workloadDesc').textContent = 'Ready to start';
             document.getElementById('recommendations').innerHTML = '<p style="color: #999;">Results will appear here after running simulation</p>';
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            resetSimulation();
+        });
     </script>
 </body>
 </html>
